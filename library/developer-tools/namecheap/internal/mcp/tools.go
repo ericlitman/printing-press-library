@@ -15,8 +15,8 @@ import (
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"namecheap-pp-cli/internal/cli"
-	"namecheap-pp-cli/internal/cliutil"
 	"namecheap-pp-cli/internal/client"
+	"namecheap-pp-cli/internal/cliutil"
 	"namecheap-pp-cli/internal/config"
 	"namecheap-pp-cli/internal/mcp/cobratree"
 	"namecheap-pp-cli/internal/store"
@@ -33,7 +33,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/check", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/check", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-create",
@@ -49,7 +49,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/create", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/create", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-dns-get-email-forwarding",
@@ -60,7 +60,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/dns/get-email-forwarding", []string{ }),
+		makeAPIHandler("GET", "/xml.response/dns/get-email-forwarding", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-dns-get-hosts",
@@ -72,7 +72,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/dns/get-hosts", []string{ }),
+		makeAPIHandler("GET", "/xml.response/dns/get-hosts", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-dns-get-list",
@@ -84,7 +84,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/dns/get-list", []string{ }),
+		makeAPIHandler("GET", "/xml.response/dns/get-list", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-dns-set-custom",
@@ -97,7 +97,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/dns/set-custom", []string{ }),
+		makeAPIHandler("GET", "/xml.response/dns/set-custom", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-dns-set-default",
@@ -109,7 +109,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/dns/set-default", []string{ }),
+		makeAPIHandler("GET", "/xml.response/dns/set-default", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-dns-set-hosts",
@@ -121,7 +121,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/dns/set-hosts", []string{ }),
+		makeAPIHandler("GET", "/xml.response/dns/set-hosts", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-get-contacts",
@@ -132,7 +132,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/get-contacts", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/get-contacts", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-get-info",
@@ -143,7 +143,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/get-info", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/get-info", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-get-list",
@@ -158,7 +158,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/get-list", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/get-list", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-get-registrar-lock",
@@ -169,7 +169,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/get-registrar-lock", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/get-registrar-lock", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-get-tld-list",
@@ -179,7 +179,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/get-tld-list", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/get-tld-list", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-renew",
@@ -192,7 +192,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/renew", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/renew", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_domains-set-registrar-lock",
@@ -204,7 +204,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/domains/set-registrar-lock", []string{ }),
+		makeAPIHandler("GET", "/xml.response/domains/set-registrar-lock", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_ssl-get-info",
@@ -216,7 +216,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/ssl/get-info", []string{ }),
+		makeAPIHandler("GET", "/xml.response/ssl/get-info", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_ssl-get-list",
@@ -230,7 +230,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/ssl/get-list", []string{ }),
+		makeAPIHandler("GET", "/xml.response/ssl/get-list", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_ssl-parse-csr",
@@ -242,7 +242,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/ssl/parse-csr", []string{ }),
+		makeAPIHandler("GET", "/xml.response/ssl/parse-csr", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_users-address-get-info",
@@ -253,7 +253,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/users/address/get-info", []string{ }),
+		makeAPIHandler("GET", "/xml.response/users/address/get-info", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_users-address-get-list",
@@ -263,7 +263,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/users/address/get-list", []string{ }),
+		makeAPIHandler("GET", "/xml.response/users/address/get-list", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_users-get-balances",
@@ -273,7 +273,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/users/get-balances", []string{ }),
+		makeAPIHandler("GET", "/xml.response/users/get-balances", []string{}),
 	)
 	s.AddTool(
 		mcplib.NewTool("xml-response_users-get-pricing",
@@ -287,7 +287,7 @@ func RegisterTools(s *server.MCPServer) {
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
-		makeAPIHandler("GET", "/xml.response/users/get-pricing", []string{ }),
+		makeAPIHandler("GET", "/xml.response/users/get-pricing", []string{}),
 	)
 	// SQL tool — ad-hoc analysis on synced data without API calls
 	s.AddTool(
@@ -378,19 +378,20 @@ func makeAPIHandler(method, pathTemplate string, positionalParams []string) serv
 			case strings.Contains(msg, "HTTP 409"):
 				return mcplib.NewToolResultText("already exists (no-op)"), nil
 			case strings.Contains(msg, "HTTP 400") && cliutil.LooksLikeAuthError(msg):
+				// PATCH(namecheap-api-key-env): point MCP auth failure hints at the env var config.Load actually reads.
 				return mcplib.NewToolResultError("authentication error: " + cliutil.SanitizeErrorBody(msg) +
 					"\nhint: the API rejected the request — this usually means auth is missing or invalid." +
-					"\n      Set your API key: export NAMECHEAP_API_KEY_QUERY=<your-key>" +
+					"\n      Set your API key: export NAMECHEAP_API_KEY=<your-key>" +
 					"\n      Run 'namecheap-pp-cli doctor' to check auth status."), nil
 			case strings.Contains(msg, "HTTP 401"):
 				return mcplib.NewToolResultError("authentication failed: " + cliutil.SanitizeErrorBody(msg) +
 					"\nhint: check your API key." +
-					"\n      Set it with: export NAMECHEAP_API_KEY_QUERY=<your-key>" +
+					"\n      Set it with: export NAMECHEAP_API_KEY=<your-key>" +
 					"\n      Run 'namecheap-pp-cli doctor' to check auth status."), nil
 			case strings.Contains(msg, "HTTP 403"):
 				return mcplib.NewToolResultError("permission denied: " + cliutil.SanitizeErrorBody(msg) +
 					"\nhint: your credentials are valid but lack access to this resource." +
-					"\n      Set it with: export NAMECHEAP_API_KEY_QUERY=<your-key>" +
+					"\n      Set it with: export NAMECHEAP_API_KEY=<your-key>" +
 					"\n      Run 'namecheap-pp-cli doctor' to check auth status."), nil
 			case strings.Contains(msg, "HTTP 404"):
 				if method == "DELETE" {
@@ -444,6 +445,7 @@ func dbPath() string {
 	home, _ := os.UserHomeDir()
 	return filepath.Join(home, ".local", "share", "namecheap-pp-cli", "data.db")
 }
+
 // Note: MCP tools use their own dbPath() because they are in a separate package (main, not cli).
 // The CLI's defaultDBPath() in the cli package uses the same canonical path.
 
@@ -506,21 +508,22 @@ func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToo
 			"type": "api_key",
 			"env_vars": []map[string]any{
 				{
-					"name": "NAMECHEAP_API_KEY_QUERY",
-					"kind": "per_call",
-					"required": true,
-					"sensitive": true,
+					// PATCH(namecheap-api-key-env): advertise the env var config.Load actually reads.
+					"name":        "NAMECHEAP_API_KEY",
+					"kind":        "per_call",
+					"required":    true,
+					"sensitive":   true,
 					"description": "Set to your API credential.",
 				},
 			},
 		},
 		"resources": []map[string]any{
 			{
-				"name": "xml-response",
+				"name":        "xml-response",
 				"description": "Manage xml response",
-				"endpoints": []string{"domains-check", "domains-create", "domains-dns-get-email-forwarding", "domains-dns-get-hosts", "domains-dns-get-list", "domains-dns-set-custom", "domains-dns-set-default", "domains-dns-set-hosts", "domains-get-contacts", "domains-get-info", "domains-get-list", "domains-get-registrar-lock", "domains-get-tld-list", "domains-renew", "domains-set-registrar-lock", "ssl-get-info", "ssl-get-list", "ssl-parse-csr", "users-address-get-info", "users-address-get-list", "users-get-balances", "users-get-pricing",  },
-				"syncable": true,
-				"searchable": true,
+				"endpoints":   []string{"domains-check", "domains-create", "domains-dns-get-email-forwarding", "domains-dns-get-hosts", "domains-dns-get-list", "domains-dns-set-custom", "domains-dns-set-default", "domains-dns-set-hosts", "domains-get-contacts", "domains-get-info", "domains-get-list", "domains-get-registrar-lock", "domains-get-tld-list", "domains-renew", "domains-set-registrar-lock", "ssl-get-info", "ssl-get-list", "ssl-parse-csr", "users-address-get-info", "users-address-get-list", "users-get-balances", "users-get-pricing"},
+				"syncable":    true,
+				"searchable":  true,
 			},
 		},
 		"query_tips": []string{

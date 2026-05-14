@@ -6,6 +6,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"namecheap-pp-cli/internal/config"
@@ -36,8 +37,8 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 			}
 
 			w := cmd.OutOrStdout()
-			header := cfg.AuthHeader()
-			authed := header != ""
+			// PATCH(namecheap-query-auth-status): Namecheap credentials are query params, not bearer headers.
+			authed := strings.TrimSpace(cfg.APIUser) != "" && strings.TrimSpace(cfg.APIKey) != ""
 			// JSON envelope: {authenticated, source, config}. When not
 			// authenticated, write the envelope first then return authErr
 			// so exit code carries the auth-failure signal.
@@ -59,7 +60,8 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 				fmt.Fprintln(w, red("Not authenticated"))
 				fmt.Fprintln(w, "")
 				fmt.Fprintln(w, "Set your token:")
-				fmt.Fprintln(w, "  export NAMECHEAP_API_KEY_QUERY=\"your-token-here\"")
+				// PATCH(namecheap-api-key-env): point users at the env var config.Load actually reads.
+				fmt.Fprintln(w, "  export NAMECHEAP_API_KEY=\"your-token-here\"")
 				fmt.Fprintf(w, "  namecheap-pp-cli auth set-token <token>\n")
 				return authErr(fmt.Errorf("no credentials configured"))
 			}
@@ -128,8 +130,9 @@ func newAuthLogoutCmd(flags *rootFlags) *cobra.Command {
 			// Identify which (if any) auth env var is still exported so the
 			// JSON envelope and the human prose can both surface it.
 			envStillSet := ""
-			if envStillSet == "" && os.Getenv("NAMECHEAP_API_KEY_QUERY") != "" {
-				envStillSet = "NAMECHEAP_API_KEY_QUERY"
+			// PATCH(namecheap-api-key-env): warn on the env var config.Load actually reads.
+			if envStillSet == "" && os.Getenv("NAMECHEAP_API_KEY") != "" {
+				envStillSet = "NAMECHEAP_API_KEY"
 			}
 
 			// JSON envelope: {cleared: true, note?: "<env_var> env var is still set"}.

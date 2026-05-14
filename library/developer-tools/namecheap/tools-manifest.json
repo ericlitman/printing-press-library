@@ -9,15 +9,31 @@
     "header": "ApiKey",
     "in": "query",
     "env_vars": [
-      "NAMECHEAP_API_KEY_QUERY"
+      "NAMECHEAP_USERNAME",
+      "NAMECHEAP_API_KEY",
+      "NAMECHEAP_CLIENT_IP"
     ],
     "env_var_specs": [
       {
-        "name": "NAMECHEAP_API_KEY_QUERY",
+        "name": "NAMECHEAP_USERNAME",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": false,
+        "inferred": false
+      },
+      {
+        "name": "NAMECHEAP_API_KEY",
         "kind": "per_call",
         "required": true,
         "sensitive": true,
-        "inferred": true
+        "inferred": false
+      },
+      {
+        "name": "NAMECHEAP_CLIENT_IP",
+        "kind": "per_call",
+        "required": false,
+        "sensitive": false,
+        "inferred": false
       }
     ]
   },

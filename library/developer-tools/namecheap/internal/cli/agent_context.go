@@ -105,7 +105,8 @@ reading source. Schema is versioned via schema_version.`,
 func buildAgentContext(rootCmd *cobra.Command) agentContext {
 	envVars := []agentContextAuthEnvVar{
 		{
-			Name:        "NAMECHEAP_API_KEY_QUERY",
+			// PATCH(namecheap-api-key-env): advertise the env var config.Load actually reads.
+			Name:        "NAMECHEAP_API_KEY",
 			Kind:        "per_call",
 			Required:    true,
 			Sensitive:   true,

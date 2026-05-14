@@ -93,9 +93,15 @@ func (c *Client) ProbeGet(path string) (int, error) {
 }
 
 func (c *Client) cacheKey(path string, params map[string]string) string {
+	// PATCH(namecheap-deterministic-cache-key): sort query parameters before hashing so read/write keys match.
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
 	key := path
-	for k, v := range params {
-		key += k + "=" + v
+	for _, k := range keys {
+		key += k + "=" + params[k]
 	}
 	h := sha256.Sum256([]byte(key))
 	return hex.EncodeToString(h[:8])

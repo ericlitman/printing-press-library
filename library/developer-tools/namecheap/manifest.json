@@ -15,17 +15,33 @@
       "command": "${__dirname}/bin/namecheap-pp-mcp",
       "args": [],
       "env": {
-        "NAMECHEAP_API_KEY_QUERY": "${user_config.namecheap_api_key_query}"
+        "NAMECHEAP_USERNAME": "${user_config.namecheap_username}",
+        "NAMECHEAP_API_KEY": "${user_config.namecheap_api_key}",
+        "NAMECHEAP_CLIENT_IP": "${user_config.namecheap_client_ip}"
       }
     }
   },
   "user_config": {
-    "namecheap_api_key_query": {
+    "namecheap_username": {
       "type": "string",
-      "title": "NAMECHEAP_API_KEY_QUERY",
-      "description": "Sets NAMECHEAP_API_KEY_QUERY for the Namecheap MCP server.",
+      "title": "NAMECHEAP_USERNAME",
+      "description": "Namecheap API username (also used as UserName).",
+      "sensitive": false,
+      "required": true
+    },
+    "namecheap_api_key": {
+      "type": "string",
+      "title": "NAMECHEAP_API_KEY",
+      "description": "Namecheap API key. Namecheap requires it as a query parameter.",
       "sensitive": true,
       "required": true
+    },
+    "namecheap_client_ip": {
+      "type": "string",
+      "title": "NAMECHEAP_CLIENT_IP",
+      "description": "Whitelisted public client IP. Optional; the CLI can auto-detect it when omitted, but explicit is safer in CI.",
+      "sensitive": false,
+      "required": false
     }
   },
   "compatibility": {
