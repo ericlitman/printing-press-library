@@ -38,7 +38,7 @@ func newReportSubmitCmd(flags *rootFlags) *cobra.Command {
 			inScope := false
 			if len(programs) > 0 {
 				for _, s := range scopesFromProgram(programs[0]) {
-					if parsed["asset"] != "" && strings.Contains(parsed["asset"], s.Asset) {
+					if parsed["asset"] != "" && assetInScope(parsed["asset"], s.Asset) {
 						inScope = true
 					}
 				}
