@@ -221,6 +221,34 @@ func scopesFromProgram(obj map[string]any) []scopeAsset {
 	return extractScopesFromProgram(obj)
 }
 
+// PATCH(asset-in-scope-helper): wildcard-aware scope matcher used by report submission
+// and any future in-scope checks. The previous strings.Contains-based check matched
+// only exact substrings, so a wildcard scope like *.example.com never matched a
+// concrete asset like api.example.com.
+func assetInScope(asset, scope string) bool {
+	a := strings.ToLower(strings.TrimSpace(asset))
+	s := strings.ToLower(strings.TrimSpace(scope))
+	if a == "" || s == "" {
+		return false
+	}
+	if a == s {
+		return true
+	}
+	if strings.HasPrefix(s, "*.") {
+		bare := s[2:]
+		if bare == "" {
+			return false
+		}
+		// Wildcards cover both the apex (example.com matches *.example.com)
+		// and any subdomain (api.example.com matches *.example.com).
+		if a == bare {
+			return true
+		}
+		return strings.HasSuffix(a, "."+bare)
+	}
+	return false
+}
+
 func extractScopesFromSnapshot(raw json.RawMessage) []scopeAsset {
 	var obj map[string]any
 	if json.Unmarshal(raw, &obj) != nil {

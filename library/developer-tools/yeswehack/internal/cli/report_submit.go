@@ -1,5 +1,8 @@
 // Copyright 2026 matt-van-horn. Licensed under Apache-2.0. See LICENSE.
 // PATCH: Add guarded report submission with local validation and dry-run default.
+// PATCH(asset-in-scope-helper): use wildcard-aware assetInScope helper (defined in
+// transcend_helpers.go) instead of strings.Contains, which never matched *.foo.com
+// wildcard scopes against concrete assets like api.foo.com.
 
 package cli
 
