@@ -273,8 +273,13 @@ func sortHitsByScore(hits []topicHit) {
 
 // filterActiveOnly drops Kalshi series whose events are all closed or
 // settled. The store joins kalshi_events to kalshi_series via the
-// series_ticker JSON field, so existence of any active event under the
-// series ticker is the cheap inclusion check.
+// series_ticker JSON field, so existence of any UNRESOLVED event under
+// the series ticker is the cheap inclusion check. Both event-status and
+// market-status are checked: Kalshi events use status values "open"
+// (event is accepting bets, listed but not started) and "settled" (event
+// has resolved). Some series ship only markets without parent events;
+// in that case the kalshi_markets fallback looks for any market with
+// status='active'.
 func filterActiveOnly(ctx context.Context, db *sql.DB, hits []topicHit) []topicHit {
 	out := make([]topicHit, 0, len(hits))
 	for _, h := range hits {
@@ -286,12 +291,13 @@ func filterActiveOnly(ctx context.Context, db *sql.DB, hits []topicHit) []topicH
 		row := db.QueryRowContext(ctx, `SELECT COUNT(1) FROM resources
 WHERE resource_type='kalshi_events'
 AND json_extract(data,'$.series_ticker') = ?
+AND COALESCE(json_extract(data,'$.status'), 'open') NOT IN ('settled','closed','resolved','finalized')
 LIMIT 1`, h.ID)
 		if err := row.Scan(&count); err != nil || count == 0 {
-			// Fall back to kalshi_markets check when no events row exists
-			// for the series — some series ship only markets, not parent
-			// events. A live market under the series ticker counts as
-			// active.
+			// Fall back to kalshi_markets check when no live event row
+			// exists for the series. Some series ship only markets, not
+			// parent events; an active market under the series ticker
+			// counts as active.
 			marketRow := db.QueryRowContext(ctx, `SELECT COUNT(1) FROM resources
 WHERE resource_type='kalshi_markets'
 AND json_extract(data,'$.series_ticker') = ?

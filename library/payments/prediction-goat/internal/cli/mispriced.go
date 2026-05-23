@@ -106,10 +106,18 @@ ORDER BY CAST(COALESCE(json_extract(data,'$.volume_24h_fp'),0) AS REAL) DESC LIM
 	considered := 0
 	untradedSkipped := 0
 	maxDelta := 0.0
+	// usedKalshi tracks indices already paired so two differently-worded
+	// Polymarket markets for the same event don't both pair to the same
+	// Kalshi market, double-counting the implied divergence. Matches the
+	// pairCompareMarkets guard in compare.go.
+	usedKalshi := make(map[int]bool, len(kalshiMarkets))
 	for _, pm := range pmMarkets {
 		bestIdx := -1
 		bestScore := 0.0
 		for i, kalshi := range kalshiMarkets {
+			if usedKalshi[i] {
+				continue
+			}
 			if score := tokenJaccard(pm.Title, kalshi.Title); score > bestScore {
 				bestIdx = i
 				bestScore = score
@@ -123,11 +131,15 @@ ORDER BY CAST(COALESCE(json_extract(data,'$.volume_24h_fp'),0) AS REAL) DESC LIM
 		// a real implied probability; pairing them with Polymarket markets
 		// produces false-positive divergence (e.g. Polymarket 6% vs an
 		// untraded Kalshi default of 17%). Skip them silently — the screen
-		// is for actionable cross-venue mispricings, not noise.
+		// is for actionable cross-venue mispricings, not noise. Don't mark
+		// the index used so a subsequent Polymarket market could still
+		// pair (in case a different PM title is the right match), but the
+		// candidate is dropped regardless.
 		if kalshi.Untraded {
 			untradedSkipped++
 			continue
 		}
+		usedKalshi[bestIdx] = true
 		considered++
 		delta := pm.YesProbability - kalshi.YesProbability
 		if math.Abs(delta) > math.Abs(maxDelta) {

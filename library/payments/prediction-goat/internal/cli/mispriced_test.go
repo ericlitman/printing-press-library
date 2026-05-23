@@ -66,15 +66,39 @@ func TestMispricedDropsSubThreshold(t *testing.T) {
 	}
 }
 
+// TestMispricedNoDoublePair locks the guard against the same Kalshi
+// market pairing with multiple Polymarket markets. Two PM titles for the
+// same WCF event must not both pair to the same Kalshi WCF market.
+func TestMispricedNoDoublePair(t *testing.T) {
+	t.Parallel()
+	pmMarkets := []rawMarket{
+		{Venue: "polymarket", ID: "p1", Title: "OKC wins NBA Western Conference Finals", YesProbability: 0.79},
+		{Venue: "polymarket", ID: "p2", Title: "OKC wins WCF over SAS", YesProbability: 0.80},
+	}
+	kalshiMarkets := []rawMarket{
+		{Venue: "kalshi", ID: "K1", Title: "OKC wins NBA Western Conference Finals", YesProbability: 0.65},
+	}
+	pairs := mispricedPairLoop(pmMarkets, kalshiMarkets, 0.05)
+	// Only one pair should land — the Kalshi market gets claimed by the
+	// first Polymarket match and is then off-limits for subsequent ones.
+	if len(pairs) != 1 {
+		t.Errorf("expected 1 pair (no double-claim), got %d", len(pairs))
+	}
+}
+
 // mispricedPairLoop is a tiny in-test mirror of the runMispriced pairing
 // loop without the DB plumbing. Keeps tests focused on the behavior
-// rather than the SQL machinery.
+// rather than the SQL machinery. Mirrors the usedKalshi guard.
 func mispricedPairLoop(pmMarkets, kalshiMarkets []rawMarket, threshold float64) []mispricedPair {
 	pairs := make([]mispricedPair, 0)
+	usedKalshi := make(map[int]bool, len(kalshiMarkets))
 	for _, pm := range pmMarkets {
 		bestIdx := -1
 		bestScore := 0.0
 		for i, kalshi := range kalshiMarkets {
+			if usedKalshi[i] {
+				continue
+			}
 			if score := tokenJaccard(pm.Title, kalshi.Title); score > bestScore {
 				bestIdx = i
 				bestScore = score
@@ -87,6 +111,7 @@ func mispricedPairLoop(pmMarkets, kalshiMarkets []rawMarket, threshold float64) 
 		if kalshi.Untraded {
 			continue
 		}
+		usedKalshi[bestIdx] = true
 		delta := pm.YesProbability - kalshi.YesProbability
 		if delta < 0 {
 			delta = -delta
