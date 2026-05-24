@@ -1,6 +1,8 @@
 package main
 
 import (
+	"go/parser"
+	"go/token"
 	"strings"
 	"testing"
 )
@@ -252,6 +254,105 @@ func TestAnchorBootstrap_SeedsStoreSchemaVersionWhenAbsent(t *testing.T) {
 	}
 	if !strings.Contains(got, "const StoreSchemaVersion = 3") {
 		t.Errorf("StoreSchemaVersion not seeded by bootstrap:\n%s", got)
+	}
+}
+
+// preU6WithHeaderCommentSnippet mirrors the espn / contact-goat shape:
+// store.go opens with a `// Package store ...` doc comment line and
+// only then declares `package store`. Earlier ensureStoreSchemaVersion
+// implementations spliced the const before the package declaration
+// because the leading-`\n` of `\npackage ` confused the line-end
+// search; this fixture pins the regression.
+const preU6WithHeaderCommentSnippet = `// Package store provides local SQLite persistence for demo-pp-cli.
+// Uses modernc.org/sqlite (pure Go, no CGO) for zero-dependency cross-compilation.
+package store
+
+import (
+	"database/sql"
+)
+
+func migrate() {
+	migrations := []string{
+		` + "`CREATE TABLE IF NOT EXISTS resources (id TEXT)`" + `,
+	}
+	_ = migrations
+}
+
+var _ *sql.DB
+`
+
+// TestEnsureStoreSchemaVersion_InsertsAfterPackageDecl_WhenAbsent
+// regression-pins Bug A from the U14 pilot sweep findings: when
+// store.go opens with a header comment, the previous splice logic
+// inserted `const StoreSchemaVersion = N` before the `package` line,
+// producing a file that failed to compile with
+// `expected 'package', found 'const'`. A second-pass shape produced
+// a Go file that compiled the `package store` line but inserted the
+// const between `package` and `import (`, tripping
+// `imports must appear before other declarations`. The fix must land
+// the const AFTER the import block (or after the package line when
+// no import block exists).
+func TestEnsureStoreSchemaVersion_InsertsAfterPackageDecl_WhenAbsent(t *testing.T) {
+	got := ensureStoreSchemaVersion(preU6WithHeaderCommentSnippet, learnSchemaVersion)
+
+	if !strings.Contains(got, "const StoreSchemaVersion = 3") {
+		t.Fatalf("const not inserted:\n%s", got)
+	}
+	// The package declaration must appear BEFORE the inserted const,
+	// not after it. A correct insertion has the package line, then
+	// imports, then the const.
+	pkgIdx := strings.Index(got, "package store")
+	importIdx := strings.Index(got, "import (")
+	constIdx := strings.Index(got, "const StoreSchemaVersion")
+	if pkgIdx < 0 {
+		t.Fatalf("package decl missing after insertion:\n%s", got)
+	}
+	if constIdx < 0 {
+		t.Fatalf("const missing after insertion:\n%s", got)
+	}
+	if constIdx < pkgIdx {
+		t.Fatalf("Bug A regression: const lands BEFORE package decl (pkgIdx=%d constIdx=%d)\n%s",
+			pkgIdx, constIdx, got)
+	}
+	if importIdx > 0 && constIdx < importIdx {
+		t.Fatalf("Bug A regression: const lands between package and import (constIdx=%d importIdx=%d)\n%s",
+			constIdx, importIdx, got)
+	}
+	// The pre-existing header comment must survive.
+	if !strings.Contains(got, "// Package store provides local SQLite persistence") {
+		t.Errorf("header comment dropped:\n%s", got)
+	}
+	// The inserted source must still parse as valid Go.
+	if _, err := parser.ParseFile(token.NewFileSet(), "store.go", got, parser.ParseComments); err != nil {
+		t.Errorf("ensureStoreSchemaVersion produced unparseable Go:\n%v\n---\n%s", err, got)
+	}
+}
+
+// TestEnsureStoreSchemaVersion_LeavesExistingConstAlone asserts the
+// existing-const path (the file already declares
+// `const StoreSchemaVersion = N`) is a no-op edit beyond a possible
+// version bump. Mirrors the path the anchor-mode code takes when a
+// CLI is re-swept.
+func TestEnsureStoreSchemaVersion_LeavesExistingConstAlone(t *testing.T) {
+	src := preU6WithHeaderCommentSnippet + "\nconst StoreSchemaVersion = 3\n"
+	got := ensureStoreSchemaVersion(src, learnSchemaVersion)
+	// Only one declaration must exist after the call.
+	count := strings.Count(got, "const StoreSchemaVersion")
+	if count != 1 {
+		t.Errorf("expected exactly one StoreSchemaVersion decl after ensure; got %d:\n%s",
+			count, got)
+	}
+}
+
+// TestEnsureStoreSchemaVersion_Idempotent asserts a second call on the
+// ensure output produces the same source: the first call inserts the
+// const, and a second call's regexp-bump path is a no-op when the
+// version already matches target.
+func TestEnsureStoreSchemaVersion_Idempotent(t *testing.T) {
+	first := ensureStoreSchemaVersion(preU6WithHeaderCommentSnippet, learnSchemaVersion)
+	second := ensureStoreSchemaVersion(first, learnSchemaVersion)
+	if first != second {
+		t.Errorf("ensureStoreSchemaVersion not idempotent:\nfirst:\n%s\nsecond:\n%s", first, second)
 	}
 }
 

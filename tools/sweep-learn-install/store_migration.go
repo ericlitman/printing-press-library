@@ -144,7 +144,60 @@ func patchStoreMigrations(src string, _ sweepCtx) (string, bool, error) {
 	// Bump StoreSchemaVersion to learnSchemaVersion if it's lower.
 	newSrc = bumpStoreSchemaVersion(newSrc, learnSchemaVersion)
 
+	// Older library CLIs don't expose Store.DB(); the sweep-emitted
+	// teach.go calls it directly so we back-fill here. Idempotent.
+	newSrc = ensureStoreDBAccessor(newSrc)
+
 	return newSrc, newSrc != src, nil
+}
+
+// hasStoreDBAccessor reports whether the file already declares a
+// `func (s *Store) DB() *sql.DB` method (or close variant). The
+// sweep-emitted teach.go calls s.DB() to get the underlying
+// *sql.DB; older published library CLIs predate this accessor and
+// need it back-filled by ensureStoreDBAccessor.
+func hasStoreDBAccessor(src string) bool {
+	// Conservative: match the canonical generator emission shape. A
+	// hand-written variant with a different return signature or
+	// receiver name would be on the operator to keep working.
+	return strings.Contains(src, ") DB() *sql.DB {") ||
+		strings.Contains(src, ") DB() *sql.DB{")
+}
+
+// ensureStoreDBAccessor appends `func (s *Store) DB() *sql.DB` to
+// store.go when missing. The accessor exposes the unexported `db`
+// field so internal/cli/teach.go (sweep-emitted) can pass the
+// underlying *sql.DB into the internal/learn package without
+// reaching across the package boundary. Idempotent: a second pass
+// detects the method via hasStoreDBAccessor and is a no-op.
+//
+// Refuses cleanly when the file does not declare a `*Store` receiver
+// elsewhere — the file may use a different Store name (rare, but
+// surfaceable as a refusal rather than a partial splice). The check
+// looks for `func (s *Store) ` as a stable signal of the canonical
+// shape.
+func ensureStoreDBAccessor(src string) string {
+	if hasStoreDBAccessor(src) {
+		return src
+	}
+	if !strings.Contains(src, "func (s *Store) ") {
+		// File doesn't use the canonical Store receiver name; leave
+		// alone so a downstream compile error surfaces the mismatch
+		// rather than the sweep emitting an out-of-shape accessor.
+		return src
+	}
+	accessor := "\n// DB exposes the underlying *sql.DB for callers that need to run\n" +
+		"// ad-hoc queries. Inserted by the sweep-learn-install retrofit;\n" +
+		"// the canonical generator template defines an equivalent.\n" +
+		"// Callers must not call Close on the returned handle.\n" +
+		"func (s *Store) DB() *sql.DB {\n" +
+		"\treturn s.db\n" +
+		"}\n"
+	out := src
+	if !strings.HasSuffix(out, "\n") {
+		out += "\n"
+	}
+	return out + accessor
 }
 
 // bootstrapLearnMigrations seeds the anchor + learn-migrations block
@@ -216,6 +269,10 @@ func bootstrapLearnMigrations(src string) (string, bool, error) {
 	// may not declare it at all; ensureStoreSchemaVersion adds it
 	// alongside the package declaration if missing.
 	newSrc = ensureStoreSchemaVersion(newSrc, learnSchemaVersion)
+
+	// Older library CLIs don't expose Store.DB(); the sweep-emitted
+	// teach.go calls it directly so we back-fill here. Idempotent.
+	newSrc = ensureStoreDBAccessor(newSrc)
 
 	return newSrc, newSrc != src, nil
 }
@@ -371,30 +428,70 @@ func bumpStoreSchemaVersion(src string, target int) string {
 // `const StoreSchemaVersion = target`. If a declaration is already
 // present, falls through to bumpStoreSchemaVersion. Otherwise inserts
 // a fresh `const StoreSchemaVersion = target` declaration right after
-// the package statement so bootstrap can run against pre-U6 store.go
-// files that never carried the constant.
+// the package's imports block (or right after the package declaration
+// when no imports block exists) so bootstrap can run against pre-U6
+// store.go files that never carried the constant. The const must
+// land AFTER the import block — placing it between `package` and
+// `import` produces `imports must appear before other declarations`.
 func ensureStoreSchemaVersion(src string, target int) string {
 	if storeSchemaVersionRe.MatchString(src) {
 		return bumpStoreSchemaVersion(src, target)
 	}
-	// Locate the package statement so we can splice the const right
-	// after it. Conservative: only patch when we can confidently find
-	// the package line.
-	pkgIdx := strings.Index(src, "\npackage ")
-	if pkgIdx < 0 && strings.HasPrefix(src, "package ") {
-		pkgIdx = 0
-	}
-	if pkgIdx < 0 {
-		// Cannot locate package statement; leave unchanged so a
-		// downstream compile failure surfaces the issue.
+	// Use the Go parser to locate the end of the imports block (or
+	// the end of the package keyword line when no imports exist).
+	// A regex-based search is too brittle here: a comment containing
+	// the word "package" or a string literal with `import (` would
+	// trip up a string scan.
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "store.go", src, parser.ParseComments)
+	if err != nil {
 		return src
 	}
-	// Find the end of the package line.
-	lineEnd := strings.Index(src[pkgIdx:], "\n")
-	if lineEnd < 0 {
+	if f.Name == nil {
 		return src
 	}
-	lineEnd += pkgIdx + 1
+
+	// Compute the byte offset just past the last import declaration's
+	// closing paren / line. If there are no imports, use the offset
+	// just past the package declaration's line.
+	var insertAt int
+	pkgLineEnd := fset.Position(f.Name.End()).Offset
+	// Advance to the end of the package-name line.
+	for pkgLineEnd < len(src) && src[pkgLineEnd] != '\n' {
+		pkgLineEnd++
+	}
+	if pkgLineEnd < len(src) {
+		pkgLineEnd++ // past the newline
+	}
+	insertAt = pkgLineEnd
+
+	for _, decl := range f.Decls {
+		gd, ok := decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.IMPORT {
+			continue
+		}
+		end := fset.Position(gd.End()).Offset
+		// Walk forward past the rest of the line so insertion does
+		// not split a `)` from its trailing newline.
+		for end < len(src) && src[end] != '\n' {
+			end++
+		}
+		if end < len(src) {
+			end++ // past the newline
+		}
+		if end > insertAt {
+			insertAt = end
+		}
+	}
+
+	// Skip past any blank line that follows so the const lands in
+	// conventional position (one blank line after either the imports
+	// block or the package declaration).
+	hasBlankAfter := insertAt < len(src) && src[insertAt] == '\n'
 	insertion := fmt.Sprintf("\n// StoreSchemaVersion is the on-disk schema version this binary understands.\nconst StoreSchemaVersion = %d\n", target)
-	return src[:lineEnd] + insertion + src[lineEnd:]
+	if hasBlankAfter {
+		insertAt++
+		insertion = fmt.Sprintf("// StoreSchemaVersion is the on-disk schema version this binary understands.\nconst StoreSchemaVersion = %d\n\n", target)
+	}
+	return src[:insertAt] + insertion + src[insertAt:]
 }
