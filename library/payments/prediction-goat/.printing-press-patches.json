@@ -75,6 +75,20 @@
       "upstream_issue": "Generator template for CLIs that maintain a local discovery index alongside a price-bearing upstream should adopt the live-on-read pattern by default."
     },
     {
+      "id": "select-paths-cheatsheet",
+      "summary": "Generate a per-command --select cheatsheet from JSON-tagged response structs and expose it via agent-context.commands.<name>.select_paths. Adds tools/select-paths-gen/, the generated internal/cli/select_paths.go, a drift-guard test, and a `which <cmd> --select-paths` flag. agent-context schema bumped 5->6.",
+      "reason": "Agents passing --select today guess dotted paths against response shapes they have not introspected; a wrong path returns {} silently (not an error), forcing re-fetches that burned ~25% of wall-clock on two of three smart-learning failure traces. The CLI already knows its response shapes (typed Go structs with JSON tags) — this patch surfaces them at agent-context time so an agent's first --select call lands. Per docs/plans/2026-05-23-002 section U7.",
+      "files": [
+        "internal/cli/select_paths.go",
+        "internal/cli/select_paths_test.go",
+        "internal/cli/agent_context.go",
+        "internal/cli/which.go",
+        "tools/select-paths-gen/main.go"
+      ],
+      "validated_outcome": "go test ./... passes (451 tests, 11 new across select_paths_test.go covering pinned commands, slice/pointer/embedded expansion, nested meta envelope, sort+unique invariants, agent-context round-trip, JSON marshal shape, and a generator drift guard). agent-context --pretty surfaces commands.topic.select_paths (22 entries) and commands.markets.subcommands[get-by-slug].select_paths (140 entries including question/slug/outcomes/outcomePrices/lastTradePrice/bestBid/bestAsk/volume/liquidity/endDate). `which markets get-by-slug --select-paths` dumps the same set. Running `go generate ./internal/cli/...` from either the CLI root or internal/cli/ produces zero diff.",
+      "upstream_issue": "Generator template should consider emitting per-CLI select-paths cheatsheets via the same build-time AST walk; pattern generalizes to any printed CLI with typed response structs."
+    },
+    {
       "id": "llm-driven-learning-pipeline",
       "summary": "Add `teach` (LLM-fired, silent, backgroundable) and `recall` (LLM-fired, pre-discovery) plus a rerank layer in topic/compare that applies the resulting boost/hide/alias rules. schema bumped 3->4 with the search_learnings table; agent-context schema bumped 4->5 to advertise the contract.",
       "reason": "The agent paid the 'took forever to find Portugal's ticker' tax on every session because the central FTS index has no signal that the LLM already found the right ticker last time. Now the LLM teaches the CLI at response-time with the user's natural-language question and the tickers that made it into the answer; future overlapping queries (token-set Jaccard >= 0.6) short-circuit discovery via `recall` and rerank surfaces the right tickers via the apply layer. Per-user, fire-and-forget, silent on success, inspectable via `learnings list`, undoable via `forget`, and disableable via --no-learn / PREDICTION_GOAT_NO_LEARN.",

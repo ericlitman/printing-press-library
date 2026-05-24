@@ -135,6 +135,7 @@ func whichScoreEntry(e whichEntry, query string, qTokens []string) int {
 
 func newWhichCmd(flags *rootFlags) *cobra.Command {
 	var limit int
+	var selectPaths bool
 	cmd := &cobra.Command{
 		Use:   "which [query]",
 		Short: "Find the command that implements a capability",
@@ -149,8 +150,16 @@ Exit codes:
 		Example: `  prediction-goat-pp-cli which "stale tickets"
   prediction-goat-pp-cli which "bottleneck"
   prediction-goat-pp-cli which --limit 1 "send message"
-  prediction-goat-pp-cli which                                # list the full capability index`,
+  prediction-goat-pp-cli which                                # list the full capability index
+  prediction-goat-pp-cli which markets get-by-slug --select-paths   # dump --select cheatsheet`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// --select-paths mode: dump the per-command cheatsheet for
+			// a single command and exit. The same map is also exposed
+			// via agent-context.commands.<name>.select_paths; this
+			// flag is the terminal-friendly view. See U7.
+			if selectPaths {
+				return runWhichSelectPaths(cmd, flags, args)
+			}
 			if len(whichIndex) == 0 {
 				return usageErr(fmt.Errorf("this CLI has no curated capability index; run '--help' to see every command"))
 			}
@@ -178,7 +187,45 @@ Exit codes:
 		},
 	}
 	cmd.Flags().IntVar(&limit, "limit", 3, "Maximum number of matches to return")
+	cmd.Flags().BoolVar(&selectPaths, "select-paths", false, "Dump the valid --select dotted paths for the named command (e.g. `which markets get-by-slug --select-paths`)")
 	return cmd
+}
+
+// runWhichSelectPaths handles `which <command...> --select-paths`. It
+// looks the joined args up in commandSelectPaths and prints the entry
+// in machine-readable JSON or one-per-line plain text. Mirrors what
+// agent-context exposes under commands.<name>.select_paths so an agent
+// can confirm a path is valid before constructing a --select call.
+//
+// Exit codes:
+//
+//	0  command found, paths returned (possibly empty under --json)
+//	2  no select_paths entry for the requested command
+func runWhichSelectPaths(cmd *cobra.Command, flags *rootFlags, args []string) error {
+	if len(args) == 0 {
+		return usageErr(fmt.Errorf("--select-paths requires a command name (e.g. `which markets get-by-slug --select-paths`)"))
+	}
+	key := strings.Join(args, " ")
+	paths, ok := commandSelectPaths[key]
+	if !ok {
+		if flags.asJSON {
+			return printJSONFiltered(cmd.OutOrStdout(), map[string]any{
+				"command":      key,
+				"select_paths": []string{},
+			}, flags)
+		}
+		return usageErr(fmt.Errorf("no select_paths entry for %q; run 'agent-context' to see every command with a cheatsheet", key))
+	}
+	if flags.asJSON || !isTerminal(cmd.OutOrStdout()) {
+		return printJSONFiltered(cmd.OutOrStdout(), map[string]any{
+			"command":      key,
+			"select_paths": paths,
+		}, flags)
+	}
+	for _, p := range paths {
+		fmt.Fprintln(cmd.OutOrStdout(), p)
+	}
+	return nil
 }
 
 // rankWhichAll is a narrow helper used by the "empty query lists the

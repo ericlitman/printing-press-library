@@ -17,8 +17,11 @@ import (
 // parsing. Shape at v3 adds kind-aware auth env var metadata. Shape at
 // v4 advertises the discovery-command live-on-read freshness contract.
 // Shape at v5 advertises the LLM-driven learning contract (recall +
-// teach + meta.learnings_applied + meta.teach_hint).
-const agentContextSchemaVersion = "5"
+// teach + meta.learnings_applied + meta.teach_hint). Shape at v6 adds
+// commands.<name>.select_paths — the per-command --select cheatsheet
+// generated from response struct tags (see select_paths.go and
+// tools/select-paths-gen/, docs/plans/2026-05-23-002 section U7).
+const agentContextSchemaVersion = "6"
 
 // agentContext is the structured description of this CLI consumed by AI
 // agents. Inspired by Cloudflare's /cdn-cgi/explorer/api runtime endpoint
@@ -115,6 +118,14 @@ type agentContextCommand struct {
 	Annotations map[string]string     `json:"annotations,omitempty"`
 	Flags       []agentContextFlag    `json:"flags,omitempty"`
 	Subcommands []agentContextCommand `json:"subcommands,omitempty"`
+	// SelectPaths is the cheatsheet of valid dotted field paths an
+	// agent can pass to --select for this command. Source of truth is
+	// commandSelectPaths in select_paths.go, generated at build time
+	// from the JSON-tagged response structs. Absent (omitempty) when
+	// no entry is pinned for the command — the agent should treat
+	// that as "shape not introspected, ask --help" rather than "any
+	// path goes." See docs/plans/2026-05-23-002 section U7.
+	SelectPaths []string `json:"select_paths,omitempty"`
 }
 
 type agentContextFlag struct {
@@ -207,6 +218,16 @@ func buildAgentDiscoveryContext() *agentContextDiscovery {
 // must still enumerate them and their endpoints so agents can call any
 // action a CLI user could.
 func collectAgentCommands(c *cobra.Command) []agentContextCommand {
+	return collectAgentCommandsWithPrefix(c, "")
+}
+
+// collectAgentCommandsWithPrefix is the recursive worker. prefix is
+// the space-joined parent path ("markets" when recursing into the
+// markets resource) so leaf commands can look up their select-paths
+// entry under the full path key (e.g., "markets get-by-slug"). The
+// top-level call passes "" so root commands stay keyed on their own
+// name.
+func collectAgentCommandsWithPrefix(c *cobra.Command, prefix string) []agentContextCommand {
 	children := c.Commands()
 	sort.Slice(children, func(i, j int) bool { return children[i].Name() < children[j].Name() })
 
@@ -214,6 +235,10 @@ func collectAgentCommands(c *cobra.Command) []agentContextCommand {
 	for _, sub := range children {
 		if sub.Name() == "agent-context" {
 			continue
+		}
+		fullName := sub.Name()
+		if prefix != "" {
+			fullName = prefix + " " + sub.Name()
 		}
 		entry := agentContextCommand{
 			Name:  sub.Name(),
@@ -241,8 +266,17 @@ func collectAgentCommands(c *cobra.Command) []agentContextCommand {
 		sort.Slice(entry.Flags, func(i, j int) bool {
 			return entry.Flags[i].Name < entry.Flags[j].Name
 		})
+		// Attach the --select cheatsheet for commands the generator
+		// pinned in commandSelectPaths. Lookup is keyed on the full
+		// dotted command path so e.g. "markets get-by-slug" resolves
+		// against the markets-namespaced entry rather than a possible
+		// unrelated top-level "get-by-slug". omitempty on SelectPaths
+		// keeps the envelope quiet for commands with no entry.
+		if paths, ok := commandSelectPaths[fullName]; ok && len(paths) > 0 {
+			entry.SelectPaths = append([]string{}, paths...)
+		}
 		if len(sub.Commands()) > 0 {
-			entry.Subcommands = collectAgentCommands(sub)
+			entry.Subcommands = collectAgentCommandsWithPrefix(sub, fullName)
 		}
 		out = append(out, entry)
 	}
