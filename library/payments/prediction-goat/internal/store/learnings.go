@@ -110,15 +110,32 @@ func normalizeAndTokens(s string) (string, map[string]struct{}) {
 
 // UpsertLearningInput is the call-shape Upsert accepts. ResourceType and
 // Venue may be empty; Action defaults to "boost" when empty.
+//
+// QueryEntities is the optional precomputed entity slice the caller
+// extracted from the raw (pre-normalization) Query. When non-nil it
+// is JSON-marshaled and written to the search_learnings.query_entities
+// column on insert. When nil, the column is left NULL — the v3->v4
+// migration backfill or a future re-Open pass will populate it on a
+// later run.
+//
+// Why caller-provided rather than auto-extracted here: the store
+// package is domain-agnostic by design (see learnings.go's package
+// comment). The Kalshi/Polymarket ticker patterns and the prediction-
+// market stopword vocabulary live in internal/learn (one layer up),
+// and the entities themselves come from the case-preserving raw
+// query — which is lost by the time NormalizeQuery has run inside
+// this function. The CLI teach path computes entities from the raw
+// query before calling Upsert and passes them through here.
 type UpsertLearningInput struct {
-	Query        string
-	ResourceID   string
-	ResourceType string
-	Venue        string
-	Action       string
-	AliasTarget  string
-	Source       string
-	Notes        string
+	Query         string
+	QueryEntities []string
+	ResourceID    string
+	ResourceType  string
+	Venue         string
+	Action        string
+	AliasTarget   string
+	Source        string
+	Notes         string
 }
 
 // UpsertLearning inserts a learning row or, when (query_pattern,
@@ -185,7 +202,7 @@ func (s *Store) UpsertLearning(in UpsertLearningInput) (int64, bool, error) {
 		return 0, false, fmt.Errorf("upsert learning lookup: %w", err)
 	}
 
-	var venue, resourceType, aliasTarget, notes any
+	var venue, resourceType, aliasTarget, notes, queryEntities any
 	if in.Venue != "" {
 		venue = in.Venue
 	}
@@ -198,13 +215,34 @@ func (s *Store) UpsertLearning(in UpsertLearningInput) (int64, bool, error) {
 	if in.Notes != "" {
 		notes = in.Notes
 	}
+	// Materialize the entity slice as a JSON array string so the
+	// column stores a stable shape ("[]" or "[\"Portugal\"]") rather
+	// than NULL on rows that the caller did provide entities for.
+	// Nil slice means "caller has nothing to say"; the column stays
+	// NULL and a later migration / re-Open / U3 read path runs the
+	// extractor against query_pattern as a fallback.
+	if in.QueryEntities != nil {
+		// Marshal an empty slice as the literal "[]" so the column
+		// distinguishes "caller said no entities" from "caller didn't
+		// provide entities at all." json.Marshal turns nil into
+		// "null"; we handle the nil branch above to leave NULL.
+		ents := in.QueryEntities
+		if ents == nil {
+			ents = []string{}
+		}
+		b, err := json.Marshal(ents)
+		if err != nil {
+			return 0, false, fmt.Errorf("marshal query entities: %w", err)
+		}
+		queryEntities = string(b)
+	}
 
 	res, err := tx.Exec(
 		`INSERT INTO search_learnings
-		 (query_pattern, venue, resource_type, resource_id, action, alias_target,
+		 (query_pattern, query_entities, venue, resource_type, resource_id, action, alias_target,
 		  source, confidence, created_at, last_observed_at, notes)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
-		pattern, venue, resourceType, in.ResourceID, action, aliasTarget,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+		pattern, queryEntities, venue, resourceType, in.ResourceID, action, aliasTarget,
 		source, now, now, notes,
 	)
 	if err != nil {

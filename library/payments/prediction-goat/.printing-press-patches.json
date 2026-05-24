@@ -109,6 +109,23 @@
       "upstream_issue": "Generator template for printed CLIs that ship a discovery index should consider adopting the LLM-driven teach/recall pattern: per-user, fire-and-forget write surface plus pre-discovery read surface, fed by the LLM's act of responding rather than CLI-side heuristics. Generalizes to any read-mostly catalog CLI."
     },
     {
+      "id": "entity-aware-recall",
+      "summary": "Make recall entity-aware: filter cross-entity matches into a debug-only mismatches array, attach per-row entity_match (exact/partial/mismatch/unknown) and warnings, and rank exact > partial > unknown. Add --debug-mismatches flag. Wire UpsertLearning to persist query_entities at teach time so cold first-recall has the entity signal it needs.",
+      "reason": "Before this patch the v3 recall returned any Jaccard-positive learning regardless of which entity the resource carried, so 'odds England wins world cup' returned a Portugal-tagged learning at the documented threshold. U3 splits the recall match into Jaccard (token-set, non-entity normalized) AND entity overlap (case-insensitive against the resource's entity-bearing fields), surfacing mismatches separately so the LLM can tell 'good answer' from 'noise that looks like a good answer'. Per docs/plans/2026-05-23-002 section U3.",
+      "files": [
+        "internal/learn/match.go",
+        "internal/learn/match_test.go",
+        "internal/learn/recall.go",
+        "internal/learn/recall_test.go",
+        "internal/cli/teach.go",
+        "internal/cli/teach_test.go",
+        "internal/cli/select_paths.go",
+        "internal/store/learnings.go"
+      ],
+      "validated_outcome": "go test ./... passes (500 tests, +34 over baseline 466 across new match/recall surfaces and CLI tests). go vet clean. verify_skill.py passes. End-to-end: a Portugal learning + an England query returns found=false by default; --debug-mismatches surfaces the Portugal row in mismatches[]. A Kalshi parent-event learning with a matching child market keeps entity_match=exact and attaches parent_event_when_child_exists:<child-ticker> as a warning. UpsertLearning now persists query_entities so a fresh teach's first recall has the right entity signal without waiting for a re-migration.",
+      "upstream_issue": "Same liftability target as the entities + normalizer patches: internal/learn/{match,recall}.go depends only on database/sql + the entities extractor + Normalize; ready to lift into the generator template alongside U1/U2."
+    },
+    {
       "id": "entity-preserving-normalizer",
       "summary": "Replace lowercase+stopword normalization in the learning subsystem with an entity-preserving normalizer (internal/learn/normalize.go) that splits queries into Entities, Tickers, and a stable NonEntityNormalized form. Schema v3->v4 adds search_learnings.query_entities (JSON array) and backfills existing rows by running the extractor against their stored query_pattern.",
       "reason": "The v3 normalizer destroyed entity tokens: 'odds England wins the world cup' collapsed to 'england cup world' and Jaccard-matched a stored Portugal learning at >=0.6, surfacing the wrong ticker on recall. Preserving entities case-intact in a separate slice lets U3's match validator reject cross-entity matches even at high non-entity Jaccard. The Kalshi/Polymarket ticker patterns and prediction-market stopword vocabulary live in internal/learn/ (one layer above the domain-agnostic entities extractor) so the extractor stays liftable into a future generator template.",

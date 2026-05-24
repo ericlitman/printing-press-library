@@ -31,6 +31,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mvanhorn/printing-press-library/library/payments/prediction-goat/internal/learn"
 	"github.com/mvanhorn/printing-press-library/library/payments/prediction-goat/internal/store"
 )
 
@@ -177,6 +178,12 @@ Disabling: pass --no-learn or set PREDICTION_GOAT_NO_LEARN=true.`,
 			}
 			defer db.Close()
 
+			// Extract entities once per teach call. The same case-
+			// preserving entity slice lands on every row this teach
+			// writes, so the recall path's match validator sees a
+			// consistent entity signal regardless of how many resources
+			// the teach is fanning out across.
+			normalized := learn.Normalize(query, learn.DefaultPredictionGoatConfig())
 			confidences := make(map[string]int, len(resources))
 			for _, rid := range resources {
 				rid = strings.TrimSpace(rid)
@@ -184,12 +191,13 @@ Disabling: pass --no-learn or set PREDICTION_GOAT_NO_LEARN=true.`,
 					continue
 				}
 				_, _, uerr := db.UpsertLearning(store.UpsertLearningInput{
-					Query:        query,
-					ResourceID:   rid,
-					ResourceType: resourceType,
-					Venue:        venueArg,
-					Source:       store.LearningSourceTaught,
-					Notes:        notes,
+					Query:         query,
+					QueryEntities: normalized.Entities,
+					ResourceID:    rid,
+					ResourceType:  resourceType,
+					Venue:         venueArg,
+					Source:        store.LearningSourceTaught,
+					Notes:         notes,
 				})
 				if uerr != nil {
 					writeTeachLog(fmt.Sprintf("teach: upsert %q for query=%q: %v", rid, query, uerr))
@@ -237,51 +245,84 @@ Disabling: pass --no-learn or set PREDICTION_GOAT_NO_LEARN=true.`,
 }
 
 // recallEnvelope is the JSON shape returned by `recall --agent`. The
-// LLM consumes this before deciding whether to skip discovery.
+// LLM consumes this before deciding whether to skip discovery. The
+// shape mirrors learn.Result so the agent-context schema can refer
+// to a single contract; field order is preserved across versions for
+// stable parsing by older agents that only key on {found, results}.
+//
+// U3 added query_entities, mismatches, and per-row entity_match +
+// resource_entities + warnings. Existing consumers that only read
+// {found, query, normalized, match_score, results[*].{resource_id,
+// confidence, source, last_observed_at}} continue to work.
 type recallEnvelope struct {
-	Found      bool                   `json:"found"`
-	Query      string                 `json:"query"`
-	Normalized string                 `json:"normalized"`
-	MatchScore float64                `json:"match_score,omitempty"`
-	Results    []recallEnvelopeResult `json:"results"`
+	Found         bool                   `json:"found"`
+	Query         string                 `json:"query"`
+	Normalized    string                 `json:"normalized"`
+	QueryEntities []string               `json:"query_entities"`
+	MatchScore    float64                `json:"match_score,omitempty"`
+	Results       []recallEnvelopeResult `json:"results"`
+	Mismatches    []recallEnvelopeResult `json:"mismatches,omitempty"`
+	Warnings      []string               `json:"warnings,omitempty"`
 }
 
 type recallEnvelopeResult struct {
-	ResourceID     string     `json:"resource_id"`
-	ResourceType   string     `json:"resource_type,omitempty"`
-	Venue          string     `json:"venue,omitempty"`
-	Action         string     `json:"action"`
-	Confidence     int        `json:"confidence"`
-	MatchScore     float64    `json:"match_score"`
-	Source         string     `json:"source"`
-	LastObservedAt *time.Time `json:"last_observed_at,omitempty"`
-	AliasTarget    string     `json:"alias_target,omitempty"`
+	ResourceID       string     `json:"resource_id"`
+	ResourceType     string     `json:"resource_type,omitempty"`
+	Venue            string     `json:"venue,omitempty"`
+	Action           string     `json:"action"`
+	Confidence       int        `json:"confidence"`
+	MatchScore       float64    `json:"match_score"`
+	EntityMatch      string     `json:"entity_match,omitempty"`
+	ResourceEntities []string   `json:"resource_entities,omitempty"`
+	Source           string     `json:"source"`
+	LastObservedAt   *time.Time `json:"last_observed_at,omitempty"`
+	AliasTarget      string     `json:"alias_target,omitempty"`
+	Warnings         []string   `json:"warnings,omitempty"`
 }
 
 // newRecallCmd builds the read side of the loop: LLM calls `recall`
 // FIRST when starting work on a new user question, and uses the
 // returned tickers to short-circuit discovery.
+//
+// U3 wired the body to learn.Recall, which adds entity-aware match
+// validation: results whose resource entities don't overlap with the
+// query entities land in the mismatches array (debug-only, surfaced
+// with --debug-mismatches) rather than poisoning the default results
+// path. Per docs/plans/2026-05-23-002 section U3.
 func newRecallCmd(flags *rootFlags) *cobra.Command {
 	var minConf int
 	var limit int
 	var dbPath string
+	var debugMismatches bool
 
 	cmd := &cobra.Command{
 		Use:   "recall <query>",
 		Short: "Check prior learnings for a query before running discovery (LLM-fired, pre-discovery)",
 		Long: `Returns prior learnings matching the supplied query by token-set
-overlap (Jaccard >= 0.6). The LLM should call this FIRST when starting
-work on a new user question; if found=true and confidence is high, the
-LLM can skip topic/compare entirely and go straight to live price
+overlap (Jaccard >= 0.6) plus entity-aware validation. The LLM should
+call this FIRST when starting work on a new user question; if
+found=true AND results[0].entity_match == "exact" AND confidence >= 2,
+the LLM can skip topic/compare entirely and go straight to live price
 fetch for the returned tickers.
+
+Each result carries an entity_match verdict (exact | partial | unknown)
+and an optional warnings array. The most important warning is
+parent_event_when_child_exists — when present, the better target is the
+named child ticker, not the matched parent.
 
 Empty match returns {"found": false, "results": []} with exit 0 — this
 is an information query, not a not-found error.
 
+Pass --debug-mismatches to surface candidates that cleared the Jaccard
+threshold but failed entity validation (e.g., England query against a
+Portugal-tagged learning). Useful for diagnosing why a high-overlap
+candidate was dropped.
+
 Disabling: PREDICTION_GOAT_NO_LEARN=true returns the empty shape even
 when learnings exist.`,
 		Example: `  prediction-goat-pp-cli recall "portugal world cup odds" --agent
-  prediction-goat-pp-cli recall "lakers tonight" --agent --min-confidence 2`,
+  prediction-goat-pp-cli recall "lakers tonight" --agent --min-confidence 2
+  prediction-goat-pp-cli recall "england world cup odds" --agent --debug-mismatches`,
 		Annotations: map[string]string{"mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -292,9 +333,10 @@ when learnings exist.`,
 			}
 			query := strings.Join(args, " ")
 			envelope := recallEnvelope{
-				Query:      query,
-				Normalized: store.NormalizeQuery(query),
-				Results:    []recallEnvelopeResult{},
+				Query:         query,
+				Normalized:    store.NormalizeQuery(query),
+				QueryEntities: []string{},
+				Results:       []recallEnvelopeResult{},
 			}
 			if flags.noLearn || noLearnEnabled() {
 				return emitRecall(cmd, flags, envelope)
@@ -308,37 +350,59 @@ when learnings exist.`,
 			}
 			defer db.Close()
 
-			matches, err := db.Recall(cmd.Context(), query, store.RecallOptions{
-				MinConfidence: minConf,
-				Limit:         limit,
+			result, err := learn.Recall(cmd.Context(), db.DB(), query, learn.Opts{
+				MinConfidence:   minConf,
+				Limit:           limit,
+				DebugMismatches: debugMismatches,
 			})
 			if err != nil {
 				return fmt.Errorf("recall: %w", err)
 			}
-			envelope.Found = len(matches) > 0
-			if envelope.Found {
-				envelope.MatchScore = matches[0].MatchScore
-				for _, m := range matches {
-					envelope.Results = append(envelope.Results, recallEnvelopeResult{
-						ResourceID:     m.ResourceID,
-						ResourceType:   m.ResourceType,
-						Venue:          m.Venue,
-						Action:         m.Action,
-						Confidence:     m.Confidence,
-						MatchScore:     m.MatchScore,
-						Source:         m.Source,
-						LastObservedAt: m.LastObservedAt,
-						AliasTarget:    m.AliasTarget,
-					})
-				}
+			envelope.Found = result.Found
+			envelope.Normalized = result.Normalized
+			envelope.QueryEntities = result.QueryEntities
+			envelope.MatchScore = result.MatchScore
+			envelope.Results = toEnvelopeResults(result.Results)
+			if debugMismatches {
+				envelope.Mismatches = toEnvelopeResults(result.Mismatches)
 			}
+			envelope.Warnings = result.Warnings
 			return emitRecall(cmd, flags, envelope)
 		},
 	}
 	cmd.Flags().IntVar(&minConf, "min-confidence", 1, "Minimum confidence to include in results")
 	cmd.Flags().IntVar(&limit, "limit", 10, "Maximum number of learnings to return")
 	cmd.Flags().StringVar(&dbPath, "db", "", "Database path (default: standard cache location)")
+	cmd.Flags().BoolVar(&debugMismatches, "debug-mismatches", false, "Include cross-entity mismatches in the envelope under mismatches[]")
 	return cmd
+}
+
+// toEnvelopeResults adapts the learn.Hit slice to the CLI's
+// recallEnvelopeResult slice. Field-for-field copy; kept as its own
+// helper so the typeshape mapping lives in one place (rather than
+// inline in both Results and Mismatches assignments).
+func toEnvelopeResults(in []learn.Hit) []recallEnvelopeResult {
+	if len(in) == 0 {
+		return []recallEnvelopeResult{}
+	}
+	out := make([]recallEnvelopeResult, 0, len(in))
+	for _, h := range in {
+		out = append(out, recallEnvelopeResult{
+			ResourceID:       h.ResourceID,
+			ResourceType:     h.ResourceType,
+			Venue:            h.Venue,
+			Action:           h.Action,
+			Confidence:       h.Confidence,
+			MatchScore:       h.MatchScore,
+			EntityMatch:      h.EntityMatch,
+			ResourceEntities: h.ResourceEntities,
+			Source:           h.Source,
+			LastObservedAt:   h.LastObservedAt,
+			AliasTarget:      h.AliasTarget,
+			Warnings:         h.Warnings,
+		})
+	}
+	return out
 }
 
 // emitRecall renders the recall envelope in the chosen output mode.
