@@ -1,7 +1,23 @@
 {
   "schema_version": 1,
-  "applied_at": "2026-05-08",
+  "applied_at": "2026-05-24",
   "base_run_id": "20260409-121709",
   "base_printing_press_version": "1.2.1-0.20260409145412-b1128d0e07fd+dirty",
-  "patches": []
+  "patches": [
+    {
+      "id": "espn-learn-seeds",
+      "summary": "Populate learn_init.go with NFL/NBA/MLB/MLS team rosters, ESPN ticker patterns, and sports stopwords; sweep tool stub-emits empty defaults.",
+      "reason": "Pilot of plan 2026-05-23-002 shipped the self-learning loop with empty defaults. Real seeds unlock entity-aware recall + pattern extraction for ESPN's killer flow ('Niners game tonight' resolves to the right event via alias). Future sweep re-runs will overwrite this until side-car infrastructure lands.",
+      "files": ["internal/cli/learn_init.go"],
+      "validated_outcome": "Fresh-HOME run populates entity_lookups with 413 rows across nfl_team/nba_team/mlb_team/mls_team; recall extracts aliases (Niners, Cowboys, Lakers) as query_entities."
+    },
+    {
+      "id": "espn-learn-seeds-wiring",
+      "summary": "Invoke runLearnInitOnce from rootCmd.PersistentPreRunE so initLearn actually fires; sweep tool emits the function but no caller.",
+      "reason": "runLearnInitOnce and the learnHookSkipList framework ship in every sweep-installed CLI but have zero callers in internal/cli — the sweep tool emits the seed function and the gate predicate but never wires the invocation. Without this hook, the seeds in patch espn-learn-seeds populate nothing at runtime. Affects all 5 pilots from plan 2026-05-23-002 (espn, contact-goat, company-goat, podcast-goat, instacart); upstream sweep-tool fix should retrofit the other 4.",
+      "files": ["internal/cli/root.go"],
+      "validated_outcome": "Fresh-HOME teach with --no-learn skips initLearn; without it, entity_lookups gets 413 rows on first learn-aware command. shouldSkipLearnHook keeps doctor/sync/auth/version/etc. from paying the init cost.",
+      "upstream_issue": "https://github.com/mvanhorn/cli-printing-press/issues/2133"
+    }
+  ]
 }

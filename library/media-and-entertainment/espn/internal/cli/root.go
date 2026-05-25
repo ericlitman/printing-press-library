@@ -128,6 +128,14 @@ func Execute() error {
 		default:
 			return fmt.Errorf("invalid --data-source value %q: must be auto, live, or local", flags.dataSource)
 		}
+		// PATCH(espn-learn-seeds-wiring): consume the sweep-emitted
+		// shouldSkipLearnHook framework so initLearn actually runs.
+		// runLearnInitOnce is sync.Once-gated and a no-op when learn
+		// is disabled (--no-learn / ESPN_NO_LEARN) since downstream
+		// recall/teach return early before reading entity_lookups.
+		if !flags.noLearn && !shouldSkipLearnHook(cmd.Name()) {
+			runLearnInitOnce(cmd.Context())
+		}
 		return nil
 	}
 	rootCmd.AddCommand(newDoctorCmd(&flags))
