@@ -81,7 +81,7 @@ func learnParentNoSubcommandRunE(flags *rootFlags) func(*cobra.Command, []string
 				"error":             "subcommand required",
 				"valid_subcommands": subs,
 			})
-			return usageErr(fmt.Errorf("subcommand required for %q", cmd.CommandPath()))
+			return learnUsageErr(fmt.Errorf("subcommand required for %q", cmd.CommandPath()))
 		}
 		return cmd.Help()
 	}
@@ -103,6 +103,20 @@ func learnPrintJSON(w io.Writer, v any, flags *rootFlags) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	return enc.Encode(v)
+}
+
+// learnUsageErr returns err unchanged. Sweep-retrofit inline of the
+// canonical generator's `usageErr` helper, which wraps errors in a
+// package-local `*cliError` carrying a shell exit code. Three library
+// CLIs (airframe, monarch-money, slack) ship without `func usageErr`
+// or — in two of those three — without the `cliError` type at all, so
+// the emitted teach.go cannot call the generator helper directly. The
+// learn-prefixed wrapper here returns the wrapped error verbatim;
+// cobra's RunE plumbing surfaces it through `cmd.Execute()` with a
+// non-zero exit code, which matches the user-visible behavior the
+// canonical helper provides for usage errors.
+func learnUsageErr(err error) error {
+	return err
 }
 
 // noLearnEnvVar is the environment variable that disables the learning
@@ -855,7 +869,7 @@ Requires at least one of --resource, --action, or --all.`,
 				All:        all,
 			})
 			if err != nil {
-				return usageErr(fmt.Errorf("learnings forget: %w", err))
+				return learnUsageErr(fmt.Errorf("learnings forget: %w", err))
 			}
 			_ = appendLearningsAudit(map[string]any{
 				"action":       "forget",
@@ -898,14 +912,14 @@ func newTeachPatternCmd(flags *rootFlags) *cobra.Command {
 		Short: "Install a manual generalization pattern (query_template, resource_template, entity_kind)",
 		Long: `Adds one row to search_patterns. The recall path uses patterns to
 substitute live query entities into a resource template, so a pattern
-with query_template="odds {entity} wins world cup" and
-resource_template="WORLDCUP-{entity:country}" generalizes one teach
-into a whole family.`,
+with query_template="items in {entity}" and
+resource_template="GROUP-{entity:category}" generalizes one teach into
+a whole family.`,
 		Example: `  {{.Name}}-pp-cli teach-pattern \
-    --query-template "odds {entity} wins world cup" \
-    --resource-template "WORLDCUP-{entity:country}" \
-    --resource-type "events" \
-    --entity-kind "country" \
+    --query-template "items in {entity}" \
+    --resource-template "GROUP-{entity:category}" \
+    --resource-type "items" \
+    --entity-kind "category" \
     --strategy substitute`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if learnDryRunOK(flags) {
@@ -915,16 +929,16 @@ into a whole family.`,
 				return nil
 			}
 			if strings.TrimSpace(queryTemplate) == "" {
-				return usageErr(fmt.Errorf("--query-template is required"))
+				return learnUsageErr(fmt.Errorf("--query-template is required"))
 			}
 			if strings.TrimSpace(resourceTemplate) == "" {
-				return usageErr(fmt.Errorf("--resource-template is required"))
+				return learnUsageErr(fmt.Errorf("--resource-template is required"))
 			}
 			if strings.TrimSpace(resourceType) == "" {
-				return usageErr(fmt.Errorf("--resource-type is required"))
+				return learnUsageErr(fmt.Errorf("--resource-type is required"))
 			}
 			if strings.TrimSpace(entityKind) == "" {
-				return usageErr(fmt.Errorf("--entity-kind is required"))
+				return learnUsageErr(fmt.Errorf("--entity-kind is required"))
 			}
 			if strategy == "" {
 				strategy = patterns.StrategySubstitute
@@ -993,16 +1007,16 @@ cannot be taught — they are derived from the canonical input.`,
 				return nil
 			}
 			if strings.TrimSpace(kind) == "" {
-				return usageErr(fmt.Errorf("--kind is required"))
+				return learnUsageErr(fmt.Errorf("--kind is required"))
 			}
 			if strings.TrimSpace(canonical) == "" {
-				return usageErr(fmt.Errorf("--canonical is required"))
+				return learnUsageErr(fmt.Errorf("--canonical is required"))
 			}
 			if strings.TrimSpace(alias) == "" {
-				return usageErr(fmt.Errorf("--alias is required"))
+				return learnUsageErr(fmt.Errorf("--alias is required"))
 			}
 			if lookups.IsComputedKind(kind) {
-				return usageErr(fmt.Errorf("--kind %q is a computed kind and cannot be taught", kind))
+				return learnUsageErr(fmt.Errorf("--kind %q is a computed kind and cannot be taught", kind))
 			}
 			dbPath = learnDBPath(dbPath)
 			s, err := store.Open(dbPath)

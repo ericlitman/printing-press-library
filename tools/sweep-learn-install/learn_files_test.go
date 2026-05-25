@@ -144,6 +144,15 @@ func TestEmittedTeachGo_NoExternalHelperDeps(t *testing.T) {
 		"printJSONFiltered(",
 		"parentNoSubcommandRunE(",
 		"store.OpenWithContext(",
+		// Three published library CLIs (airframe, monarch-money,
+		// slack) ship without `func usageErr` — and two of those
+		// three lack the underlying `cliError` type entirely — so
+		// the sweep-emitted teach.go cannot rely on the canonical
+		// generator helper. The inlined `learnUsageErr` wrapper
+		// covers the gap; any direct `usageErr(...)` call site in
+		// the emitted file is a regression toward the original Bug
+		// C shape.
+		"usageErr(",
 	}
 	for _, banned := range bannedCallSitePatterns {
 		if strings.Contains(gotStr, banned) {
@@ -157,6 +166,7 @@ func TestEmittedTeachGo_NoExternalHelperDeps(t *testing.T) {
 		"func learnDryRunOK(flags *rootFlags) bool",
 		"func learnParentNoSubcommandRunE(flags *rootFlags)",
 		"func learnPrintJSON(",
+		"func learnUsageErr(",
 		"store.Open(dbPath)",
 	}
 	for _, want := range mustContain {
