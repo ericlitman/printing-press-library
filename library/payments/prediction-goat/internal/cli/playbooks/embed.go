@@ -18,21 +18,28 @@
 // PATCH(learn-loop-backport U9): ported from ESPN PR #851 HEAD
 // 9bb0a40a (library/media-and-entertainment/espn/internal/cli/
 // playbooks/embed.go). SeedVersion flavored for prediction-goat;
-// hand-authored content arrives in U10.
+// hand-authored content lands in U10.
+// PATCH(learn-loop-backport U10): embed pattern now includes *.json
+// alongside *.md to pick up hand-authored playbook content; SeedVersion
+// bumped to 002 so existing installs re-seed the new content. Three
+// shipped playbooks cover the highest-value repeat-query shapes
+// surfaced by the 2026-05-22 dogfood-gaps plan: odds_for_team,
+// event_markets, series_summary.
 
 package playbooks
 
 import "embed"
 
 // The *.md pattern matches MANIFEST.md so the embed declaration is
-// well-formed even when no playbook content has shipped yet. The
-// *.json pattern picks up hand-authored playbook JSONs when they
-// arrive (U10). Until then, FS contains only MANIFEST.md.
+// well-formed even when no playbook content has shipped. The
+// *.json pattern picks up hand-authored playbook JSONs shipped in
+// U10. The pair becomes a JSON+notes bundle for the install path
+// in internal/cli/playbook_init.go to walk.
 //
-//go:embed *.md
+//go:embed *.json *.md
 var FS embed.FS
 
 // SeedVersion identifies the playbook content version. Embedded by
 // the install path as a sentinel row; mismatch triggers re-seed.
 // Format: <iso-date>-<cli-name>-<content-rev>.
-var SeedVersion = "2026-05-26-prediction-goat-001"
+var SeedVersion = "2026-05-26-prediction-goat-002"

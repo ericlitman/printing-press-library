@@ -328,12 +328,12 @@
     {
       "id": "learn-loop-backport-u6-playbook-types-and-resolveslots",
       "summary": "Add in-process Playbook / PlaybookStep / ResolvedPlaybook types, ParsePlaybook / ParsePlaybookFile / MarshalPlaybook helpers, QueryFamily derivation (returns NonEntityNormalized so teach and recall key consistently), and ResolveSlots with the Greptile-round-3 entity-only candidate pool (a non-entity token that happens to resolve through entity_lookups cannot win a slot intended for a real entity).",
-      "reason": "U6 of the ESPN learn-loop backport (docs/plans/2026-05-25-001). U5 landed the store-layer surface; U6 is the in-process layer the recall envelope (U7) and the teach-playbook CLI (U8) compose against. Ported verbatim from ESPN PR #851 HEAD 9bb0a40a (library/media-and-entertainment/espn/internal/learn/playbooks.go), with the Greptile PR #851 round 3 F2 fix already in place: ResolveSlots' queryTokens pool is restricted to normalized.Entities only and explicitly does NOT include strings.Fields(normalized.NonEntityNormalized). The contract is enforced by TestResolveSlots_OnlyConsidersEntities, which seeds 'ppg' as a secondary alias of an unrelated canonical and constructs a NormalizedQuery directly so 'ppg' stays in NonEntityNormalized while 'portugal' is the only entity — the $COUNTRY slot must bind to 'portugal', not the spurious 'ppg' alias.",
+      "reason": "U6 of the ESPN learn-loop backport (docs/plans/2026-05-25-001). U5 landed the store-layer surface; U6 is the in-process layer the recall envelope (U7) and the teach-playbook CLI (U8) compose against. Ported verbatim from ESPN PR #851 HEAD 9bb0a40a (library/media-and-entertainment/espn/internal/learn/playbooks.go), with the Greptile PR #851 round 3 F2 fix already in place: ResolveSlots' queryTokens pool is restricted to normalized.Entities only and explicitly does NOT include strings.Fields(normalized.NonEntityNormalized). The contract is enforced by TestResolveSlots_OnlyConsidersEntities, which seeds 'ppg' as a secondary alias of an unrelated canonical and constructs a NormalizedQuery directly so 'ppg' stays in NonEntityNormalized while 'portugal' is the only entity \u2014 the $COUNTRY slot must bind to 'portugal', not the spurious 'ppg' alias.",
       "files": [
         "internal/learn/playbooks.go",
         "internal/learn/playbooks_test.go"
       ],
-      "validated_outcome": "go test ./... passes (662 tests, +13 new across playbooks_test.go: ParsePlaybook_HappyPath / ParsePlaybookFile_HappyPath / ParsePlaybookFile_NonExistent / ParsePlaybook_Malformed / ParsePlaybook_Empty / MarshalPlaybook_RoundTrip (full field-by-field) / QueryFamily_UsesNonEntityNormalized / ResolveSlots_SingleEntity (Portugal→Portugal canonical) / ResolveSlots_MultiEntity ($A + $B distinct tokens) / ResolveSlots_UnresolvableSkipped / ResolveSlots_EmptySlots / ResolveSlots_OnlyConsidersEntities (Greptile round 3 F2: 'ppg' aliased in entity_lookups loses to real 'portugal' entity) / ResolveSlots_NilResolver). go vet ./... clean. go build ./... clean."
+      "validated_outcome": "go test ./... passes (662 tests, +13 new across playbooks_test.go: ParsePlaybook_HappyPath / ParsePlaybookFile_HappyPath / ParsePlaybookFile_NonExistent / ParsePlaybook_Malformed / ParsePlaybook_Empty / MarshalPlaybook_RoundTrip (full field-by-field) / QueryFamily_UsesNonEntityNormalized / ResolveSlots_SingleEntity (Portugal\u2192Portugal canonical) / ResolveSlots_MultiEntity ($A + $B distinct tokens) / ResolveSlots_UnresolvableSkipped / ResolveSlots_EmptySlots / ResolveSlots_OnlyConsidersEntities (Greptile round 3 F2: 'ppg' aliased in entity_lookups loses to real 'portugal' entity) / ResolveSlots_NilResolver). go vet ./... clean. go build ./... clean."
     },
     {
       "id": "learn-loop-backport-u7-recall-envelope-playbook-surface",
@@ -345,7 +345,7 @@
         "internal/cli/teach.go",
         "internal/cli/select_paths.go"
       ],
-      "validated_outcome": "go test ./... passes (667 tests, +5 new across recall_canonical_test.go: TestRecall_PlaybookSurfaces_OnFamilyMatch / TestRecall_PlaybookSurfaces_DifferentEntitySameFamily (KILLER FEATURE: Portugal-authored playbook hits on Brazil query with $COUNTRY canonical = Brazil) / TestRecall_PlaybookAbsent_NoMatch / TestRecall_PlaybookNotesOnly (empty playbook_json, populated notes_text → Notes attached, zero-step Playbook wrapper) / TestRecall_PlaybookCoexistsWithResourceHit (search_learnings hit + playbook for same family both surface)). go vet ./... clean. go build ./... clean. Smoke test: real binary `go run ./cmd/prediction-goat-pp-cli recall '<query>' --agent` omits playbook+notes fields when no row exists (omitempty)."
+      "validated_outcome": "go test ./... passes (667 tests, +5 new across recall_canonical_test.go: TestRecall_PlaybookSurfaces_OnFamilyMatch / TestRecall_PlaybookSurfaces_DifferentEntitySameFamily (KILLER FEATURE: Portugal-authored playbook hits on Brazil query with $COUNTRY canonical = Brazil) / TestRecall_PlaybookAbsent_NoMatch / TestRecall_PlaybookNotesOnly (empty playbook_json, populated notes_text \u2192 Notes attached, zero-step Playbook wrapper) / TestRecall_PlaybookCoexistsWithResourceHit (search_learnings hit + playbook for same family both surface)). go vet ./... clean. go build ./... clean. Smoke test: real binary `go run ./cmd/prediction-goat-pp-cli recall '<query>' --agent` omits playbook+notes fields when no row exists (omitempty)."
     },
     {
       "id": "learn-loop-backport-u8-teach-playbook-and-playbook-commands",
@@ -370,6 +370,22 @@
         "internal/cli/root.go"
       ],
       "validated_outcome": "go test ./... passes (693 tests, +9 new across playbook_init_test.go: TestPlaybookInit_SeedsAllPlaybooks / TestPlaybookInit_Idempotent (re-run produces zero drift) / TestPlaybookInit_ConcurrentSafe (5 goroutines: exactly 1 sentinel, no duplicate playbook rows) / TestPlaybookInit_ReseedReplacesNotesWithoutAmend (SeedVersion bump overwrites stale notes when no [amend marker) / TestPlaybookInit_ReseedPreservesNotesWithAmend (marker shape `\\n[amend 2026-` triggers preserve=true) / TestPlaybookInit_AmendMarkerSpecificity (loose '[amend foo]' literal in prose does NOT trip preservation, Greptile round-4 finding) / TestPlaybookInit_SkipsPlaybookWithoutExamples (Greptile round-2 finding: refuse to seed under an unreachable key) / TestPlaybookInit_FailureLeavesSentinelStale (per-file parse error returns error AND skips sentinel write so next install retries, Greptile round-4 finding) / TestPlaybookInit_HonorsContextCancel (pre-canceled ctx returns context.Canceled and no sentinel)). go vet ./... clean. -race clean on the new tests. Manual smoke: HOME=$(mktemp -d) go run ./cmd/prediction-goat-pp-cli playbook list returns '[]' against a fresh DB (zero non-sentinel rows because U10 hasn't shipped real JSONs yet, but the sentinel writes cleanly and PersistentPreRunE doesn't error)."
+    },
+    {
+      "id": "learn-loop-backport-u10-hand-authored-playbooks",
+      "summary": "Ship 3 hand-authored playbooks (odds_for_team, event_markets, series_summary) and bump embed pattern to *.json *.md.",
+      "reason": "U10 of the learn-loop backport plan: prediction-goat ships canonical choreography + free-text gotchas for its three highest-value repeat-query shapes so recall envelopes carry actionable playbooks the agent follows verbatim.",
+      "files": [
+        "internal/cli/playbooks/embed.go",
+        "internal/cli/playbooks/odds_for_team.json",
+        "internal/cli/playbooks/odds_for_team_notes.md",
+        "internal/cli/playbooks/event_markets.json",
+        "internal/cli/playbooks/event_markets_notes.md",
+        "internal/cli/playbooks/series_summary.json",
+        "internal/cli/playbooks/series_summary_notes.md",
+        "internal/cli/playbooks_authored_test.go"
+      ],
+      "validated_outcome": "go test ./... passes 699/699. Fresh $HOME smoke test: playbook list --agent returns 4 rows (3 playbooks; event_markets seeds under 2 family keys). Recall for each example query surfaces playbook + notes + (where the slot binds) resolved entity."
     }
   ]
 }
