@@ -48,11 +48,27 @@ const (
 	WarningParentEventWhenChildExists = "parent_event_when_child_exists"
 	WarningLowConfidence              = "low_confidence"
 	WarningResourceNotInStore         = "resource_not_in_store"
+	// WarningCrossAliasMatch is attached on a per-result Warnings slice
+	// when EntityMatch was promoted from Mismatch to Exact via the
+	// cross-alias canonical-overlap path. PATCH(learn-loop-backport U3):
+	// ported from ESPN PR #851.
+	WarningCrossAliasMatch = "cross_alias_match"
 )
 
 // Top-level recall envelope warnings.
 const (
 	TopWarningNoLearningsForQueryFamily = "no_learnings_for_query_family"
+	// WarningSimilarShapeDifferentEntity is the envelope warning prefix
+	// surfaced when stored rows share the query's structural shape but
+	// resolve to a different canonical. Suffix is the alternative
+	// canonical name. PATCH(learn-loop-backport U3): ported from ESPN
+	// PR #851.
+	WarningSimilarShapeDifferentEntity = "similar_shape_different_entity"
+	// WarningAmbiguousAlias fires once on the envelope when ANY single
+	// query entity resolves to more than one canonical. Multi-entity
+	// queries where each entity resolves to a distinct canonical do
+	// NOT trip this warning (per Greptile PR #851 round 2).
+	WarningAmbiguousAlias = "ambiguous_alias"
 )
 
 // Jaccard returns the token-set Jaccard coefficient of two string
