@@ -190,6 +190,15 @@ Disabling: pass --no-learn or set PREDICTION_GOAT_NO_LEARN=true.`,
 			// consistent entity signal regardless of how many resources
 			// the teach is fanning out across.
 			normalized := learn.Normalize(query, learn.DefaultPredictionGoatConfig())
+			// Apply entity_lookups promotion symmetrically with recall so
+			// lowercase / numeric-prefix aliases (e.g., "usa", "49ers")
+			// land in query_entities even when the capitalization-based
+			// extractor missed them. Without this, recall's cross-alias
+			// canonical resolver has nothing to compare against on the
+			// stored side and a query taught under "usa" stays a literal
+			// match only.
+			resolver := learn.NewCanonicalResolver(cmd.Context(), db.DB())
+			normalized = learn.PromoteEntities(normalized, resolver)
 			confidences := make(map[string]int, len(resources))
 			for _, rid := range resources {
 				rid = strings.TrimSpace(rid)

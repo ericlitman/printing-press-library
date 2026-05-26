@@ -281,6 +281,18 @@
         "internal/store/schema_version_test.go"
       ],
       "validated_outcome": "go test ./internal/store/... passes (existing schema_version tests plus 4 new TestMigrate_LearningPlaybooks_* tests covering fresh-DB shape, v6->v7 upgrade without data loss, re-Open idempotency, and older-binary refusal on a future-stamped DB). Fresh DB stamps user_version=7 and creates learning_playbooks with all 8 expected columns. Synthetic v6 DB upgrades cleanly, gains learning_playbooks, and preserves pre-existing search_learnings / entity_lookups / search_recipes rows."
+    },
+    {
+      "id": "learn-loop-backport-u2-promote-entities-canonical-resolver",
+      "summary": "Add PromoteEntities helper + CanonicalResolver per-call resolver wrapping entity_lookups. Wire PromoteEntities into Recall() (after Normalize, before Jaccard) and into the CLI teach path (after Normalize, before UpsertLearning) so stored query_entities is symmetric with what recall sees. Add opportunistic backfill of legacy null-entity rows at recall time (read-only). Strip resolver-confirmed stored entities from the stored non-entity comparison surface so the Jaccard ratio stays symmetric when PromoteEntities pulls a token out of the live query.",
+      "reason": "U2 of the ESPN learn-loop backport (docs/plans/2026-05-25-001). The capitalization-based entity extractor misses lowercase aliases ('usa', '49ers'); without the symmetric PromoteEntities step a query taught as 'usa wins world cup' stores query_entities=[] and recall can't cross-alias against it later. PromoteEntities runs the same resolver lookup at both sites and produces identical query_entities. CanonicalResolver caches per-call but invalidates on error / scan-failure / rows.Err() so a transient sqlite hiccup can't poison subsequent lookups (Greptile P0 from PR #851 rounds 2-3).",
+      "files": [
+        "internal/learn/promote.go",
+        "internal/learn/promote_test.go",
+        "internal/learn/recall.go",
+        "internal/cli/teach.go"
+      ],
+      "validated_outcome": "go test ./... passes (620 tests, +10 new across promote_test.go: PromoteEntities happy path / no-match / nil-resolver / empty-query / multi-entity / preserves-existing-entities / teach-recall symmetry, plus CanonicalResolver happy path / error retry (cache invalidation under DB failure) / scan error. -race clean on the new tests. No regression in TestRecallCommand_FoundAndNotFound or TestNormalizationSymmetry_TeachAndRecall after restoring symmetric Jaccard surface (only resolver-confirmed entities are stripped from storedNonEntityTokens so capitalization-only mid-sentence entities like 'World'/'Cup' stay countable on both sides)."
     }
   ]
 }

@@ -175,6 +175,28 @@ func Recall(ctx context.Context, db *sql.DB, query string, opts Opts) (Result, e
 		jMin = 0
 	}
 
+	// Build a per-call canonical resolver. Looks up each entity in
+	// entity_lookups to find the canonical(s) it belongs to. Caches
+	// per-call so a query with N entities does N lookups max, not
+	// N*M where M is the number of candidate rows.
+	resolver := NewCanonicalResolver(ctx, db)
+
+	// Post-Normalize entity promotion via entity_lookups. The
+	// capitalization-based entity extractor misses aliases like
+	// "usa" (lowercase) or "49ers" (numeric prefix) because they
+	// don't match any of its detection rules. PromoteEntities walks
+	// the non-entity tokens and promotes any whose lowercased form
+	// has a row in entity_lookups. Same helper runs at teach time so
+	// stored query_entities stays symmetric with what recall sees.
+	normalized = PromoteEntities(normalized, resolver)
+	// Re-populate the envelope-facing slice / normalized string so a
+	// caller reading the envelope sees the post-promotion shape.
+	result.QueryEntities = append([]string(nil), normalized.Entities...)
+	if result.QueryEntities == nil {
+		result.QueryEntities = []string{}
+	}
+	result.Normalized = normalized.NonEntityNormalized
+
 	// Build the query-side token set for Jaccard comparison. The
 	// search_learnings.query_pattern column stores the non-entity
 	// normalized form, so we compare token-set against that.
@@ -235,10 +257,6 @@ func Recall(ctx context.Context, db *sql.DB, query string, opts Opts) (Result, e
 		// place, the read path normalizes on demand. Tradeoff: O(rows)
 		// regex work per recall, but search_learnings is tiny per user.
 		storedNorm := Normalize(queryPattern, DefaultPredictionGoatConfig())
-		score := Jaccard(queryTokens, strings.Fields(storedNorm.NonEntityNormalized))
-		if score < jMin {
-			continue
-		}
 
 		storedEntitySlice, _ := ParseStoredEntities(storedEntities)
 		// If the stored query_entities column was populated by the
@@ -249,6 +267,62 @@ func Recall(ctx context.Context, db *sql.DB, query string, opts Opts) (Result, e
 		// pre-v4 binary wrote a row after Open completed migration.
 		if len(storedEntitySlice) == 0 {
 			storedEntitySlice = storedNorm.Entities
+		}
+		// Opportunistic backfill for legacy null-entity rows. Rows
+		// written by an older binary (or callers that bypass
+		// PromoteEntities) have query_entities=NULL and
+		// storedNorm.Entities=empty because query_pattern is
+		// lowercased on write and the capitalization-based extractor
+		// can't recover an entity in "usa". Walk the lowercased
+		// query_pattern tokens through the resolver and use any that
+		// resolve as the effective entity slice for THIS call.
+		// Read-only -- the stored column stays NULL so we never
+		// silently rewrite user data.
+		if len(storedEntitySlice) == 0 {
+			for _, tok := range strings.Fields(strings.ToLower(queryPattern)) {
+				if cans := resolver.Resolve(tok); len(cans) > 0 {
+					storedEntitySlice = append(storedEntitySlice, tok)
+				}
+			}
+		}
+
+		// Compute the stored non-entity tokens. We start from
+		// storedNorm.NonEntityNormalized and additionally strip any
+		// stored entity that the canonical resolver also recognizes
+		// -- those are the entities the live query's PromoteEntities
+		// just pulled out of queryTokens, so keeping them on the
+		// stored side would make the Jaccard surface asymmetric. We
+		// do NOT strip capitalization-only stored entities (e.g.
+		// "World" / "Cup" mid-sentence at teach time) because at
+		// recall time those same tokens stay as plain content tokens
+		// in the lowercased live query and need to count on both
+		// sides for the Jaccard ratio to stay accurate.
+		storedNonEntityTokens := strings.Fields(storedNorm.NonEntityNormalized)
+		if len(storedEntitySlice) > 0 {
+			storedEntitySet := make(map[string]struct{}, len(storedEntitySlice))
+			for _, e := range storedEntitySlice {
+				key := strings.ToLower(strings.TrimSpace(e))
+				if key == "" {
+					continue
+				}
+				if cans := resolver.Resolve(key); len(cans) > 0 {
+					storedEntitySet[key] = struct{}{}
+				}
+			}
+			if len(storedEntitySet) > 0 {
+				filtered := storedNonEntityTokens[:0]
+				for _, tok := range storedNonEntityTokens {
+					if _, isEntity := storedEntitySet[strings.ToLower(tok)]; isEntity {
+						continue
+					}
+					filtered = append(filtered, tok)
+				}
+				storedNonEntityTokens = filtered
+			}
+		}
+		score := Jaccard(queryTokens, storedNonEntityTokens)
+		if score < jMin {
+			continue
 		}
 
 		hit := Hit{
@@ -608,4 +682,91 @@ func entityMatchPriority(em string) int {
 	default:
 		return 4
 	}
+}
+
+// CanonicalResolver looks up entities in the entity_lookups table to
+// find their canonical(s). Caches per-call so a query with N distinct
+// entities issues at most N SQL lookups regardless of how many
+// candidate rows the row loop walks.
+//
+// Implements the EntityResolver interface so the shared
+// PromoteEntities helper runs at both teach and recall time without
+// duplicating the resolver shape.
+type CanonicalResolver struct {
+	ctx   context.Context
+	db    *sql.DB
+	cache map[string][]string // lowercased entity -> distinct canonicals
+}
+
+// NewCanonicalResolver constructs a per-call canonical resolver.
+// Cache is per-instance so concurrent recall/teach calls don't share
+// stale lookups.
+func NewCanonicalResolver(ctx context.Context, db *sql.DB) *CanonicalResolver {
+	return &CanonicalResolver{ctx: ctx, db: db, cache: make(map[string][]string)}
+}
+
+// Resolve returns the canonical(s) for a single entity. A single token
+// may map to multiple canonicals when the same alias exists across
+// kinds (e.g., "Cards" -> Arizona Cardinals NFL + St. Louis Cardinals
+// MLB). Empty slice when the entity has no row in entity_lookups.
+//
+// Errors (query failure, scan failure, rows.Err()) return nil and do
+// NOT populate the cache. The next Resolve() call for the same token
+// retries the SQL — a transient sqlite failure or partial scan must
+// not pin a truncated canonical list for every subsequent lookup in
+// this resolver's lifetime.
+func (r *CanonicalResolver) Resolve(entity string) []string {
+	key := strings.ToLower(strings.TrimSpace(entity))
+	if key == "" {
+		return nil
+	}
+	if cached, ok := r.cache[key]; ok {
+		return cached
+	}
+	// Match against both `value` (alias side) and `canonical` (so an
+	// already-canonical query like "United States" resolves to
+	// itself). DISTINCT collapses multi-kind duplicates of the same
+	// canonical.
+	rows, err := r.db.QueryContext(r.ctx,
+		`SELECT DISTINCT canonical FROM entity_lookups
+		 WHERE LOWER(value) = ? OR LOWER(canonical) = ?`,
+		key, key)
+	if err != nil {
+		// Do NOT cache; subsequent Resolve calls must retry rather
+		// than returning a poisoned nil that suppresses a real
+		// canonical the next time the DB is healthy.
+		return nil
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var c string
+		if err := rows.Scan(&c); err != nil {
+			// Don't cache partial results: a scan failure mid-loop
+			// would otherwise pin a truncated canonical list for
+			// every subsequent Resolve call in this recall, silently
+			// suppressing real canonicals.
+			return nil
+		}
+		out = append(out, c)
+	}
+	if err := rows.Err(); err != nil {
+		// Same reason -- incomplete iteration must not be cached.
+		return nil
+	}
+	r.cache[key] = out
+	return out
+}
+
+// ResolveSet expands a slice of entities into a set of canonicals.
+// Entries that don't resolve are dropped silently -- they simply don't
+// contribute to the cross-alias matching score.
+func (r *CanonicalResolver) ResolveSet(entities []string) map[string]struct{} {
+	out := make(map[string]struct{})
+	for _, e := range entities {
+		for _, c := range r.Resolve(e) {
+			out[c] = struct{}{}
+		}
+	}
+	return out
 }
