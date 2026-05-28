@@ -185,6 +185,12 @@ Run 'amazon-seller-pp-cli doctor' to verify auth and connectivity.`,
 	rootCmd.AddCommand(newAPICmd(flags))
 	rootCmd.AddCommand(newFbaInventoryPromotedCmd(flags))
 	rootCmd.AddCommand(newSellersPromotedCmd(flags))
+	rootCmd.AddCommand(newProfitabilityCmd(flags))
+	rootCmd.AddCommand(newInventoryIntelCmd(flags))
+	rootCmd.AddCommand(newSalesIntelCmd(flags))
+	rootCmd.AddCommand(newBrandAnalyticsCmd(flags))
+	rootCmd.AddCommand(newListingIntelCmd(flags))
+	rootCmd.AddCommand(newAccountHealthCmd(flags))
 	rootCmd.AddCommand(newVersionCliCmd())
 
 	return rootCmd

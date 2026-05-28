@@ -65,6 +65,42 @@ If `--version` reports "command not found" after install, the install step did n
 - `amazon-seller-pp-cli reports get` — Get one report by report ID. This is the manual polling endpoint for report processing status.
 - `amazon-seller-pp-cli reports list` — List reports. If nextToken is set, Amazon requires it to be the only query parameter; pass no other filters with...
 
+**profitability** — Compute estimated SKU profitability from Amazon reports.
+
+- `amazon-seller-pp-cli profitability sku-pnl --marketplace-id ATVPDKIKX0DER --days 30` — Estimate per-SKU revenue, fees, storage cost, margin, and profit.
+- `amazon-seller-pp-cli profitability fee-breakdown --marketplace-id ATVPDKIKX0DER` — Show itemized estimated referral, FBA, closing, and total fee percentages.
+- `amazon-seller-pp-cli profitability settlement-reconciliation --marketplace-id ATVPDKIKX0DER --days 90` — Compare order revenue to completed settlement rows and flag discrepancies.
+- `amazon-seller-pp-cli profitability reimbursements --marketplace-id ATVPDKIKX0DER --days 90` — Aggregate reimbursements by SKU and reason.
+
+**inventory-intel** — Compute FBA inventory health, restock, aging, and fulfillment recommendations.
+
+- `amazon-seller-pp-cli inventory-intel health-score --marketplace-id ATVPDKIKX0DER` — Score inventory health per SKU.
+- `amazon-seller-pp-cli inventory-intel restock --marketplace-id ATVPDKIKX0DER --lead-time-days 14` — Estimate stockout timing and reorder quantities.
+- `amazon-seller-pp-cli inventory-intel stranded --marketplace-id ATVPDKIKX0DER` — Surface stranded inventory rows and recommended actions.
+- `amazon-seller-pp-cli inventory-intel aging --marketplace-id ATVPDKIKX0DER --warn-days 150` — Forecast long-term storage fee risk.
+- `amazon-seller-pp-cli inventory-intel fba-vs-fbm --marketplace-id ATVPDKIKX0DER --estimated-shipping-cost 5` — Compare estimated FBA vs FBM per-unit profit.
+
+**sales-intel** — Compute sales, traffic, conversion, velocity, and returns analytics.
+
+- `amazon-seller-pp-cli sales-intel dashboard --marketplace-id ATVPDKIKX0DER --days 30 --group-by date` — Summarize Sales and Traffic report metrics.
+- `amazon-seller-pp-cli sales-intel velocity --marketplace-id ATVPDKIKX0DER --days 60` — Detect SKU velocity trends and anomalies.
+- `amazon-seller-pp-cli sales-intel returns --marketplace-id ATVPDKIKX0DER --days 30` — Analyze return rate, reasons, and customer comments.
+- `amazon-seller-pp-cli sales-intel conversion-funnel --marketplace-id ATVPDKIKX0DER --days 30` — Diagnose traffic, buy-box, and conversion bottlenecks.
+
+**brand-analytics** — Compute Brand Registry search-term and basket insights.
+
+- `amazon-seller-pp-cli brand-analytics search-terms --marketplace-id ATVPDKIKX0DER --period WEEK` — Show search terms where tracked ASINs appear in top click positions.
+- `amazon-seller-pp-cli brand-analytics market-basket --marketplace-id ATVPDKIKX0DER --period WEEK` — Show products frequently purchased together with your ASINs.
+
+**listing-intel** — Audit listing defects and completeness from reports plus local listing data.
+
+- `amazon-seller-pp-cli listing-intel health-audit --marketplace-id ATVPDKIKX0DER` — Aggregate listing defect alerts and suppression signals.
+- `amazon-seller-pp-cli listing-intel catalog-completeness --marketplace-id ATVPDKIKX0DER --seller-id <seller>` — Score image, bullet, title, and A+ content completeness from local listing records.
+
+**account-health** — Summarize account-level listing, inventory, returns, and reimbursement health.
+
+- `amazon-seller-pp-cli account-health dashboard --marketplace-id ATVPDKIKX0DER` — Produce one dashboard with suppressed listings, stranded units, return rate, reimbursements, defect counts, and inventory grade summary.
+
 **sellers** — Verify seller authorization and list marketplace participations.
 
 - `amazon-seller-pp-cli sellers` — List marketplace participations for the authorized seller account.
