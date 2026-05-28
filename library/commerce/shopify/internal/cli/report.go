@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -25,18 +24,51 @@ import (
 func newReportCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report",
-		Short: "Compound analytics over the local store: revenue, channel mix, tag impact, attach rate, customer lifecycle.",
+		Short: "Compound analytics over the local store: revenue, channel mix, tag impact, attach rate, customer lifecycle, dashboards.",
+		RunE:  parentNoSubcommandRunE(flags),
 	}
+	cmd.PersistentFlags().StringVar(&flags.reportDBPath, "db", "", "SQLite store path override for report commands")
+
 	cmd.AddCommand(newReportRevenueDailyCmd(flags))
 	cmd.AddCommand(newReportChannelMixCmd(flags))
 	cmd.AddCommand(newReportShowImpactCmd(flags))
 	cmd.AddCommand(newReportAttachRateCmd(flags))
 	cmd.AddCommand(newReportCustomerLifecycleCmd(flags))
+
+	cmd.AddCommand(newReportOrderTrendsCmd(flags))
+	cmd.AddCommand(newReportAOVAnalysisCmd(flags))
+	cmd.AddCommand(newReportDiscountImpactCmd(flags))
+	cmd.AddCommand(newReportRefundAnalysisCmd(flags))
+	cmd.AddCommand(newReportPeakHoursCmd(flags))
+	cmd.AddCommand(newReportFirstPurchaseAnalysisCmd(flags))
+	cmd.AddCommand(newReportKlaviyoAttributionCmd(flags))
+	cmd.AddCommand(newReportCustomerCohortsCmd(flags))
+	cmd.AddCommand(newReportCustomerRFMCmd(flags))
+	cmd.AddCommand(newReportCustomerLTVCmd(flags))
+	cmd.AddCommand(newReportRepeatRateCmd(flags))
+	cmd.AddCommand(newReportCustomerChurnRiskCmd(flags))
+	cmd.AddCommand(newReportProductDashboardCmd(flags))
+	cmd.AddCommand(newReportProductVelocityCmd(flags))
+	cmd.AddCommand(newReportProductAffinityCmd(flags))
+	cmd.AddCommand(newReportProductCannibalizationCmd(flags))
+	cmd.AddCommand(newReportProductSeasonalityCmd(flags))
+	cmd.AddCommand(newReportInventoryHealthCmd(flags))
+	cmd.AddCommand(newReportDeadInventoryCmd(flags))
+	cmd.AddCommand(newReportFulfillmentSpeedCmd(flags))
+	cmd.AddCommand(newReportAbandonedCheckoutAnalysisCmd(flags))
+	cmd.AddCommand(newReportCartValueDistributionCmd(flags))
+	cmd.AddCommand(newReportDashboardCmd(flags))
+	cmd.AddCommand(newReportWeeklyDigestCmd(flags))
+	cmd.AddCommand(newReportHealthScoreCmd(flags))
 	return cmd
 }
 
-func openReportDB(ctx context.Context, flags *rootFlags) (*store.Store, error) {
-	return store.OpenWithContext(ctx, defaultDBPath("shopify-pp-cli"))
+func openReportDB(flags *rootFlags) (*store.Store, error) {
+	path := defaultDBPath("shopify-pp-cli")
+	if flags != nil && strings.TrimSpace(flags.reportDBPath) != "" {
+		path = flags.reportDBPath
+	}
+	return store.OpenReadOnly(path)
 }
 
 func windowClause(days int) string {
@@ -59,7 +91,7 @@ func newReportRevenueDailyCmd(flags *rootFlags) *cobra.Command {
 			"mcp:read-only": "true",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := openReportDB(cmd.Context(), flags)
+			db, err := openReportDB(flags)
 			if err != nil {
 				return err
 			}
@@ -120,7 +152,7 @@ func newReportChannelMixCmd(flags *rootFlags) *cobra.Command {
 			"mcp:read-only": "true",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := openReportDB(cmd.Context(), flags)
+			db, err := openReportDB(flags)
 			if err != nil {
 				return err
 			}
@@ -189,7 +221,7 @@ func newReportShowImpactCmd(flags *rootFlags) *cobra.Command {
 			if strings.TrimSpace(tag) == "" {
 				return usageErr(fmt.Errorf("--tag is required"))
 			}
-			db, err := openReportDB(cmd.Context(), flags)
+			db, err := openReportDB(flags)
 			if err != nil {
 				return err
 			}
@@ -273,7 +305,7 @@ line-item titles.`,
 			if strings.TrimSpace(anchor) == "" || strings.TrimSpace(attached) == "" {
 				return usageErr(fmt.Errorf("--anchor and --attached are both required"))
 			}
-			db, err := openReportDB(cmd.Context(), flags)
+			db, err := openReportDB(flags)
 			if err != nil {
 				return err
 			}
@@ -332,7 +364,7 @@ func newReportCustomerLifecycleCmd(flags *rootFlags) *cobra.Command {
 			"mcp:read-only": "true",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := openReportDB(cmd.Context(), flags)
+			db, err := openReportDB(flags)
 			if err != nil {
 				return err
 			}

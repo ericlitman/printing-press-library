@@ -41,6 +41,7 @@ type rootFlags struct {
 	dataSource    string
 	freshnessMeta any
 	throttleMode  string
+	reportDBPath  string
 
 	// deliverBuf captures command output when --deliver is set to a
 	// non-stdout sink. Flushed to the sink after Execute returns.
@@ -259,6 +260,10 @@ Run 'shopify-pp-cli doctor' to verify auth and connectivity.`,
 	rootCmd.AddCommand(newBulkOperationsCmd(flags))
 	rootCmd.AddCommand(newShopifyqlCmd(flags))
 	rootCmd.AddCommand(newReportCmd(flags))
+	rootCmd.AddCommand(newGrowthCmd(flags))
+	rootCmd.AddCommand(newOpsCmd(flags))
+	rootCmd.AddCommand(newMerchandisingCmd(flags))
+	rootCmd.AddCommand(newStoreCmd(flags))
 	rootCmd.AddCommand(newDoctorCmd(flags))
 	authCmd := newAuthCmd(flags)
 	authCmd.AddCommand(newAuthAuditCmd(flags))
