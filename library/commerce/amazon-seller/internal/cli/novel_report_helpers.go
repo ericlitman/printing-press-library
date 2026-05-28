@@ -709,6 +709,13 @@ func reportDateRange(days int) (string, string) {
 	return start.Format(time.RFC3339), end.Format(time.RFC3339)
 }
 
+func novelSinceDate(days int) string {
+	if days <= 0 {
+		days = 30
+	}
+	return time.Now().UTC().AddDate(0, 0, -days).Format("2006-01-02")
+}
+
 func marketSpec(reportType, marketplaceID string, days int) reportSpec {
 	start, end := reportDateRange(days)
 	return reportSpec{Type: reportType, MarketplaceID: marketplaceID, StartTime: start, EndTime: end}

@@ -43,7 +43,7 @@ func newProfitabilitySKUPnlCmd(flags *rootFlags) *cobra.Command {
 				); err != nil {
 					return nil, err
 				}
-				return computeSKUPnl(r.sqlDB, sku, asin, minUnits, sortBy)
+				return computeSKUPnl(r.sqlDB, sku, asin, minUnits, sortBy, novelSinceDate(days))
 			})
 		},
 	}
@@ -119,7 +119,7 @@ func newProfitabilityReimbursementsCmd(flags *rootFlags) *cobra.Command {
 				if err := r.ensureReports(ctx, marketSpec("GET_FBA_REIMBURSEMENTS_DATA", marketplaceID, days)); err != nil {
 					return nil, err
 				}
-				return computeReimbursements(r.sqlDB)
+				return computeReimbursements(r.sqlDB, novelSinceDate(days))
 			})
 		},
 	}
@@ -175,10 +175,10 @@ func computeFeeBreakdown(db *sql.DB, sku, asin string, minFeePct float64) ([]map
 	return out, rows.Err()
 }
 
-func computeSKUPnl(db *sql.DB, sku, asin string, minUnits int, sortBy string) ([]map[string]any, error) {
+func computeSKUPnl(db *sql.DB, sku, asin string, minUnits int, sortBy string, sinceDate string) ([]map[string]any, error) {
 	rows, err := db.Query(`WITH order_rollup AS (
 			SELECT sku, COALESCE(MAX(asin), '') AS asin, SUM(quantity) AS units, SUM(item_price + shipping_price) AS revenue
-			FROM order_details GROUP BY sku
+			FROM order_details WHERE purchase_date >= ? GROUP BY sku
 		), storage_rollup AS (
 			SELECT sku, SUM(monthly_storage_fee + lts_12mo_fee) AS storage_fee
 			FROM storage_fees GROUP BY sku
@@ -189,7 +189,7 @@ func computeSKUPnl(db *sql.DB, sku, asin string, minUnits int, sortBy string) ([
 			COALESCE(s.storage_fee, 0)
 		FROM order_rollup o
 		LEFT JOIN fee_estimates f ON f.sku = o.sku
-		LEFT JOIN storage_rollup s ON s.sku = o.sku`)
+		LEFT JOIN storage_rollup s ON s.sku = o.sku`, sinceDate)
 	if err != nil {
 		return nil, err
 	}
@@ -254,8 +254,8 @@ func computeSettlementReconciliation(db *sql.DB, minDiscrepancy float64) ([]map[
 	return out, rows.Err()
 }
 
-func computeReimbursements(db *sql.DB) ([]map[string]any, error) {
-	rows, err := db.Query(`SELECT sku, asin, reason, SUM(quantity_reimbursed), SUM(amount), MAX(approval_date) FROM reimbursements GROUP BY sku, asin, reason ORDER BY SUM(amount) DESC`)
+func computeReimbursements(db *sql.DB, sinceDate string) ([]map[string]any, error) {
+	rows, err := db.Query(`SELECT sku, asin, reason, SUM(quantity_reimbursed), SUM(amount), MAX(approval_date) FROM reimbursements WHERE approval_date >= ? GROUP BY sku, asin, reason ORDER BY SUM(amount) DESC`, sinceDate)
 	if err != nil {
 		return nil, err
 	}

@@ -119,7 +119,7 @@ func TestReturnRateComputation(t *testing.T) {
 	db := openNovelTestDB(t)
 	execSQL(t, db, `INSERT INTO order_details (order_id, sku, asin, purchase_date, quantity, item_price, item_tax, shipping_price, raw_json) VALUES ('o1','SKU1','A1','2026-01-01',10,100,0,0,'{}')`)
 	execSQL(t, db, `INSERT INTO returns_data (return_date, order_id, sku, asin, quantity, reason, raw_json) VALUES ('2026-01-02','o1','SKU1','A1',2,'Defective','{}')`)
-	out, err := computeReturnRates(db, 10)
+	out, err := computeReturnRates(db, 10, "2025-12-01")
 	if err != nil {
 		t.Fatal(err)
 	}

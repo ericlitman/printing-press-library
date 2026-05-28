@@ -33,7 +33,7 @@ func newSalesDashboardCmd(flags *rootFlags) *cobra.Command {
 			if err := r.ensureReports(ctx, salesTrafficSpecs(marketplaceID, days)...); err != nil {
 				return nil, err
 			}
-			sinceDate := time.Now().UTC().AddDate(0, 0, -days).Format("2006-01-02")
+			sinceDate := novelSinceDate(days)
 			return computeSalesDashboard(r.sqlDB, asin, groupBy, sinceDate)
 		})
 	}}
@@ -54,7 +54,7 @@ func newSalesVelocityCmd(flags *rootFlags) *cobra.Command {
 			if err := r.ensureReports(ctx, marketSpec("GET_FLAT_FILE_ALL_ORDERS_DATA_BY_ORDER_DATE_GENERAL", marketplaceID, days)); err != nil {
 				return nil, err
 			}
-			return computeVelocity(r.sqlDB, threshold)
+			return computeVelocity(r.sqlDB, threshold, novelSinceDate(days))
 		})
 	}}
 	addNovelCommonFlags(cmd, &marketplaceID, &dbPath, &reportTimeout)
@@ -73,7 +73,7 @@ func newSalesReturnsCmd(flags *rootFlags) *cobra.Command {
 			if err := r.ensureReports(ctx, marketSpec("GET_FBA_FULFILLMENT_CUSTOMER_RETURNS_DATA", marketplaceID, days), marketSpec("GET_FLAT_FILE_ALL_ORDERS_DATA_BY_ORDER_DATE_GENERAL", marketplaceID, days)); err != nil {
 				return nil, err
 			}
-			return computeReturnRates(r.sqlDB, minReturnRate)
+			return computeReturnRates(r.sqlDB, minReturnRate, novelSinceDate(days))
 		})
 	}}
 	addNovelCommonFlags(cmd, &marketplaceID, &dbPath, &reportTimeout)
@@ -92,7 +92,7 @@ func newSalesConversionFunnelCmd(flags *rootFlags) *cobra.Command {
 			if err := r.ensureReports(ctx, salesTrafficSpecs(marketplaceID, days)...); err != nil {
 				return nil, err
 			}
-			sinceDate := time.Now().UTC().AddDate(0, 0, -days).Format("2006-01-02")
+			sinceDate := novelSinceDate(days)
 			return computeConversionFunnel(r.sqlDB, asin, sinceDate)
 		})
 	}}
@@ -174,8 +174,8 @@ func computeConversionFunnel(db *sql.DB, asin, sinceDate string) ([]map[string]a
 	return out, rows.Err()
 }
 
-func computeVelocity(db *sql.DB, threshold float64) ([]map[string]any, error) {
-	rows, err := db.Query(`SELECT sku, asin, purchase_date, quantity FROM order_details`)
+func computeVelocity(db *sql.DB, threshold float64, sinceDate string) ([]map[string]any, error) {
+	rows, err := db.Query(`SELECT sku, asin, purchase_date, quantity FROM order_details WHERE purchase_date >= ?`, sinceDate)
 	if err != nil {
 		return nil, err
 	}
@@ -229,9 +229,16 @@ func computeVelocity(db *sql.DB, threshold float64) ([]map[string]any, error) {
 	return out, rows.Err()
 }
 
-func computeReturnRates(db *sql.DB, minReturnRate float64) ([]map[string]any, error) {
-	rows, err := db.Query(`SELECT o.sku, COALESCE(MAX(o.asin), ''), SUM(o.quantity), COALESCE(SUM(r.quantity),0), COALESCE(MAX(r.reason), ''), COALESCE(MAX(r.customer_comments), '')
-		FROM order_details o LEFT JOIN returns_data r ON r.sku=o.sku GROUP BY o.sku`)
+func computeReturnRates(db *sql.DB, minReturnRate float64, sinceDate string) ([]map[string]any, error) {
+	rows, err := db.Query(`WITH order_rollup AS (
+			SELECT sku, COALESCE(MAX(asin), '') AS asin, SUM(quantity) AS sold
+			FROM order_details WHERE purchase_date >= ? GROUP BY sku
+		), return_rollup AS (
+			SELECT sku, SUM(quantity) AS returned, COALESCE(MAX(reason), '') AS reason, COALESCE(MAX(customer_comments), '') AS comments
+			FROM returns_data WHERE return_date >= ? GROUP BY sku
+		)
+		SELECT o.sku, o.asin, o.sold, COALESCE(r.returned,0), COALESCE(r.reason, ''), COALESCE(r.comments, '')
+		FROM order_rollup o LEFT JOIN return_rollup r ON r.sku=o.sku`, sinceDate, sinceDate)
 	if err != nil {
 		return nil, err
 	}
