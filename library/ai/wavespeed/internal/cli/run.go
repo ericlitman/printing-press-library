@@ -150,8 +150,15 @@ func newRunCmd(flags *rootFlags) *cobra.Command {
 				}
 			}
 
+			var downloadSpec string
+			var plannedDownloads []downloadedFile
+			if cmd.Flags().Changed("download") {
+				downloadSpec = runDownloadSpec(opts, project, cmd.Flags().Changed("download-dir"))
+				plannedDownloads = planRunDownloads(unwrapWaveSpeedData(result), downloadSpec)
+			}
+
 			status := extractPredictionStatus(result)
-			output := runOutputEnvelope(pricing, result, nil)
+			output := runOutputEnvelope(pricing, result, plannedDownloads)
 			if err := printOutputWithFlags(cmd.OutOrStdout(), output, flags); err != nil {
 				return err
 			}
@@ -159,14 +166,13 @@ func newRunCmd(flags *rootFlags) *cobra.Command {
 				return apiErr(fmt.Errorf("prediction finished with status %q", status))
 			}
 			if cmd.Flags().Changed("download") {
-				downloadSpec := runDownloadSpec(opts, project, cmd.Flags().Changed("download-dir"))
 				downloads, err := downloadRunOutputs(cmd.Context(), c, unwrapWaveSpeedData(result), downloadSpec)
+				for _, item := range downloads {
+					fmt.Fprintf(cmd.ErrOrStderr(), "downloaded %s\n", item.Path)
+				}
 				if err != nil {
 					fmt.Fprintf(cmd.ErrOrStderr(), "warning: download failed: %v\n", err)
 					return nil
-				}
-				for _, item := range downloads {
-					fmt.Fprintf(cmd.ErrOrStderr(), "downloaded %s\n", item.Path)
 				}
 			}
 			return nil
@@ -1436,15 +1442,10 @@ type downloadedFile struct {
 }
 
 func downloadRunOutputs(ctx context.Context, c *client.Client, data json.RawMessage, spec string) ([]downloadedFile, error) {
-	urls := collectURLStrings(data)
-	if len(urls) == 0 {
-		return nil, nil
-	}
-	if spec == "" || spec == "true" {
-		spec = "."
-	}
-	downloads := make([]downloadedFile, 0, len(urls))
-	for i, rawURL := range urls {
+	planned := planRunDownloads(data, spec)
+	downloads := make([]downloadedFile, 0, len(planned))
+	for _, item := range planned {
+		rawURL := item.URL
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 		if err != nil {
 			return downloads, fmt.Errorf("building download request: %w", err)
@@ -1462,7 +1463,7 @@ func downloadRunOutputs(ctx context.Context, c *client.Client, data json.RawMess
 				err = fmt.Errorf("downloading %s returned HTTP %d", rawURL, resp.StatusCode)
 				return
 			}
-			outPath := downloadOutputPath(spec, rawURL, i, len(urls))
+			outPath := item.Path
 			if err = os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 				err = fmt.Errorf("creating download dir: %w", err)
 				return
@@ -1478,13 +1479,31 @@ func downloadRunOutputs(ctx context.Context, c *client.Client, data json.RawMess
 				err = fmt.Errorf("writing %s: %w", outPath, err)
 				return
 			}
-			downloads = append(downloads, downloadedFile{URL: rawURL, Path: outPath})
+			downloads = append(downloads, item)
 		}()
 		if err != nil {
 			return downloads, err
 		}
 	}
 	return downloads, nil
+}
+
+func planRunDownloads(data json.RawMessage, spec string) []downloadedFile {
+	urls := collectURLStrings(data)
+	if len(urls) == 0 {
+		return nil
+	}
+	if spec == "" || spec == "true" {
+		spec = "."
+	}
+	downloads := make([]downloadedFile, 0, len(urls))
+	for i, rawURL := range urls {
+		downloads = append(downloads, downloadedFile{
+			URL:  rawURL,
+			Path: downloadOutputPath(spec, rawURL, i, len(urls)),
+		})
+	}
+	return downloads
 }
 
 func addDownloadRequestHeaders(ctx context.Context, c *client.Client, req *http.Request) error {
@@ -1582,7 +1601,7 @@ func collectURLStrings(data json.RawMessage) []string {
 				if isEchoedInputContainerKey(key) {
 					continue
 				}
-				if isManagementURLContainer(key, item) {
+				if isPredictionManagementURL(key, item) {
 					continue
 				}
 				walk(item)
@@ -1602,23 +1621,22 @@ func isEchoedInputContainerKey(key string) bool {
 	}
 }
 
-func isManagementURLContainer(key string, item any) bool {
+func isPredictionManagementURL(key string, item any) bool {
 	switch strings.ToLower(strings.TrimSpace(key)) {
-	case "urls", "links", "_links":
+	case "get", "self", "status", "result", "cancel", "delete":
 	default:
 		return false
 	}
-	items, ok := item.(map[string]any)
-	if !ok {
+	rawURL, ok := item.(string)
+	if !ok || !strings.HasPrefix(rawURL, "http") {
 		return false
 	}
-	for key := range items {
-		switch strings.ToLower(strings.TrimSpace(key)) {
-		case "get", "self", "status", "result", "cancel", "delete":
-			return true
-		}
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return false
 	}
-	return false
+	path := strings.ToLower(parsed.Path)
+	return strings.Contains(path, "/predictions/")
 }
 
 func outputFilename(rawURL string, index int) string {

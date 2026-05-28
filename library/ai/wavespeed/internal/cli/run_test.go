@@ -154,13 +154,14 @@ func TestCollectURLStringsSkipsEchoedInputs(t *testing.T) {
 			],
 			"urls": {
 				"get": "https://api.wavespeed.ai/api/v3/predictions/pred-123/result",
-				"cancel": "https://api.wavespeed.ai/api/v3/predictions/pred-123/cancel"
+				"cancel": "https://api.wavespeed.ai/api/v3/predictions/pred-123/cancel",
+				"result": "https://cdn.example.com/from-result-key.mp4"
 			}
 		}
 	}`)
 
 	got := collectURLStrings(raw)
-	want := []string{"https://example.com/generated.png", "https://example.com/generated.mp4"}
+	want := []string{"https://example.com/generated.png", "https://example.com/generated.mp4", "https://cdn.example.com/from-result-key.mp4"}
 	if len(got) != len(want) {
 		t.Fatalf("urls = %#v", got)
 	}
@@ -220,6 +221,9 @@ func TestRunWaitDownloadPrintsResultAndDownloadsCDNWithoutAuth(t *testing.T) {
 	}
 	if !strings.Contains(stdout, `"status": "completed"`) || !strings.Contains(stdout, cdn.URL+`/generated.png`) {
 		t.Fatalf("stdout did not preserve completed result: %s", stdout)
+	}
+	if !strings.Contains(stdout, `"downloads"`) || !strings.Contains(stdout, `"path": "`+outPath+`"`) {
+		t.Fatalf("stdout did not include planned download mapping: %s", stdout)
 	}
 	if !strings.Contains(stderr, "downloaded "+outPath) {
 		t.Fatalf("stderr missing download confirmation: %s", stderr)
@@ -281,11 +285,72 @@ func TestRunDownloadFailureWarnsAfterPrintingCompletedResult(t *testing.T) {
 	if !strings.Contains(stdout, `"status": "completed"`) || !strings.Contains(stdout, cdn.URL+`/generated.png`) {
 		t.Fatalf("stdout did not include completed result before warning: %s", stdout)
 	}
+	if !strings.Contains(stdout, `"downloads"`) || !strings.Contains(stdout, `"path": "`+outPath+`"`) {
+		t.Fatalf("stdout did not include planned download mapping before warning: %s", stdout)
+	}
 	if !strings.Contains(stderr, "warning: download failed: downloading "+cdn.URL+"/generated.png returned HTTP 401") {
 		t.Fatalf("stderr missing download warning: %s", stderr)
 	}
 	if _, err := os.Stat(outPath); !os.IsNotExist(err) {
 		t.Fatalf("download path exists after failed download: err=%v", err)
+	}
+}
+
+func TestRunDownloadFailureReportsPartialSuccesses(t *testing.T) {
+	t.Chdir(t.TempDir())
+	outTemplate := filepath.Join(t.TempDir(), "{index}.{ext}")
+
+	okCDN := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("first"))
+	}))
+	defer okCDN.Close()
+
+	failCDN := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "nope", http.StatusUnauthorized)
+	}))
+	defer failCDN.Close()
+
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/google/nano-banana-2/edit":
+			_, _ = w.Write([]byte(`{"data":{"id":"pred-789","status":"created"}}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/predictions/pred-789/result":
+			_, _ = w.Write([]byte(`{"data":{"id":"pred-789","status":"completed","outputs":["` + okCDN.URL + `/first.png","` + failCDN.URL + `/second.png"]}}`))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer api.Close()
+
+	stdout, stderr, err := executeRootForTest(t, []string{
+		"--json",
+		"run",
+		"google/nano-banana-2/edit",
+		"--prompt", "edit this",
+		"--wait",
+		"--poll-interval", "1ms",
+		"--download", outTemplate,
+	}, api.URL)
+	if err != nil {
+		t.Fatalf("partial download failure should be non-fatal, got %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+	firstPath := filepath.Join(filepath.Dir(outTemplate), "1.png")
+	secondPath := filepath.Join(filepath.Dir(outTemplate), "2.png")
+	if !strings.Contains(stdout, firstPath) || !strings.Contains(stdout, secondPath) {
+		t.Fatalf("stdout missing planned download paths: %s", stdout)
+	}
+	if !strings.Contains(stderr, "downloaded "+firstPath) {
+		t.Fatalf("stderr missing partial success confirmation: %s", stderr)
+	}
+	if !strings.Contains(stderr, "warning: download failed: downloading "+failCDN.URL+"/second.png returned HTTP 401") {
+		t.Fatalf("stderr missing partial failure warning: %s", stderr)
+	}
+	if got, err := os.ReadFile(firstPath); err != nil || string(got) != "first" {
+		t.Fatalf("first download = %q, %v", string(got), err)
+	}
+	if _, err := os.Stat(secondPath); !os.IsNotExist(err) {
+		t.Fatalf("second download path exists after failed download: err=%v", err)
 	}
 }
 
