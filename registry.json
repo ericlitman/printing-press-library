@@ -8739,6 +8739,66 @@
       }
     },
     {
+      "name": "splitwise",
+      "category": "payments",
+      "api": "Splitwise",
+      "description": "Every Splitwise feature, plus an offline SQLite ledger that powers balance, debt-aging, spend analytics",
+      "search_terms": [
+        "splitwise",
+        "splitwise-pp-cli",
+        "Every Splitwise feature, plus an offline SQLite ledger that powers balance, debt-aging, spend analytics, and full-text search no other Splitwise tool has.",
+        "Net balance overview",
+        "balances",
+        "See everything you owe and are owed across every friend and group in one net-position view.",
+        "Debt aging",
+        "debts",
+        "List who owes you (and whom you owe) sorted by how long the balance has gone unsettled.",
+        "Group ledger with running balance",
+        "ledger",
+        "Every expense in a group, in date order, with a cumulative running balance per member.",
+        "Spend analytics rollups",
+        "spend",
+        "Total shared spend broken down by category, group, or month from your synced history.",
+        "Offline expense search",
+        "search",
+        "Full-text search across your entire expense history, comments, and group/friend names — offline.",
+        "Settle-up plan",
+        "settle-up",
+        "Compute the minimum set of transfers that zeroes out balances in a group, then optionally record the payments.",
+        "Activity diff",
+        "activity",
+        "Show what changed since your last sync — new, edited, and deleted expenses to review.",
+        "Split calculator",
+        "split",
+        "Build and preview the exact expense split (equal, exact, percentage, or shares) before recording it.",
+        "Recurring-expense detector",
+        "recurring",
+        "Surface repeating charges (rent, utilities, subscriptions) from your synced history and flag a month missing an expected entry."
+      ],
+      "path": "library/payments/splitwise",
+      "printer": "vinnyp",
+      "printer_name": "Vinny Pasceri",
+      "creator": {
+        "handle": "vinnyp",
+        "name": "Vinny Pasceri"
+      },
+      "mcp": {
+        "binary": "splitwise-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 27,
+        "public_tool_count": 2,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "SPLITWISE_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "spotify",
       "category": "media-and-entertainment",
       "api": "Spotify Web",
