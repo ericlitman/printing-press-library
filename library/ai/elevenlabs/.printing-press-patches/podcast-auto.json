@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "id": "podcast-auto",
+  "applied_at": "2026-06-03",
+  "base_run_id": "20260513T152516Z-e836a3fe",
+  "base_printing_press_version": "4.5.2",
+  "summary": "Add `podcast auto` and show-bible helpers for topic-to-script generation with optional produce handoff.",
+  "reason": "ElevenLabs has no autonomous showrunner endpoint; this hand-authored workflow stores show identity, generates a valid podcast-produce script from a brief, and can hand that script to the existing audio pipeline.",
+  "files": [
+    "internal/cli/podcast.go",
+    "internal/cli/podcast_auto.go",
+    "internal/cli/podcast_test.go",
+    ".printing-press.json",
+    "SKILL.md"
+  ],
+  "validated_outcome": "go build ./...; go vet ./...; go test ./...; govulncheck ./...; python3 .github/scripts/verify-skill/verify_skill.py --dir library/ai/elevenlabs/"
+}

@@ -107,6 +107,13 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   elevenlabs-pp-cli podcast voice design --show bestself-focus --speaker HOST --description "calm, warm, authoritative productivity host" --agent
   ```
+- **`podcast auto`** - Generate a show-bible driven podcast episode script from a topic or brief, validate the script against the `podcast produce` grammar, and optionally produce the final audio.
+
+  _Agents can run a repeatable show workflow from show identity plus a topic, with `--script-only` available as a review gate before audio spend._
+
+  ```bash
+  elevenlabs-pp-cli podcast auto --show bestself-focus --topic "why attention became a luxury good" --duration 20 --script-only --agent
+  ```
 
 ## Command Reference
 
@@ -282,6 +289,10 @@ These capabilities aren't available in any other tool for this API.
 - `elevenlabs-pp-cli podcast clip` — Score and cut short-form podcast clips
 - `elevenlabs-pp-cli podcast voice` — Manage podcast signature voices
 - `elevenlabs-pp-cli podcast voice design` — Design and persist a signature podcast voice
+- `elevenlabs-pp-cli podcast auto` — Generate a show-bible driven podcast episode from a topic
+- `elevenlabs-pp-cli podcast show` — Manage podcast show-bibles
+- `elevenlabs-pp-cli podcast show init` — Create a podcast show-bible
+- `elevenlabs-pp-cli podcast show list` — List configured podcast show-bibles
 
 **dubbing** — Manage dubbing
 

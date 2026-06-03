@@ -72,6 +72,11 @@
       "name": "Podcast Signature Voice",
       "command": "podcast voice design",
       "description": "Design and persist a signature host voice from a prompt, optionally biased by a reference clip and seed, then write the resulting voice_id into the show-bible for reuse across episodes."
+    },
+    {
+      "name": "Autonomous Podcast",
+      "command": "podcast auto",
+      "description": "Generate a show-bible driven podcast script from a topic or brief, validate it against the podcast produce grammar, and optionally hand it to the local produce pipeline for audio generation and mixing."
     }
   ]
 }

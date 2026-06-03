@@ -218,3 +218,35 @@ func TestUpsertPodcastShowBibleVoice(t *testing.T) {
 		}
 	}
 }
+
+func TestRenderPodcastAutoScriptValidates(t *testing.T) {
+	bible := defaultPodcastShowBible("bestself-focus")
+	script := renderPodcastAutoScript(bible, podcastAutoOptions{Show: "bestself-focus", Topic: "deep work", Duration: 12, Model: "eleven_v3"}, "deep work", "attention needs protection")
+	episode, err := parsePodcastScriptText(script)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(episode.Segments) == 0 {
+		t.Fatal("expected generated segments")
+	}
+	if episode.Cast["HOST"] == "" || episode.Music["intro"].Prompt == "" {
+		t.Fatalf("missing cast/music in generated script:\n%s", script)
+	}
+}
+
+func TestFormatAndReadPodcastShowBible(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "show.yaml")
+	bible := defaultPodcastShowBible("bestself-focus")
+	bible.Title = "BestSelf Focus"
+	if err := os.WriteFile(path, []byte(formatPodcastShowBible(bible)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	read, err := readPodcastShowBible(path, "bestself-focus")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if read.Title != "BestSelf Focus" || read.Cast["HOST"] == "" {
+		t.Fatalf("read bible = %+v", read)
+	}
+}
