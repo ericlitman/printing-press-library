@@ -238,7 +238,7 @@ func writePodcastSEOOutputs(outDir, transcript string, chapters []podcastChapter
 	if err := writeAtomicFile(filepath.Join(outDir, "transcript.srt"), []byte(blocksToSRT(blocks))); err != nil {
 		return err
 	}
-	if err := writeAtomicFile(filepath.Join(outDir, "transcript.vtt"), []byte("WEBVTT\n\n"+strings.ReplaceAll(blocksToSRT(blocks), ",", "."))); err != nil {
+	if err := writeAtomicFile(filepath.Join(outDir, "transcript.vtt"), []byte(blocksToVTT(blocks))); err != nil {
 		return err
 	}
 	if err := writeJSONFile(filepath.Join(outDir, "chapters.json"), chapters); err != nil {
@@ -299,6 +299,21 @@ func blocksToSRT(blocks []string) string {
 		fmt.Fprintf(&b, "%d\n%s --> %s\n%s\n\n", i+1, formatSRTTime(start), formatSRTTime(end), block)
 	}
 	return b.String()
+}
+
+func blocksToVTT(blocks []string) string {
+	var b strings.Builder
+	b.WriteString("WEBVTT\n\n")
+	for i, block := range blocks {
+		start := float64(i * 30)
+		end := start + 30
+		fmt.Fprintf(&b, "%s --> %s\n%s\n\n", formatVTTTime(start), formatVTTTime(end), block)
+	}
+	return b.String()
+}
+
+func formatVTTTime(seconds float64) string {
+	return strings.Replace(formatSRTTime(seconds), ",", ".", 1)
 }
 
 func podcastPullQuotes(transcript string, limit int) []podcastSEOPullQuote {

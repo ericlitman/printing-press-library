@@ -4,12 +4,15 @@
   "applied_at": "2026-06-03",
   "base_run_id": "20260513T152516Z-e836a3fe",
   "base_printing_press_version": "4.5.2",
-  "summary": "Fix podcast produce review findings around explicit flag overrides, numeric API payload fields, and resume hashes.",
-  "reason": "Greptile review identified runtime defects in the hand-authored podcast produce workflow: CLI defaults overwrote script front matter, generated music/SFX requests used string values for numeric API fields, and resume hashes ignored voice assignment changes.",
+  "summary": "Fix podcast review findings around runtime payloads, manifest output, timing, quota checks, and show-bible updates.",
+  "reason": "Greptile review identified runtime defects in the hand-authored podcast suite: CLI defaults overwrote script front matter, generated music/SFX requests used string values for numeric API fields, resume hashes ignored voice assignments, VTT conversion corrupted transcript text, clip cuts ignored STT word timing, over-quota accounts skipped budget gating, auto runs dropped show context, and voice design appended duplicate speaker blocks.",
   "files": [
     "internal/cli/podcast.go",
     "internal/cli/podcast_auto.go",
-    "internal/cli/podcast_test.go"
+    "internal/cli/podcast_clip.go",
+    "internal/cli/podcast_seo.go",
+    "internal/cli/podcast_test.go",
+    "internal/cli/podcast_voice.go"
   ],
   "validated_outcome": "go build ./...; go vet ./...; go test ./...; govulncheck ./...; python3 .github/scripts/verify-skill/verify_skill.py --dir library/ai/elevenlabs/"
 }

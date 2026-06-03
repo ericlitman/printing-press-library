@@ -283,7 +283,7 @@ func upsertPodcastShowBibleVoice(path, show, speaker, voiceID, kind, seed, perso
 	if len(existing) == 0 {
 		fmt.Fprintf(&b, "show:\n  slug: %s\ncast:\n", show)
 	} else {
-		b.Write(existing)
+		b.WriteString(removePodcastShowBibleSpeakerBlock(string(existing), speaker))
 		if !strings.HasSuffix(b.String(), "\n") {
 			b.WriteByte('\n')
 		}
@@ -301,4 +301,22 @@ func upsertPodcastShowBibleVoice(path, show, speaker, voiceID, kind, seed, perso
 		fmt.Fprintf(&b, "    persona: %q\n", persona)
 	}
 	return writeAtomicFile(path, []byte(b.String()))
+}
+
+func removePodcastShowBibleSpeakerBlock(text, speaker string) string {
+	target := "  " + speaker + ":"
+	lines := strings.Split(text, "\n")
+	var out []string
+	for i := 0; i < len(lines); {
+		if lines[i] != target {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
+		i++
+		for i < len(lines) && (strings.HasPrefix(lines[i], "    ") || strings.TrimSpace(lines[i]) == "") {
+			i++
+		}
+	}
+	return strings.TrimRight(strings.Join(out, "\n"), "\n")
 }

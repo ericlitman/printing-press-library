@@ -184,15 +184,23 @@ func newPodcastProduceCmd(flags *rootFlags) *cobra.Command {
 }
 
 func runPodcastProduce(cmd *cobra.Command, flags *rootFlags, opts podcastProduceOptions) error {
+	manifest, err := buildPodcastProduceManifest(flags, opts)
+	if err != nil {
+		return err
+	}
+	return flags.printJSON(cmd, manifest)
+}
+
+func buildPodcastProduceManifest(flags *rootFlags, opts podcastProduceOptions) (*podcastManifest, error) {
 	if strings.TrimSpace(opts.Script) == "" {
-		return usageErr(fmt.Errorf("--script is required"))
+		return nil, usageErr(fmt.Errorf("--script is required"))
 	}
 	if opts.Engine != "assembly" {
-		return usageErr(fmt.Errorf("--engine %q is not implemented; use assembly", opts.Engine))
+		return nil, usageErr(fmt.Errorf("--engine %q is not implemented; use assembly", opts.Engine))
 	}
 	episode, err := parsePodcastScript(opts.Script)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	applyPodcastOverrides(&episode, opts)
 	if opts.OutDir == "" {
@@ -209,45 +217,45 @@ func runPodcastProduce(cmd *cobra.Command, flags *rootFlags, opts podcastProduce
 		Estimate: estimate,
 	}
 	if dryRunOK(flags) {
-		return flags.printJSON(cmd, manifest)
+		return &manifest, nil
 	}
 	tools, err := requirePodcastFFmpeg()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	manifest.FFmpeg = &tools
 	c, err := flags.newClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resolvedVoices, err := resolvePodcastCast(c, episode.Cast)
 	if err != nil {
-		return classifyAPIError(err, flags)
+		return nil, classifyAPIError(err, flags)
 	}
 	manifest.Voices = resolvedVoices
 	modelID, _, err := resolveModel(c, episode.Model, true)
 	if err != nil {
-		return classifyAPIError(err, flags)
+		return nil, classifyAPIError(err, flags)
 	}
 	manifest.ModelID = modelID
 	if err := fillPodcastBudget(c, &manifest.Estimate); err != nil {
 		manifest.Warnings = append(manifest.Warnings, "subscription budget preflight failed: "+err.Error())
 	} else if manifest.Estimate.OverCharacterBudget && !flags.yes {
-		return usageErr(fmt.Errorf("projected voice spend %d characters exceeds remaining %d; pass --yes to continue", manifest.Estimate.VoiceCharacters, manifest.Estimate.RemainingCharacters))
+		return nil, usageErr(fmt.Errorf("projected voice spend %d characters exceeds remaining %d; pass --yes to continue", manifest.Estimate.VoiceCharacters, manifest.Estimate.RemainingCharacters))
 	}
 	if err := os.MkdirAll(opts.OutDir, 0o755); err != nil {
-		return err
+		return nil, err
 	}
 	if err := generatePodcastArtifacts(c, tools, flags, opts, &episode, resolvedVoices, modelID, &manifest); err != nil {
-		return err
+		return nil, err
 	}
 	mixItems, err := podcastMixItems(episode)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	mix, err := runPodcastMix(tools, opts.OutDir, mixItems, episode.Loudness, opts.WAV)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	manifest.Episode = episode
 	manifest.Mix = &mix
@@ -258,13 +266,13 @@ func runPodcastProduce(cmd *cobra.Command, flags *rootFlags, opts podcastProduce
 	if opts.TranscribeFromAudio {
 		artifacts, err := transcribePodcastMix(c, opts.OutDir, mix.EpisodeMP3Path, episode.Language)
 		if err != nil {
-			return classifyAPIError(err, flags)
+			return nil, classifyAPIError(err, flags)
 		}
 		manifest.Artifacts = append(manifest.Artifacts, artifacts...)
 	} else {
 		artifacts, err := alignPodcastVoiceSegments(c, opts.OutDir, episode)
 		if err != nil {
-			return classifyAPIError(err, flags)
+			return nil, classifyAPIError(err, flags)
 		}
 		manifest.Artifacts = append(manifest.Artifacts, artifacts...)
 	}
@@ -272,11 +280,11 @@ func runPodcastProduce(cmd *cobra.Command, flags *rootFlags, opts podcastProduce
 	manifest.Chapters = chapters
 	if opts.TranscribeFromAudio {
 		if err := writeJSONFile(filepath.Join(opts.OutDir, "chapters.json"), chapters); err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		if err := writePodcastTextOutputs(opts.OutDir, episode, chapters); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	manifest.Artifacts = append(manifest.Artifacts, podcastArtifact{Kind: "chapters", Path: filepath.Join(opts.OutDir, "chapters.json"), Bytes: fileSize(filepath.Join(opts.OutDir, "chapters.json"))})
@@ -288,13 +296,13 @@ func runPodcastProduce(cmd *cobra.Command, flags *rootFlags, opts podcastProduce
 	}
 	manifestPath := filepath.Join(opts.OutDir, "manifest.json")
 	if err := writeJSONFile(manifestPath, manifest); err != nil {
-		return err
+		return nil, err
 	}
 	manifest.Artifacts = append(manifest.Artifacts, podcastArtifact{Kind: "manifest", Path: manifestPath, Bytes: fileSize(manifestPath)})
 	if !opts.KeepIntermediates {
 		manifest.Warnings = append(manifest.Warnings, "--keep-intermediates=false currently preserves generated assets for resume safety")
 	}
-	return flags.printJSON(cmd, manifest)
+	return &manifest, nil
 }
 
 func parsePodcastScript(path string) (podcastEpisode, error) {
@@ -559,7 +567,7 @@ func fillPodcastBudget(c *client.Client, estimate *podcastEstimate) error {
 	estimate.CharacterCount = sub.CharacterCount
 	estimate.CharacterLimit = sub.CharacterLimit
 	estimate.RemainingCharacters = sub.CharacterLimit - sub.CharacterCount
-	estimate.OverCharacterBudget = estimate.RemainingCharacters >= 0 && estimate.VoiceCharacters > estimate.RemainingCharacters
+	estimate.OverCharacterBudget = estimate.CharacterLimit > 0 && estimate.VoiceCharacters > estimate.RemainingCharacters
 	return nil
 }
 

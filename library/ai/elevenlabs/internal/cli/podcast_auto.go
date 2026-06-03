@@ -235,10 +235,12 @@ func runPodcastAuto(cmd *cobra.Command, flags *rootFlags, opts podcastAutoOption
 		Resume:            opts.Resume,
 		KeepIntermediates: true,
 	}
-	if err := runPodcastProduce(cmd, flags, produceOpts); err != nil {
+	produceManifest, err := buildPodcastProduceManifest(flags, produceOpts)
+	if err != nil {
 		return err
 	}
-	return nil
+	manifest.Produce = produceManifest
+	return flags.printJSON(cmd, manifest)
 }
 
 func runPodcastShowInit(cmd *cobra.Command, flags *rootFlags, opts podcastShowInitOptions) error {

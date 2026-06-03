@@ -187,11 +187,18 @@ func TestBlocksToSRT(t *testing.T) {
 			t.Fatalf("srt missing %q:\n%s", want, srt)
 		}
 	}
+	vtt := blocksToVTT([]string{"HOST: Well, yes."})
+	if !strings.Contains(vtt, "00:00:00.000 --> 00:00:30.000") {
+		t.Fatalf("vtt timestamp not converted:\n%s", vtt)
+	}
+	if !strings.Contains(vtt, "Well, yes.") {
+		t.Fatalf("vtt corrupted transcript comma:\n%s", vtt)
+	}
 }
 
 func TestScorePodcastClipCandidates(t *testing.T) {
 	transcript := "Why does focus disappear so quickly? The practical lesson is that teams need a framework because attention is fragile. This is short."
-	candidates := scorePodcastClipCandidates(transcript, 45)
+	candidates := scorePodcastClipCandidates(clipWindowsFromText(transcript), 45)
 	if len(candidates) < 2 {
 		t.Fatalf("candidates = %d", len(candidates))
 	}
@@ -201,6 +208,25 @@ func TestScorePodcastClipCandidates(t *testing.T) {
 	selected := selectPodcastClips(candidates, 1, 60)
 	if len(selected) != 1 {
 		t.Fatalf("selected = %d", len(selected))
+	}
+}
+
+func TestClipWindowsFromSTTUsesWordTimings(t *testing.T) {
+	windows := clipWindowsFromSTT([]byte(`{"words":[
+		{"text":"Why","start":12.5,"end":12.8},
+		{"text":"does","start":12.9,"end":13.1},
+		{"text":"focus","start":13.2,"end":13.6},
+		{"text":"matter?","start":13.7,"end":14.1},
+		{"text":"Teams","start":21.0,"end":21.4},
+		{"text":"need","start":21.5,"end":21.8},
+		{"text":"a","start":21.9,"end":22.0},
+		{"text":"framework.","start":22.1,"end":22.7}
+	]}`))
+	if len(windows) != 2 {
+		t.Fatalf("windows = %+v", windows)
+	}
+	if windows[0].Start != 12.5 || windows[0].End != 14.1 {
+		t.Fatalf("first window timing = %+v", windows[0])
 	}
 }
 
@@ -237,6 +263,20 @@ func TestUpsertPodcastShowBibleVoice(t *testing.T) {
 		if !strings.Contains(text, want) {
 			t.Fatalf("show bible missing %q:\n%s", want, text)
 		}
+	}
+	if err := upsertPodcastShowBibleVoice(path, "bestself", "HOST", "voice456", "designed", "99", "clear host"); err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text = string(data)
+	if strings.Count(text, "  HOST:\n") != 1 {
+		t.Fatalf("expected one HOST block:\n%s", text)
+	}
+	if strings.Contains(text, `voice: "voice123"`) || !strings.Contains(text, `voice: "voice456"`) {
+		t.Fatalf("speaker block was not updated:\n%s", text)
 	}
 }
 

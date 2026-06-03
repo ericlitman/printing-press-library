@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -54,6 +55,12 @@ type podcastClipCandidate struct {
 	Value      int     `json:"value"`
 	Transcript string  `json:"transcript"`
 	Caption    string  `json:"caption"`
+}
+
+type podcastClipWindow struct {
+	Text  string
+	Start float64
+	End   float64
 }
 
 func newPodcastClipCmd(flags *rootFlags) *cobra.Command {
@@ -115,12 +122,12 @@ func runPodcastClip(cmd *cobra.Command, flags *rootFlags, opts podcastClipOption
 	if err := os.MkdirAll(opts.OutDir, 0o755); err != nil {
 		return err
 	}
-	transcript, artifacts, err := podcastClipTranscript(flags, opts)
+	windows, artifacts, err := podcastClipTranscript(flags, opts)
 	if err != nil {
 		return err
 	}
 	manifest.Artifacts = append(manifest.Artifacts, artifacts...)
-	candidates := scorePodcastClipCandidates(transcript, opts.MaxSeconds)
+	candidates := scorePodcastClipCandidates(windows, opts.MaxSeconds)
 	selected := selectPodcastClips(candidates, opts.Count, opts.MinScore)
 	manifest.Clips = selected
 	if len(selected) == 0 {
@@ -147,42 +154,45 @@ func runPodcastClip(cmd *cobra.Command, flags *rootFlags, opts podcastClipOption
 	return flags.printJSON(cmd, manifest)
 }
 
-func podcastClipTranscript(flags *rootFlags, opts podcastClipOptions) (string, []podcastArtifact, error) {
+func podcastClipTranscript(flags *rootFlags, opts podcastClipOptions) ([]podcastClipWindow, []podcastArtifact, error) {
 	if opts.Transcript != "" {
 		data, err := os.ReadFile(opts.Transcript)
 		if err != nil {
-			return "", nil, err
+			return nil, nil, err
 		}
-		return string(data), nil, nil
+		if windows := clipWindowsFromSTT(data); len(windows) > 0 {
+			return windows, nil, nil
+		}
+		return clipWindowsFromText(string(data)), nil, nil
 	}
 	c, err := flags.newClient()
 	if err != nil {
-		return "", nil, err
+		return nil, nil, err
 	}
 	fields := map[string]string{"model_id": opts.STTModelID, "diarize": "true"}
 	data, _, err := c.PostMultipartWithParams("/v1/speech-to-text", nil, fields, map[string]string{"file": opts.Audio})
 	if err != nil {
-		return "", nil, classifyAPIError(err, flags)
+		return nil, nil, classifyAPIError(err, flags)
 	}
 	raw := extractResponseData(data)
 	path := filepath.Join(opts.OutDir, "transcript.json")
 	if err := writeAtomicFile(path, []byte(raw)); err != nil {
-		return "", nil, err
+		return nil, nil, err
 	}
-	return transcriptTextFromSTT(raw), []podcastArtifact{{Kind: "speech_to_text", Path: path, Bytes: fileSize(path)}}, nil
+	return clipWindowsFromSTT(raw), []podcastArtifact{{Kind: "speech_to_text", Path: path, Bytes: fileSize(path)}}, nil
 }
 
-func scorePodcastClipCandidates(transcript string, maxSeconds float64) []podcastClipCandidate {
-	sentences := splitSentences(transcript)
+func scorePodcastClipCandidates(windows []podcastClipWindow, maxSeconds float64) []podcastClipCandidate {
 	var out []podcastClipCandidate
-	for i, sentence := range sentences {
+	for _, window := range windows {
+		sentence := strings.TrimSpace(window.Text)
 		words := strings.Fields(sentence)
 		if len(words) < 5 {
 			continue
 		}
-		duration := float64(len(words)) / 2.5
-		if duration < 12 {
-			duration = 12
+		duration := window.End - window.Start
+		if duration <= 0 {
+			duration = estimatedClipWindowDuration(words)
 		}
 		if duration > maxSeconds {
 			duration = maxSeconds
@@ -194,7 +204,7 @@ func scorePodcastClipCandidates(transcript string, maxSeconds float64) []podcast
 			flow = 85
 		}
 		score := (hook + flow + value) / 3
-		start := float64(i) * 30
+		start := window.Start
 		out = append(out, podcastClipCandidate{
 			Index:      len(out) + 1,
 			Start:      start,
@@ -214,6 +224,121 @@ func scorePodcastClipCandidates(transcript string, maxSeconds float64) []podcast
 		out[i].Index = i + 1
 	}
 	return out
+}
+
+func clipWindowsFromText(transcript string) []podcastClipWindow {
+	sentences := splitSentences(transcript)
+	var windows []podcastClipWindow
+	var cursor float64
+	for _, sentence := range sentences {
+		words := strings.Fields(sentence)
+		duration := estimatedClipWindowDuration(words)
+		windows = append(windows, podcastClipWindow{Text: sentence, Start: cursor, End: cursor + duration})
+		cursor += duration
+	}
+	return windows
+}
+
+func clipWindowsFromSTT(data json.RawMessage) []podcastClipWindow {
+	var obj map[string]any
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil
+	}
+	words := timedWordsFromSTT(obj["words"])
+	if len(words) == 0 {
+		return clipWindowsFromText(transcriptTextFromSTT(data))
+	}
+	var windows []podcastClipWindow
+	var text strings.Builder
+	var start float64
+	var end float64
+	for _, word := range words {
+		if text.Len() == 0 {
+			start = word.Start
+		} else if !strings.HasPrefix(word.Text, " ") && !isLeadingPunctuation(word.Text) {
+			text.WriteByte(' ')
+		}
+		text.WriteString(strings.TrimSpace(word.Text))
+		end = word.End
+		if isSentenceEnd(word.Text) {
+			windows = append(windows, podcastClipWindow{Text: text.String(), Start: start, End: end})
+			text.Reset()
+		}
+	}
+	if text.Len() > 0 {
+		windows = append(windows, podcastClipWindow{Text: text.String(), Start: start, End: end})
+	}
+	return windows
+}
+
+type podcastTimedWord struct {
+	Text  string
+	Start float64
+	End   float64
+}
+
+func timedWordsFromSTT(value any) []podcastTimedWord {
+	items, ok := value.([]any)
+	if !ok {
+		return nil
+	}
+	var words []podcastTimedWord
+	for _, item := range items {
+		obj, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		text := strings.TrimSpace(clipStringField(obj, "text", "word"))
+		if text == "" {
+			continue
+		}
+		start := clipNumberField(obj, "start", "start_time")
+		end := clipNumberField(obj, "end", "end_time")
+		if end <= start {
+			continue
+		}
+		words = append(words, podcastTimedWord{Text: text, Start: start, End: end})
+	}
+	return words
+}
+
+func estimatedClipWindowDuration(words []string) float64 {
+	duration := float64(len(words)) / 2.5
+	if duration < 12 {
+		duration = 12
+	}
+	return duration
+}
+
+func clipStringField(obj map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value, ok := obj[key].(string); ok {
+			return value
+		}
+	}
+	return ""
+}
+
+func clipNumberField(obj map[string]any, keys ...string) float64 {
+	for _, key := range keys {
+		switch value := obj[key].(type) {
+		case float64:
+			return value
+		case int:
+			return float64(value)
+		}
+	}
+	return 0
+}
+
+func isSentenceEnd(text string) bool {
+	text = strings.TrimSpace(text)
+	return strings.HasSuffix(text, ".") || strings.HasSuffix(text, "!") || strings.HasSuffix(text, "?")
+}
+
+func isLeadingPunctuation(text string) bool {
+	text = strings.TrimSpace(text)
+	return text == "." || text == "," || text == "!" || text == "?" || text == ":" || text == ";"
 }
 
 func selectPodcastClips(candidates []podcastClipCandidate, count, minScore int) []podcastClipCandidate {
