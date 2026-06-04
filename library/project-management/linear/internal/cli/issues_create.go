@@ -6,10 +6,180 @@ import (
 	"os"
 	"time"
 
+	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 
 	"github.com/spf13/cobra"
 )
+
+// issueCreateMutation is the GraphQL mutation used to create a Linear issue.
+// Shared by `issues create` and `import issues` via createIssueFromInput.
+const issueCreateMutation = `mutation CreateIssue($input: IssueCreateInput!) {
+	issueCreate(input: $input) {
+		success
+		issue {
+			id identifier title url priority
+			team { id key }
+			state { id name type }
+			assignee { id name displayName }
+			project { id name }
+		}
+	}
+}`
+
+// createdIssue is the parsed result of an issueCreate mutation, carrying the
+// fields both `issues create` and `import issues` render and write back to the
+// local store.
+type createdIssue struct {
+	ID         string `json:"id"`
+	Identifier string `json:"identifier"`
+	Title      string `json:"title"`
+	URL        string `json:"url"`
+	Priority   int    `json:"priority"`
+	Team       struct {
+		ID  string `json:"id"`
+		Key string `json:"key"`
+	} `json:"team"`
+	State struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		Type string `json:"type"`
+	} `json:"state"`
+	Assignee *struct {
+		ID          string `json:"id"`
+		Name        string `json:"name"`
+		DisplayName string `json:"displayName"`
+	} `json:"assignee,omitempty"`
+	Project *struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"project,omitempty"`
+}
+
+// issueInputFromFlags assembles an IssueCreateInput map from the typed flag
+// values. Pure (no I/O) so it is unit-testable and shared by the dry-run and
+// live paths of `issues create`. Team resolution happens later in
+// createIssueFromInput, which has the local store.
+func issueInputFromFlags(title, team, desc, assignee, project, state string, priority int, labels []string) map[string]any {
+	input := map[string]any{
+		"title":  title,
+		"teamId": team,
+	}
+	if desc != "" {
+		input["description"] = desc
+	}
+	if priority > 0 {
+		input["priority"] = priority
+	}
+	if assignee != "" {
+		input["assigneeId"] = assignee
+	}
+	if project != "" {
+		input["projectId"] = project
+	}
+	if state != "" {
+		input["stateId"] = state
+	}
+	if len(labels) > 0 {
+		input["labelIds"] = labels
+	}
+	return input
+}
+
+// createIssueFromInput runs the issueCreate mutation for a single
+// IssueCreateInput map and, when db is non-nil, resolves a team key to a UUID
+// before the call and records the new issue in the pp_created ledger with a
+// local-store write-back afterwards. It is the shared create core for both
+// `issues create` (flag-driven) and `import issues` (JSONL-driven).
+//
+// session is the already-resolved pp_created session tag; an empty/"current"
+// value is normalized to the current run session before recording.
+func createIssueFromInput(c *client.Client, db *store.Store, input map[string]any, session string) (*createdIssue, error) {
+	// Resolve team key/name to UUID via the local store if possible. The
+	// mutation requires a UUID; JSONL records and flag values may pass a key
+	// like "ENG".
+	if db != nil {
+		if teamVal, ok := input["teamId"].(string); ok && teamVal != "" {
+			if resolved, ok := resolveTeamID(db, teamVal); ok {
+				input["teamId"] = resolved
+			}
+		}
+	}
+
+	resp, err := c.Mutate(issueCreateMutation, map[string]any{"input": input})
+	if err != nil {
+		return nil, fmt.Errorf("issueCreate failed: %w", err)
+	}
+	var parsed struct {
+		IssueCreate struct {
+			Success bool         `json:"success"`
+			Issue   createdIssue `json:"issue"`
+		} `json:"issueCreate"`
+	}
+	if err := json.Unmarshal(resp, &parsed); err != nil {
+		return nil, fmt.Errorf("parsing issueCreate response: %w", err)
+	}
+	if !parsed.IssueCreate.Success {
+		return nil, fmt.Errorf("Linear reported issueCreate success=false")
+	}
+	issue := parsed.IssueCreate.Issue
+
+	if db != nil {
+		sess := session
+		if sess == "" || sess == "current" {
+			sess = ppCurrentSession()
+		}
+		if recErr := db.RecordPPFixture(issue.ID, issue.Identifier, issue.Title, sess); recErr != nil {
+			fmt.Fprintf(os.Stderr, "warning: pp_created ledger write failed: %v\n", recErr)
+		}
+		// Write-back to the local issues table so a subsequent
+		// `issues list` from the local store sees the new ticket without
+		// requiring a separate `sync --incremental`. The HTTP cache is
+		// already invalidated by client.do on every non-GET success; this
+		// closes the SQLite-store-side gap.
+		wb := map[string]any{
+			"id":         issue.ID,
+			"identifier": issue.Identifier,
+			"title":      issue.Title,
+			"url":        issue.URL,
+			"priority":   issue.Priority,
+			"team": map[string]any{
+				"id":  issue.Team.ID,
+				"key": issue.Team.Key,
+			},
+			"teamId": issue.Team.ID,
+			"state": map[string]any{
+				"id":   issue.State.ID,
+				"name": issue.State.Name,
+				"type": issue.State.Type,
+			},
+			"createdAt": time.Now().UTC().Format(time.RFC3339),
+			"updatedAt": time.Now().UTC().Format(time.RFC3339),
+		}
+		if issue.Assignee != nil {
+			wb["assignee"] = map[string]any{
+				"id":          issue.Assignee.ID,
+				"name":        issue.Assignee.Name,
+				"displayName": issue.Assignee.DisplayName,
+			}
+			wb["assigneeId"] = issue.Assignee.ID
+		}
+		if issue.Project != nil {
+			wb["project"] = map[string]any{
+				"id":   issue.Project.ID,
+				"name": issue.Project.Name,
+			}
+			wb["projectId"] = issue.Project.ID
+		}
+		if newIssueJSON, mErr := json.Marshal(wb); mErr == nil {
+			if upErr := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, newIssueJSON); upErr != nil {
+				fmt.Fprintf(os.Stderr, "warning: local store write-back failed: %v\n", upErr)
+			}
+		}
+	}
+
+	return &issue, nil
+}
 
 // newIssuesCreateCmd is registered as a subcommand of "issues" via wireIssuesCreate
 // in init(). Calls Linear's issueCreate mutation and records the resulting issue
@@ -57,55 +227,21 @@ tickets in the workspace.`,
 				return err
 			}
 
-			// Resolve team key/name to UUID via the local store if possible.
-			teamID := teamFlag
+			input := issueInputFromFlags(titleFlag, teamFlag, descFlag, assigneeFlag, projectFlag, stateFlag, priorityFlag, labelsFlag)
+
 			if dbPath == "" {
 				dbPath = defaultDBPath("linear-pp-cli")
 			}
-			if db, dbErr := store.Open(dbPath); dbErr == nil {
-				defer db.Close()
-				if resolved, ok := resolveTeamID(db, teamFlag); ok {
-					teamID = resolved
-				}
-			}
-
-			input := map[string]any{
-				"title":  titleFlag,
-				"teamId": teamID,
-			}
-			if descFlag != "" {
-				input["description"] = descFlag
-			}
-			if priorityFlag > 0 {
-				input["priority"] = priorityFlag
-			}
-			if assigneeFlag != "" {
-				input["assigneeId"] = assigneeFlag
-			}
-			if projectFlag != "" {
-				input["projectId"] = projectFlag
-			}
-			if stateFlag != "" {
-				input["stateId"] = stateFlag
-			}
-			if len(labelsFlag) > 0 {
-				input["labelIds"] = labelsFlag
-			}
-
-			const mutation = `mutation CreateIssue($input: IssueCreateInput!) {
-				issueCreate(input: $input) {
-					success
-					issue {
-						id identifier title url priority
-						team { id key }
-						state { id name type }
-						assignee { id name displayName }
-						project { id name }
-					}
-				}
-			}`
 
 			if flags.dryRun {
+				// Preview the input with team resolution applied when the
+				// local store is available, matching the live path's behavior.
+				if db, dbErr := store.Open(dbPath); dbErr == nil {
+					defer db.Close()
+					if resolved, ok := resolveTeamID(db, teamFlag); ok {
+						input["teamId"] = resolved
+					}
+				}
 				out := map[string]any{
 					"event":    "would_create_issue",
 					"mutation": "issueCreate",
@@ -116,107 +252,27 @@ tickets in the workspace.`,
 					enc.SetIndent("", "  ")
 					return enc.Encode(out)
 				}
-				fmt.Printf("Would create issue: title=%q team=%s\n", titleFlag, teamID)
+				fmt.Printf("Would create issue: title=%q team=%s\n", titleFlag, input["teamId"])
 				return nil
 			}
 
-			resp, err := c.Mutate(mutation, map[string]any{"input": input})
-			if err != nil {
-				return fmt.Errorf("issueCreate failed: %w", err)
-			}
-			var parsed struct {
-				IssueCreate struct {
-					Success bool `json:"success"`
-					Issue   struct {
-						ID         string `json:"id"`
-						Identifier string `json:"identifier"`
-						Title      string `json:"title"`
-						URL        string `json:"url"`
-						Priority   int    `json:"priority"`
-						Team       struct {
-							ID  string `json:"id"`
-							Key string `json:"key"`
-						} `json:"team"`
-						State struct {
-							ID   string `json:"id"`
-							Name string `json:"name"`
-							Type string `json:"type"`
-						} `json:"state"`
-						Assignee *struct {
-							ID          string `json:"id"`
-							Name        string `json:"name"`
-							DisplayName string `json:"displayName"`
-						} `json:"assignee,omitempty"`
-						Project *struct {
-							ID   string `json:"id"`
-							Name string `json:"name"`
-						} `json:"project,omitempty"`
-					} `json:"issue"`
-				} `json:"issueCreate"`
-			}
-			if err := json.Unmarshal(resp, &parsed); err != nil {
-				return fmt.Errorf("parsing issueCreate response: %w", err)
-			}
-			if !parsed.IssueCreate.Success {
-				return fmt.Errorf("Linear reported issueCreate success=false")
+			sess := resolvePPSession(flags, session)
+
+			db, dbErr := store.Open(dbPath)
+			if dbErr != nil {
+				fmt.Fprintf(os.Stderr, "warning: cannot open ledger at %s: %v\n", dbPath, dbErr)
+				db = nil
+			} else {
+				defer db.Close()
 			}
 
-			sess := resolvePPSession(flags, session)
+			issue, err := createIssueFromInput(c, db, input, sess)
+			if err != nil {
+				return err
+			}
+
 			if sess == "" || sess == "current" {
 				sess = ppCurrentSession()
-			}
-			if db, dbErr := store.Open(dbPath); dbErr == nil {
-				defer db.Close()
-				if recErr := db.RecordPPFixture(parsed.IssueCreate.Issue.ID, parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title, sess); recErr != nil {
-					fmt.Fprintf(os.Stderr, "warning: pp_created ledger write failed: %v\n", recErr)
-				}
-				// Write-back to the local issues table so a subsequent
-				// `issues list` from the local store sees the new ticket
-				// without requiring a separate `sync --incremental`. The
-				// HTTP cache is already invalidated by client.do on every
-				// non-GET success; this closes the SQLite-store-side gap.
-				wb := map[string]any{
-					"id":         parsed.IssueCreate.Issue.ID,
-					"identifier": parsed.IssueCreate.Issue.Identifier,
-					"title":      parsed.IssueCreate.Issue.Title,
-					"url":        parsed.IssueCreate.Issue.URL,
-					"priority":   parsed.IssueCreate.Issue.Priority,
-					"team": map[string]any{
-						"id":  parsed.IssueCreate.Issue.Team.ID,
-						"key": parsed.IssueCreate.Issue.Team.Key,
-					},
-					"teamId": parsed.IssueCreate.Issue.Team.ID,
-					"state": map[string]any{
-						"id":   parsed.IssueCreate.Issue.State.ID,
-						"name": parsed.IssueCreate.Issue.State.Name,
-						"type": parsed.IssueCreate.Issue.State.Type,
-					},
-					"createdAt": time.Now().UTC().Format(time.RFC3339),
-					"updatedAt": time.Now().UTC().Format(time.RFC3339),
-				}
-				if parsed.IssueCreate.Issue.Assignee != nil {
-					wb["assignee"] = map[string]any{
-						"id":          parsed.IssueCreate.Issue.Assignee.ID,
-						"name":        parsed.IssueCreate.Issue.Assignee.Name,
-						"displayName": parsed.IssueCreate.Issue.Assignee.DisplayName,
-					}
-					wb["assigneeId"] = parsed.IssueCreate.Issue.Assignee.ID
-				}
-				if parsed.IssueCreate.Issue.Project != nil {
-					wb["project"] = map[string]any{
-						"id":   parsed.IssueCreate.Issue.Project.ID,
-						"name": parsed.IssueCreate.Issue.Project.Name,
-					}
-					wb["projectId"] = parsed.IssueCreate.Issue.Project.ID
-				}
-				newIssueJSON, mErr := json.Marshal(wb)
-				if mErr == nil {
-					if upErr := db.UpsertIssue(parsed.IssueCreate.Issue.ID, parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title, newIssueJSON); upErr != nil {
-						fmt.Fprintf(os.Stderr, "warning: local store write-back failed: %v\n", upErr)
-					}
-				}
-			} else {
-				fmt.Fprintf(os.Stderr, "warning: cannot open ledger at %s: %v\n", dbPath, dbErr)
 			}
 
 			if flags.asJSON {
@@ -224,17 +280,17 @@ tickets in the workspace.`,
 				enc.SetIndent("", "  ")
 				return enc.Encode(map[string]any{
 					"event":      "issue_created",
-					"identifier": parsed.IssueCreate.Issue.Identifier,
-					"id":         parsed.IssueCreate.Issue.ID,
-					"title":      parsed.IssueCreate.Issue.Title,
-					"team":       parsed.IssueCreate.Issue.Team.Key,
-					"state":      parsed.IssueCreate.Issue.State.Name,
-					"url":        parsed.IssueCreate.Issue.URL,
+					"identifier": issue.Identifier,
+					"id":         issue.ID,
+					"title":      issue.Title,
+					"team":       issue.Team.Key,
+					"state":      issue.State.Name,
+					"url":        issue.URL,
 					"session":    sess,
 				})
 			}
-			fmt.Printf("Created %s — %s\n", parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title)
-			fmt.Printf("  URL: %s\n", parsed.IssueCreate.Issue.URL)
+			fmt.Printf("Created %s — %s\n", issue.Identifier, issue.Title)
+			fmt.Printf("  URL: %s\n", issue.URL)
 			fmt.Printf("  Recorded in pp_created (session=%s) for safe pp-cleanup.\n", sess)
 			return nil
 		},
