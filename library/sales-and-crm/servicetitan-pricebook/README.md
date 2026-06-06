@@ -4,6 +4,8 @@
 
 This CLI (servicetitan-pricebook-pp-cli) mirrors every ServiceTitan Pricebook v2 endpoint (categories, client-specific pricing, discounts & fees, equipment, materials, materials markup, bulk operations, images, services, export feeds) and adds twelve novel commands that join across them in a local SQLite store. It snapshots cost and price history on every sync, so markup-audit, cost-drift, and reprice become one-shot. It is part of a per-module ST CLI family (servicetitan-crm, servicetitan-dispatch, servicetitan-inventory, servicetitan-jpm, servicetitan-pricebook) designed to replace the heavy 600+-tool general ServiceTitan MCP with focused, agent-native binaries.
 
+Created by [@pierc](https://github.com/pierc) (Pierce).
+
 ## Install
 
 The recommended path installs both the `servicetitan-pricebook-pp-cli` binary and the `pp-servicetitan-pricebook` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
@@ -48,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install servicetitan-pricebook --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -60,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-servicetitan-pricebook --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install servicetitan-pricebook --agent openclaw
 ```
-Install the pp-servicetitan-pricebook skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-servicetitan-pricebook. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

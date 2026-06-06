@@ -4,7 +4,7 @@
 
 Wraps the Semrush v3 Analytics + Projects APIs with a real local store so weekly drift, keyword gap, backlink gap, and Site Audit triage become one-shot queries instead of multi-tab CSV diffs. Every API unit you spend is logged to a queryable budget ledger, and offline FTS5 search over everything you've ever synced means follow-up questions cost zero credits.
 
-Printed by [@Charles-Garrison](https://github.com/Charles-Garrison) (Charles Garrison).
+Created by [@Charles-Garrison](https://github.com/Charles-Garrison) (Charles Garrison).
 
 ## Install
 
@@ -50,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install semrush --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-semrush --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install semrush --agent openclaw
 ```
-Install the pp-semrush skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-semrush. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 
@@ -233,7 +245,6 @@ These capabilities aren't available in any other tool for this API.
   ```
 
 ## Recipes
-
 
 ### Monday baseline + Friday diff
 
@@ -427,7 +438,6 @@ URL-level analytics: overview, organic/paid keywords
 - **`semrush-pp-cli url overview-all`** - URL Overview (all databases). 10 units/line.
 - **`semrush-pp-cli url overview-history`** - URL Overview (history). 10 units/line. Monthly historical rankings for a URL.
 - **`semrush-pp-cli url paid-keywords`** - URL Paid Search Keywords. 30 units/line. Keywords this URL has been advertised against.
-
 
 ## Output Formats
 

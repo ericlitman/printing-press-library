@@ -12,38 +12,44 @@ navitia.io is the open API for building cool stuff with mobility data. It provid
 
 Learn more at [Sncf Connect](https://www.navitia.io/).
 
-Printed by [@jmbernabotto](https://github.com/jmbernabotto) (jmbernabotto).
+Created by [@jmbernabotto](https://github.com/jmbernabotto) (jmbernabotto).
 
 ## Install
 
 The recommended path installs both the `sncf-connect-pp-cli` binary and the `pp-sncf-connect` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
 
 ```bash
-npx -y @mvanhorn/printing-press install sncf-connect
+npx -y @mvanhorn/printing-press-library install sncf-connect
 ```
 
 For CLI only (no skill):
 
 ```bash
-npx -y @mvanhorn/printing-press install sncf-connect --cli-only
+npx -y @mvanhorn/printing-press-library install sncf-connect --cli-only
 ```
 
 For skill only — installs the skill into the same agents as the default command above, but skips the CLI binary (use this to update or reinstall just the skill):
 
 ```bash
-npx -y @mvanhorn/printing-press install sncf-connect --skill-only
+npx -y @mvanhorn/printing-press-library install sncf-connect --skill-only
 ```
 
 To constrain the skill install to one or more specific agents (repeatable — agent names match the [`skills`](https://github.com/vercel-labs/skills) CLI):
 
 ```bash
-npx -y @mvanhorn/printing-press install sncf-connect --agent claude-code
-npx -y @mvanhorn/printing-press install sncf-connect --agent claude-code --agent codex
+npx -y @mvanhorn/printing-press-library install sncf-connect --agent claude-code
+npx -y @mvanhorn/printing-press-library install sncf-connect --agent claude-code --agent codex
 ```
 
-### Without Node
+### Without Node (Go fallback)
 
-The generated install path is category-agnostic until this CLI is published. If `npx` is not available before publish, install Node or use the category-specific Go fallback from the public-library entry after publish.
+If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.3 or newer):
+
+```bash
+go install github.com/mvanhorn/printing-press-library/library/travel/sncf-connect/cmd/sncf-connect-pp-cli@latest
+```
+
+This installs the CLI only — no skill.
 
 ### Pre-built binary
 
@@ -51,6 +57,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
+
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install sncf-connect --cli-only
+```
+
+Then install the focused Hermes skill.
 
 From the Hermes CLI:
 
@@ -64,13 +78,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-sncf-connect --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install sncf-connect --agent openclaw
 ```
-Install the pp-sncf-connect skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-sncf-connect. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 
@@ -243,7 +261,6 @@ Manage terminus schedules
 Manage vehicle journeys
 
 - **`sncf-connect-pp-cli vehicle-journeys`** - Get
-
 
 ## Output Formats
 

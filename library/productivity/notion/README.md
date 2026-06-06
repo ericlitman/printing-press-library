@@ -4,6 +4,8 @@
 
 notion-pp-cli syncs your Notion workspace into a local SQLite store and exposes commands that answer compound questions the Notion UI cannot: cross-database joins, status drift, dead links, workspace health, and who owns what across every client. Works offline and ships a full MCP server so agents can load rich project context in a single call instead of 30.
 
+Created by [@neektza](https://github.com/neektza) (Nikica Jokic).
+
 ## Install
 
 The recommended path installs both the `notion-pp-cli` binary and the `pp-notion` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
@@ -48,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install notion --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -60,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-notion --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install notion --agent openclaw
 ```
-Install the pp-notion skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-notion. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

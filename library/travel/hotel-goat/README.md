@@ -1,9 +1,21 @@
-# Google Hotels CLI
+# Hotel Goat — multi-source cash hotel CLI
 
-**Free Google Hotels CLI — per-hotel data with deep booking links, agent-native JSON, and local SQLite wishlist. No API key needed.**
+**Free hotel CLI — cash prices from Google Hotels + Trivago, deep booking links, agent-native JSON, and local SQLite wishlist. No API key needed.**
 
-hotel-goat scrapes Google Hotels' server-rendered data (the same data the Google Hotels web UI shows) without an API key. v1 ships:
-- `hotels <location> <ci> <co>` — search with rich filters (brand, hotel-class, max-price, min-rating, amenities, currency)
+hotel-goat fans out across two cash-price sources by default:
+- **Google Hotels** — scraped from the server-rendered page (same data the web UI shows)
+- **Trivago** — called via Trivago's public MCP server (`https://mcp.trivago.com/mcp`), which exposes OTA-aggregated rates from Booking.com, Expedia, Agoda, Hotels.com, Priceline, etc.
+
+Pick a single source with `--source google` or `--source trivago`; the default is `--source both`. When both sources see the same property (matched on lat/lng + name overlap), the OTA prices are merged into one `prices[]` array. Trivago-only properties are appended as standalone rows so the agent gets a wider candidate set.
+
+Trivago is geolocated server-side and returns EUR regardless of client hints. When the headline currency differs (typically Google's USD vs Trivago's EUR), each Trivago price is converted via the Frankfurter ECB FX endpoint (free, no key, 24h on-disk cache) so the agent compares apples-to-apples. The source label records what happened:
+
+- **`trivago/<OTA> [EUR 802 -> USD]`** — FX conversion succeeded. The numeric `price` and headline `price_per_night` are the converted (USD) values; the native EUR amount is preserved in the label so the agent can see both.
+- **`trivago/<OTA> [EUR]`** — FX lookup failed (offline, Frankfurter outage). The numeric `price` is the native EUR value; the headline `price_per_night` is NOT overridden, so cross-source comparisons remain meaningful.
+- **`trivago/<OTA>`** (no bracket suffix) — currencies already matched, no conversion needed.
+
+v1 ships:
+- `hotels <location> <ci> <co>` — multi-source search with rich filters (brand, hotel-class, max-price, min-rating, amenities, currency)
 - `dates <location> --from --to --nights N` — sweep a date window for the cheapest pair per stay
 - `near "<address>" --radius Nmi` — geo-radius search around any address (auto-geocoded via OpenStreetMap)
 - `hotel show <token>` / `hotel reviews <token>` — single-property detail + review breakdown
@@ -27,7 +39,7 @@ This is a focused v1. The following features were scoped in the design but defer
 
 Learn more at [Google Hotels](https://www.google.com).
 
-Printed by [@kothari-nikunj](https://github.com/kothari-nikunj) (kothari-nikunj).
+Created by [@kothari-nikunj](https://github.com/kothari-nikunj) (kothari-nikunj).
 
 ## Install
 
@@ -73,6 +85,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install hotel-goat --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -85,13 +105,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-hotel-goat --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install hotel-goat --agent openclaw
 ```
-Install the pp-hotel-goat skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-hotel-goat. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 
@@ -167,7 +191,6 @@ These capabilities aren't available in any other tool for this API.
 
 ## Recipes
 
-
 ### Cheapest 4-star+ stay in Paris under EUR 300 for a specific weekend
 
 ```bash
@@ -214,13 +237,11 @@ Hotel search results from Google Hotels for a location + date range
 - **`hotel-goat-pp-cli hotels`** - Search hotels by location and date range. Returns ~30-40 properties per query
 with full OTA price breakdown and booking deep-links.
 
-
 ### properties
 
 Property detail records cached from Google's property detail pages
 
 - **`hotel-goat-pp-cli properties`** - Full property detail by Google's property_token
-
 
 ## Output Formats
 

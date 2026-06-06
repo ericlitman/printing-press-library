@@ -4,6 +4,8 @@
 
 nse-india-pp-cli fetches real-time NSE equity quotes, index constituents, corporate filings, and market status with just browser headers — no API key, no Python runtime, no setup friction. After sync, the local SQLite store powers cross-symbol analysis that is invisible in any single API call: delivery spikes, sector breadth, portfolio margin health, and index attribution.
 
+Created by [@lavs9](https://github.com/lavs9) (Mayank Lavania).
+
 ## Install
 
 The recommended path installs both the `nse-india-pp-cli` binary and the `pp-nse-india` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
@@ -48,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install nse-india --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -60,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-nse-india --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install nse-india --agent openclaw
 ```
-Install the pp-nse-india skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-nse-india. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

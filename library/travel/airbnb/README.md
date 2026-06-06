@@ -8,6 +8,8 @@ Search Airbnb from the terminal, run cheapest on a listing to extract the host's
 
 > **Renamed from `airbnb-vrbo-pp-cli` to `airbnb-pp-cli`.** Existing users get an automatic one-time state migration on first run (the `~/.airbnb-vrbo-pp-cli` directory is renamed in place to `~/.airbnb-pp-cli`; the same applies to the SQLite cache under `~/.local/share`). `AIRBNB_VRBO_*` env vars are still read but emit a deprecation warning; switch to `AIRBNB_PP_*`. The legacy paths will be dropped in a future release.
 
+Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+
 ## Install
 
 The recommended path installs both the `airbnb-pp-cli` binary and the `pp-airbnb` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
@@ -52,6 +54,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install airbnb --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -64,13 +74,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-airbnb --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install airbnb --agent openclaw
 ```
-Install the pp-airbnb skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-airbnb. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

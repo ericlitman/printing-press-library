@@ -1,5 +1,8 @@
 import { BUNDLES, isBundle } from "../bundles.js";
+import { mkdir, realpath } from "node:fs/promises";
+import { isAbsolute, resolve } from "node:path";
 import { detectGo, goInstall, goInstallDir, type GoDetection, type GoInstallDir } from "../go.js";
+import { pathFixInstructions } from "../pathfix.js";
 import { commandOnPath, type RunResult } from "../process.js";
 import {
   cliBinaryName,
@@ -18,6 +21,7 @@ interface InstallOptions {
   registryUrl: string;
   cliOnly: boolean;
   skillOnly: boolean;
+  binDir?: string;
 }
 
 interface InstallDeps {
@@ -27,10 +31,18 @@ interface InstallDeps {
   goInstall: (modulePath: string, ref: string, env?: NodeJS.ProcessEnv) => Promise<RunResult>;
   goInstallDir: () => Promise<GoInstallDir>;
   commandOnPath: (binary: string) => Promise<string | null>;
+  realpath: (path: string) => Promise<string | null>;
+  mkdir: (path: string) => Promise<void>;
   installSkill: (skillName: string, agents: string[]) => Promise<RunResult>;
   stdout: (message: string) => void;
   stderr: (message: string) => void;
   platform: NodeJS.Platform;
+  /** Login shell (Unix) or Git Bash marker (Windows); drives the per-shell PATH fix. */
+  shell?: string;
+  /** Home directory, used to resolve the default per-user binary directory and PATH instructions. */
+  home?: string;
+  /** Environment inherited by subprocesses; injectable for targeted install tests. */
+  env: NodeJS.ProcessEnv;
 }
 
 interface InstallSummary {
@@ -49,6 +61,8 @@ interface InstallSummary {
   installedPath?: string;
   /** Set when an older binary earlier in PATH would shadow the freshly installed one. */
   shadowedBy?: string;
+  /** Set when the binary was installed but is not currently discoverable by name. */
+  pathWarning?: "not_on_path";
 }
 
 interface InstallOutcome {
@@ -66,18 +80,33 @@ export function createInstallCommand(overrides: Partial<InstallDeps> = {}) {
     goInstall: (modulePath, ref, env) => goInstall(modulePath, { ref, env }),
     goInstallDir: () => goInstallDir(),
     commandOnPath: (binary) => commandOnPath(binary),
+    realpath: async (path) => {
+      try {
+        return await realpath(path);
+      } catch {
+        return null;
+      }
+    },
+    mkdir: async (path) => {
+      await mkdir(path, { recursive: true });
+    },
     installSkill: (skillName, agents) => installSkill(skillName, { agents }),
     stdout: (message) => console.log(message),
     stderr: (message) => console.error(message),
     platform: process.platform,
+    shell: process.env.SHELL,
+    home: process.env.HOME ?? process.env.USERPROFILE,
+    env: process.env,
     ...overrides,
   };
 
   return async function installCommandWithDeps(args: string[]): Promise<number> {
-    const parsed = parseInstallArgs(args);
+    const parsed = parseInstallArgs(args, deps.home);
     if ("error" in parsed) {
       deps.stderr(parsed.error);
-      deps.stderr("Usage: printing-press-library install <name|bundle>... [--agent <agent>...] [--json]");
+      deps.stderr(
+        "Usage: printing-press-library install <name|bundle>... [--agent <agent>...] [--bin-dir <dir>] [--json]",
+      );
       return 1;
     }
 
@@ -138,7 +167,21 @@ async function installOne(
       `github.com/mvanhorn/printing-press-library/${entry.path}`;
     const modulePath = `${moduleRoot}/cmd/${binary}`;
 
-    const install = await deps.goInstall(modulePath, "latest");
+    const effectiveBinDir = options.binDir ?? defaultUserBinDir(deps.platform, deps.home, deps.env);
+    if (effectiveBinDir) {
+      try {
+        await deps.mkdir(effectiveBinDir);
+      } catch (error) {
+        const label = options.binDir ? `--bin-dir ${effectiveBinDir}` : `default bin directory ${effectiveBinDir}`;
+        deps.stderr(
+          `Failed to create ${label}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return { ok: false, name: entry.name, error: "bin dir create failed" };
+      }
+    }
+
+    const installEnv = effectiveBinDir ? { ...deps.env, GOBIN: effectiveBinDir } : undefined;
+    const install = await deps.goInstall(modulePath, "latest", installEnv);
     if (install.code !== 0) {
       deps.stderr(`go install failed for ${modulePath}`);
       if (install.stderr.trim()) {
@@ -147,15 +190,16 @@ async function installOne(
       return { ok: false, name: entry.name, error: "go install failed" };
     }
 
-    const installedPath = await resolveInstalledPath(binary, deps);
+    const installed = await resolveInstalledPath(binary, deps, effectiveBinDir);
+    const installedPath = installed?.binaryPath ?? null;
     const pathBinaryPath = await deps.commandOnPath(binary);
 
     if (!pathBinaryPath) {
       // `go install` succeeded, but `which`/`where` cannot find the binary —
-      // PATH does not include the directory go install wrote to. Tell the user
-      // exactly which directory to add when we know it.
-      deps.stderr(installedPath ? installedNotOnPathMessage(binary, installedPath) : pathMessage(binary));
-      return { ok: false, name: entry.name, error: "binary not on PATH" };
+      // PATH does not include the directory go install wrote to. Print the exact,
+      // copy-pasteable PATH fix for this platform and shell, but keep going so
+      // the matching focused skill is still installed.
+      deps.stderr(notOnPathMessage(binary, installed, deps));
     }
 
     summary.binary = binary;
@@ -163,9 +207,12 @@ async function installOne(
     if (installedPath) {
       summary.installedPath = installedPath;
     }
-    summary.binaryPath = pathBinaryPath;
+    summary.binaryPath = installedPath ?? pathBinaryPath ?? undefined;
+    if (!pathBinaryPath) {
+      summary.pathWarning = "not_on_path";
+    }
 
-    if (installedPath && !samePath(installedPath, pathBinaryPath, deps.platform)) {
+    if (installedPath && pathBinaryPath && !(await sameInstalledBinary(installedPath, pathBinaryPath, deps))) {
       // `which`/`where` resolved to a different binary than `go install` wrote.
       // The older binary earlier in PATH will shadow the freshly built one.
       summary.shadowedBy = pathBinaryPath;
@@ -197,6 +244,11 @@ async function installOne(
     }
     if (summary.shadowedBy) {
       deps.stdout(`  shadowed by: ${summary.shadowedBy} (earlier in PATH)`);
+    }
+    if (summary.pathWarning === "not_on_path") {
+      deps.stdout(
+        "  warning: binary is not on PATH; run it by full path or add the install directory to PATH (see stderr for platform-specific instructions)",
+      );
     }
     if (summary.skill) {
       deps.stdout(`  skill: ${summary.skill}`);
@@ -265,7 +317,10 @@ function reportResults(outcomes: InstallOutcome[], options: InstallOptions, deps
 
 export const installCommand = createInstallCommand();
 
-function parseInstallArgs(args: string[]):
+function parseInstallArgs(
+  args: string[],
+  home?: string,
+):
   | { names: string[]; options: InstallOptions }
   | { error: string } {
   const options: InstallOptions = {
@@ -285,6 +340,12 @@ function parseInstallArgs(args: string[]):
       options.cliOnly = true;
     } else if (arg === "--skill-only") {
       options.skillOnly = true;
+    } else if (arg === "--bin-dir") {
+      const value = args[++i];
+      if (!value) {
+        return { error: "Missing value for --bin-dir" };
+      }
+      options.binDir = normalizeBinDir(value, home);
     } else if (arg === "--agent" || arg === "-a") {
       const agent = args[++i];
       if (!agent) {
@@ -308,6 +369,10 @@ function parseInstallArgs(args: string[]):
     return { error: "--cli-only and --skill-only are mutually exclusive" };
   }
 
+  if (options.skillOnly && options.binDir) {
+    return { error: "--bin-dir cannot be used with --skill-only" };
+  }
+
   if (names.length === 0) {
     return { error: "Missing CLI name or bundle" };
   }
@@ -325,21 +390,77 @@ function goMissingMessage(platform: NodeJS.Platform): string {
   return `Go is required to install Printing Press CLIs. ${installHint}`;
 }
 
-function pathMessage(binary: string): string {
-  return `${binary} was installed, but it is not on PATH. Add $(go env GOPATH)/bin, usually $HOME/go/bin, to PATH and retry.`;
+interface InstalledPath {
+  /** Directory `go install` wrote to (GOBIN or GOPATH/bin). */
+  binDir: string;
+  /** Full path to the installed binary (binDir + binary + platform suffix). */
+  binaryPath: string;
 }
 
 async function resolveInstalledPath(
   binary: string,
   deps: InstallDeps,
-): Promise<string | null> {
+  binDirOverride?: string,
+): Promise<InstalledPath | null> {
+  if (binDirOverride) {
+    const sep = deps.platform === "win32" ? "\\" : "/";
+    const suffix = deps.platform === "win32" ? ".exe" : "";
+    const clean = stripTrailingSeparators(binDirOverride);
+    return { binDir: clean, binaryPath: `${clean}${sep}${binary}${suffix}` };
+  }
+
   const info = await deps.goInstallDir();
   if (!info.binDir) {
     return null;
   }
   const sep = deps.platform === "win32" ? "\\" : "/";
   const suffix = deps.platform === "win32" ? ".exe" : "";
-  return `${info.binDir}${sep}${binary}${suffix}`;
+  return { binDir: info.binDir, binaryPath: `${info.binDir}${sep}${binary}${suffix}` };
+}
+
+function defaultUserBinDir(
+  platform: NodeJS.Platform,
+  home: string | undefined,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  if (platform === "win32") {
+    const localAppData = env.LOCALAPPDATA ?? env.LocalAppData;
+    if (localAppData) {
+      return `${stripTrailingSeparators(localAppData)}\\Programs\\PrintingPress\\bin`;
+    }
+    if (home) {
+      return `${stripTrailingSeparators(home)}\\AppData\\Local\\Programs\\PrintingPress\\bin`;
+    }
+    return undefined;
+  }
+
+  if (home) {
+    return `${stripTrailingSeparators(home)}/.local/bin`;
+  }
+  return undefined;
+}
+
+function normalizeBinDir(input: string, home?: string): string {
+  const expanded = expandHome(input, home);
+  const cleaned = stripTrailingSeparators(expanded);
+  return isAbsolute(cleaned) ? cleaned : resolve(cleaned);
+}
+
+function expandHome(input: string, home?: string): string {
+  if (!home) {
+    return input;
+  }
+  if (input === "~") {
+    return home;
+  }
+  if (input.startsWith("~/") || input.startsWith("~\\")) {
+    return `${home}${input.slice(1)}`;
+  }
+  return input;
+}
+
+function stripTrailingSeparators(path: string): string {
+  return path.replace(/[\\/]+$/, "");
 }
 
 function memoize<T>(fn: () => Promise<T>): () => Promise<T> {
@@ -360,16 +481,35 @@ function samePath(a: string, b: string, platform: NodeJS.Platform): boolean {
   return norm(a) === norm(b);
 }
 
+async function sameInstalledBinary(a: string, b: string, deps: InstallDeps): Promise<boolean> {
+  if (samePath(a, b, deps.platform)) {
+    return true;
+  }
+  const [realA, realB] = await Promise.all([deps.realpath(a), deps.realpath(b)]);
+  return !!realA && !!realB && samePath(realA, realB, deps.platform);
+}
+
 function shadowMessage(binary: string, installedPath: string, shadowedBy: string): string {
   return (
     `WARNING: installed ${binary} at ${installedPath}, but ${shadowedBy} appears earlier in PATH and will shadow it. ` +
-    `Move or remove the old binary, or reorder PATH so the Go install directory comes first.`
+    `Move or remove the old binary, or reorder PATH so the install directory comes first.`
   );
 }
 
-function installedNotOnPathMessage(binary: string, installedPath: string): string {
-  return (
-    `WARNING: installed ${binary} at ${installedPath}, but its directory is not on PATH. ` +
-    `Add it to PATH (e.g. $(go env GOPATH)/bin, usually $HOME/go/bin) and retry, or invoke the binary by absolute path.`
-  );
+function notOnPathMessage(
+  binary: string,
+  installed: InstalledPath | null,
+  deps: InstallDeps,
+): string {
+  const head = installed
+    ? `WARNING: installed ${binary} at ${installed.binaryPath}, but its directory is not on PATH.`
+    : `WARNING: ${binary} was installed, but it is not on PATH.`;
+  const fix = pathFixInstructions({
+    binDir: installed?.binDir ?? null,
+    platform: deps.platform,
+    shell: deps.shell,
+    home: deps.home,
+  });
+  const tail = installed ? `\n\nOr run it directly: ${installed.binaryPath}` : "";
+  return `${head}\n${fix}${tail}`;
 }

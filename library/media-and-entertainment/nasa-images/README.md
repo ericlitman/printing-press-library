@@ -4,7 +4,7 @@
 
 The official NASA Image and Video Library exposes five endpoints but no Go CLI covers all of them, and none of the existing wrappers go past returning JSON. nasa-images-pp-cli adds a local SQLite mirror with FTS5 search, byte-range resumable album downloads, caption text extraction (not just URLs), deterministic best-variant picking for agents, and a typed MCP server — every command works offline once synced, and every command pipes cleanly to jq.
 
-Printed by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
 
 ## Install
 
@@ -50,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install nasa-images --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-nasa-images --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install nasa-images --agent openclaw
 ```
-Install the pp-nasa-images skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-nasa-images. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

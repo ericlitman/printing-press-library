@@ -15,7 +15,7 @@ metadata:
      This file is a verbatim mirror of library/other/pcgs/SKILL.md,
      regenerated post-merge by tools/generate-skills/. Hand-edits here are
      silently overwritten on the next regen. Edit the library/ source instead.
-     See AGENTS.md "Generated artifacts: registry.json, cli-skills/". -->
+     See the repository agent guide, section "Generated artifacts: registry.json, cli-skills/". -->
 
 # PCGS — Printing Press CLI
 
@@ -23,12 +23,12 @@ metadata:
 
 This skill drives the `pcgs-pp-cli` binary. **You must verify the CLI is installed before invoking any command from this skill.** If it is missing, install it first:
 
-1. Install via the Printing Press installer:
+1. Install via the Printing Press installer. It defaults binaries to `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows:
    ```bash
    npx -y @mvanhorn/printing-press-library install pcgs --cli-only
    ```
 2. Verify: `pcgs-pp-cli --version`
-3. Ensure `$GOPATH/bin` (or `$HOME/go/bin`) is on `$PATH`.
+3. Ensure the reported install directory is on `$PATH` for the agent/runtime that will invoke this skill.
 
 If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.3 or newer):
 
@@ -36,7 +36,7 @@ If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go in
 go install github.com/mvanhorn/printing-press-library/library/other/pcgs/cmd/pcgs-pp-cli@latest
 ```
 
-If `--version` reports "command not found" after install, the install step did not put the binary on `$PATH`. Do not proceed with skill commands until verification succeeds.
+If `--version` reports "command not found" after install, the runtime cannot see the binary directory on `$PATH`. Do not proceed with skill commands until verification succeeds.
 
 ## When to Use This CLI
 
@@ -386,6 +386,32 @@ Absent (or `null` via `jq`) when the values agree, when `Name` has no parsable y
 pcgs-pp-cli coin facts-cert 45987467 --agent | jq '.data.year_mismatch'   # {"name_year": 2022, "year_field": 2021}
 pcgs-pp-cli coin facts-cert 50483263 --agent | jq '.data.year_mismatch'   # null
 ```
+
+#### `Images` is omitted — fetch URLs with `coin images <cert>`
+
+The PCGS CoinFacts endpoints return a stub `Images: [{}, {}]` array with no URL fields. The CLI strips the `Images` key entirely from `coin facts-cert`, `coin facts-grade`, `coin facts-barcode`, and `coin batch` responses so the empty objects don't read as "the image fetch failed". The image-presence booleans on the same response (`HasObverseImage`, `HasReverseImage`, `HasTrueViewImage`, `ImageReady`) are preserved so an agent can tell whether images exist before spending a second quota call.
+
+```bash
+pcgs-pp-cli coin facts-cert 50483263 --agent | jq '.data | has("Images")'        # false
+pcgs-pp-cli coin facts-cert 50483263 --agent | jq '.data.HasTrueViewImage'        # true (when applicable)
+
+# Fetch the URLs separately
+pcgs-pp-cli coin images 50483263 --agent
+```
+
+### `coin batch --csv --columns` flat export
+
+`coin batch` emits JSONL by default. Pass `--csv` to flatten the same stream into a single CSV with a header row. Pair with `--columns` to project a subset of dotted paths across the unified `{cert_no, data, _keep}` envelope — `data.*` reaches into the coin record, `_keep.*` reaches into the passthrough columns the input CSV carried, and `cert_no` is the top-level scalar.
+
+```bash
+pcgs-pp-cli coin batch \
+  --file pcgs-coin-list.csv \
+  --csv \
+  --columns "_keep.box,_keep.slot,cert_no,data.Name,data.Year,data.Grade,data.PriceGuideValue" \
+  > out.csv
+```
+
+Missing fields emit an empty cell (not the literal string `null`). Nested objects/arrays are JSON-encoded into one cell so downstream tooling can re-parse them if needed. When `--columns` is omitted, the CSV auto-discovers a header from the keys present in the first emitted row, scoped to `cert_no`, top-level `_keep.*` keys, and top-level `data.*` keys.
 
 ## Agent Feedback
 

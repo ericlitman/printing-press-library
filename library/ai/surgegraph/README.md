@@ -4,7 +4,7 @@
 
 SurgeGraph is an AI-search content operations cockpit. The web app shows point-in-time snapshots; this CLI keeps a local cache so you can run `visibility delta`, `prompts losers`, and `citation-domains rank-shift` over time. It compounds three split workflows — topic research, bulk writing, WordPress publishing — into a single `research gaps publish` pipeline, and ships every command as both CLI and MCP so the same agent that drafts an article can monitor the citations it generates.
 
-Printed by [@ng-plentisoft](https://github.com/ng-plentisoft) (SurgeGraph Team).
+Created by [@ng-plentisoft](https://github.com/ng-plentisoft) (SurgeGraph Team).
 
 ## Install
 
@@ -50,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install surgegraph --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-surgegraph --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install surgegraph --agent openclaw
 ```
-Install the pp-surgegraph skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-surgegraph. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

@@ -4,7 +4,7 @@
 
 The official Resend CLI is fast and one-shot per command; this CLI is the agent-native companion with --json --select --dry-run consistency, FTS5 search over sent emails, and rollups (audiences inventory, broadcasts performance, deliverability summary, contacts where, emails to <recipient>) that exist only because every Resend resource is mirrored locally.
 
-Printed by [@giacaglia](https://github.com/giacaglia) (Giuliano Giacaglia).
+Created by [@giacaglia](https://github.com/giacaglia) (Giuliano Giacaglia).
 
 ## Install
 
@@ -50,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install resend --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-resend --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install resend --agent openclaw
 ```
-Install the pp-resend skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-resend. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

@@ -4,6 +4,8 @@
 
 TED publishes every significant EU public contract (€676K notices/year) but the web interface makes analysis nearly impossible. This CLI syncs the corpus to SQLite, then layers market intelligence nobody else offers: win rates, concentration scores, dark-buyer detection, and opportunity scoring — free, composable, agent-native.
 
+Created by [@m91michel](https://github.com/m91michel) (Mathias Michel).
+
 ## Install
 
 The recommended path installs both the `eu-tenders-pp-cli` binary and the `pp-eu-tenders` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
@@ -48,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install eu-tenders --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -60,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-eu-tenders --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install eu-tenders --agent openclaw
 ```
-Install the pp-eu-tenders skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-eu-tenders. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

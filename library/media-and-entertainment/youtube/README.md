@@ -8,7 +8,7 @@ Learn more at [YouTube Data API v3](https://developers.google.com/youtube/v3).
 
 **Sample use case:** [justinwfu/pictovideo](https://github.com/justinwfu/pictovideo) — photo-keywords → candidate-video → embedded blog draft pipeline using this CLI.
 
-Printed by [@justinwfu](https://github.com/justinwfu) (Justin).
+Created by [@justinwfu](https://github.com/justinwfu) (Justin).
 
 ## Install
 
@@ -54,6 +54,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install youtube --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -66,13 +74,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-youtube --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install youtube --agent openclaw
 ```
-Install the pp-youtube skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-youtube. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

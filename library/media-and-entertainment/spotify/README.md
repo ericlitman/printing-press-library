@@ -6,7 +6,7 @@ Every Spotify Web API endpoint is reachable from one static binary with --json a
 
 Learn more at [Spotify](https://github.com/sonallux/spotify-web-api).
 
-Printed by [@rob-coco](https://github.com/rob-coco) (Rob Zehner).
+Created by [@rob-coco](https://github.com/rob-coco) (Rob Zehner).
 
 ## Install
 
@@ -52,6 +52,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install spotify --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -64,13 +72,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-spotify --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install spotify --agent openclaw
 ```
-Install the pp-spotify skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-spotify. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

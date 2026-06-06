@@ -1,4 +1,4 @@
-﻿---
+---
 name: pp-gravitus
 description: "The only CLI that syncs your Gravitus strength data into your training dashboard. Trigger phrases: `sync my Gravitus workouts`, `load my lifting data into the dashboard`, `find my plateau lifts`, `export my Gravitus data`, `check my personal records`, `use gravitus`, `run gravitus-pp-cli`."
 author: "mvanhorn"
@@ -18,18 +18,20 @@ metadata:
 
 This skill drives the `gravitus-pp-cli` binary. **You must verify the CLI is installed before invoking any command from this skill.** If it is missing, install it first:
 
-1. Install via the Printing Press installer:
+1. Install via the Printing Press installer. It defaults binaries to `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows:
    ```bash
-   npx -y @mvanhorn/printing-press install gravitus --cli-only
+   npx -y @mvanhorn/printing-press-library install gravitus --cli-only
    ```
 2. Verify: `gravitus-pp-cli --version`
-3. Ensure `$GOPATH/bin` (or `$HOME/go/bin`) is on `$PATH`.
+3. Ensure the reported install directory is on `$PATH` for the agent/runtime that will invoke this skill.
 
-If the `npx` install fails before this CLI has a public-library category, install Node or use the category-specific Go fallback after publish.
+If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.3 or newer):
 
-If `--version` reports "command not found" after install, the install step did not put the binary on `$PATH`. Do not proceed with skill commands until verification succeeds.
+```bash
+go install github.com/mvanhorn/printing-press-library/library/other/gravitus/cmd/gravitus-pp-cli@latest
+```
 
-Gravitus has no API and no data export. gravitus-pp-cli handles the session auth, paginates your full workout history, and writes LiftingSession records directly into your dashboard's SQLite database — incremental, reliable, and scriptable.
+If `--version` reports "command not found" after install, the runtime cannot see the binary directory on `$PATH`. Do not proceed with skill commands until verification succeeds.
 
 ## When to Use This CLI
 

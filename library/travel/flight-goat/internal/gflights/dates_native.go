@@ -1,4 +1,4 @@
-// Copyright 2026 matt-van-horn. Licensed under Apache-2.0. See LICENSE.
+// Copyright 2026 Matt Van Horn and contributors. Licensed under Apache-2.0. See LICENSE.
 
 // Native Go implementation of Google Flights' GetCalendarGraph endpoint —
 // what fli (the Python library) exposes as cheapest-dates / date-grid search.
@@ -35,8 +35,8 @@ import (
 )
 
 const (
-	calendarEndpoint    = "https://www.google.com/_/FlightsFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetCalendarGraph"
-	maxDaysPerSearch    = 61
+	calendarEndpoint     = "https://www.google.com/_/FlightsFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetCalendarGraph"
+	maxDaysPerSearch     = 61
 	googleResponsePrefix = ")]}'"
 	chromeUserAgent      = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 )
@@ -46,16 +46,20 @@ const (
 const (
 	tripTypeOneWay    = 2
 	tripTypeRoundTrip = 1
+	// PATCH(library): trip_type=3 is Google Flights' multi-city mode.
+	// Discovered by reverse-engineering the GetShoppingResults POST that
+	// the multi-city UI fires — see internal/gflights/multicity.go.
+	tripTypeMultiCity = 3
 
 	seatTypeEconomy        = 1
 	seatTypePremiumEconomy = 2
 	seatTypeBusiness       = 3
 	seatTypeFirst          = 4
 
-	maxStopsAny           = 0
-	maxStopsNonStop       = 1
-	maxStopsOneOrFewer    = 2
-	maxStopsTwoOrFewer    = 3
+	maxStopsAny        = 0
+	maxStopsNonStop    = 1
+	maxStopsOneOrFewer = 2
+	maxStopsTwoOrFewer = 3
 )
 
 // datesNative is the native-Go replacement for the fli subprocess. Returns
@@ -194,19 +198,19 @@ func buildDatesPayload(opts DatesOptions, from, to time.Time) (string, error) {
 	segment := []any{
 		[]any{[]any{[]any{strings.ToUpper(opts.Origin), 0}}},      // [0] departure airport, nested 3 deep
 		[]any{[]any{[]any{strings.ToUpper(opts.Destination), 0}}}, // [1] arrival airport
-		nil,                                                       // [2] time restrictions
-		stops,                                                     // [3] stops
-		airlinesField,                                             // [4] airlines
-		nil,                                                       // [5] unknown
-		travelDate,                                                // [6] travel date (anchor)
-		nil,                                                       // [7] max duration
-		nil,                                                       // [8] selected flight
-		nil,                                                       // [9] layover airports
-		nil,                                                       // [10] unknown
-		nil,                                                       // [11] unknown
-		nil,                                                       // [12] layover duration
-		nil,                                                       // [13] emissions filter
-		3,                                                         // [14] unknown — fli always sends 3
+		nil,           // [2] time restrictions
+		stops,         // [3] stops
+		airlinesField, // [4] airlines
+		nil,           // [5] unknown
+		travelDate,    // [6] travel date (anchor)
+		nil,           // [7] max duration
+		nil,           // [8] selected flight
+		nil,           // [9] layover airports
+		nil,           // [10] unknown
+		nil,           // [11] unknown
+		nil,           // [12] layover duration
+		nil,           // [13] emissions filter
+		3,             // [14] unknown — fli always sends 3
 	}
 
 	filters := []any{
@@ -219,17 +223,17 @@ func buildDatesPayload(opts DatesOptions, from, to time.Time) (string, error) {
 			[]any{},                               // [4]
 			seat,                                  // [5] seat type
 			[]any{passengerAdults(opts), 0, 0, 0}, // [6] passengers: [adults, children, lap, seat]
-			nil,                          // [7] price limit
-			nil,                          // [8]
-			nil,                          // [9]
-			nil,                          // [10] bags
-			nil,                          // [11]
-			nil,                          // [12]
-			[]any{segment},               // [13] segments
-			nil,                          // [14]
-			nil,                          // [15]
-			nil,                          // [16]
-			1,                            // [17]
+			nil,                                   // [7] price limit
+			nil,                                   // [8]
+			nil,                                   // [9]
+			nil,                                   // [10] bags
+			nil,                                   // [11]
+			nil,                                   // [12]
+			[]any{segment},                        // [13] segments
+			nil,                                   // [14]
+			nil,                                   // [15]
+			nil,                                   // [16]
+			1,                                     // [17]
 		},
 		[]any{from.Format("2006-01-02"), to.Format("2006-01-02")},
 	}

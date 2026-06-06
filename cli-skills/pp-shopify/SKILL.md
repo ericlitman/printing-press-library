@@ -19,7 +19,7 @@ metadata:
      This file is a verbatim mirror of library/commerce/shopify/SKILL.md,
      regenerated post-merge by tools/generate-skills/. Hand-edits here are
      silently overwritten on the next regen. Edit the library/ source instead.
-     See AGENTS.md "Generated artifacts: registry.json, cli-skills/". -->
+     See the repository agent guide, section "Generated artifacts: registry.json, cli-skills/". -->
 
 # Shopify — Printing Press CLI
 
@@ -27,12 +27,12 @@ metadata:
 
 This skill drives the `shopify-pp-cli` binary. **You must verify the CLI is installed before invoking any command from this skill.** If it is missing, install it first:
 
-1. Install via the Printing Press installer:
+1. Install via the Printing Press installer. It defaults binaries to `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows:
    ```bash
    npx -y @mvanhorn/printing-press-library install shopify --cli-only
    ```
 2. Verify: `shopify-pp-cli --version`
-3. Ensure `$GOPATH/bin` (or `$HOME/go/bin`) is on `$PATH`.
+3. Ensure the reported install directory is on `$PATH` for the agent/runtime that will invoke this skill.
 
 If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.3 or newer):
 
@@ -40,9 +40,7 @@ If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go in
 go install github.com/mvanhorn/printing-press-library/library/commerce/shopify/cmd/shopify-pp-cli@latest
 ```
 
-If `--version` reports "command not found" after install, the install step did not put the binary on `$PATH`. Do not proceed with skill commands until verification succeeds.
-
-Ecommerce orders, products, customers, inventory, fulfillment orders, and bulk operations via the Shopify Admin GraphQL API.
+If `--version` reports "command not found" after install, the runtime cannot see the binary directory on `$PATH`. Do not proceed with skill commands until verification succeeds.
 
 ## When Not to Use This CLI
 
@@ -129,6 +127,16 @@ shopify-pp-cli which "<capability in your own words>"
 These commands are declared by the spec author and require separate hand-written wiring; the generator does not emit Cobra registration for them. They are listed here for discoverability and are intentionally outside `## Command Reference` so the verify-skill unknown-command check does not treat them as generator-owned paths.
 
 - `shopify-pp-cli bulk-operations` — Run, poll, and inspect Shopify Admin GraphQL bulk operations.
+- `shopify-pp-cli store daily-brief` — Executive daily brief with revenue, top products, risk checks, and suggested actions from the local store.
+- `shopify-pp-cli store audit` — Health score from refunds, fulfillment risk, shipping anomalies, and dead stock.
+- `shopify-pp-cli growth campaign-brief` — Data-backed campaign brief from top products, VIPs, and winback opportunities.
+- `shopify-pp-cli growth winback-candidates` — Rank idle customers by lifetime value and suggested winback angle.
+- `shopify-pp-cli growth vip-segments` — Segment high-value customers by spend, frequency, and recency.
+- `shopify-pp-cli ops fulfillment-risk` — Find open fulfillment orders older than a threshold.
+- `shopify-pp-cli ops shipping-anomalies` — Find free/missing/high shipping charges from synced shipping lines.
+- `shopify-pp-cli merchandising bundle-opportunities` — Suggest bundles from co-purchase lift and confidence.
+- `shopify-pp-cli merchandising dead-stock-actions` — Turn stock with no recent sales into markdown/bundle actions.
+- `shopify-pp-cli merchandising launch-brief` — Build a launch/relaunch brief for a product from local evidence.
 
 ## Auth Setup
 Run `shopify-pp-cli auth setup` to print the URL and steps for getting a key (add `--launch` to open the URL). Then set:

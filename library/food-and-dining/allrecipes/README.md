@@ -1,10 +1,12 @@
 # Allrecipes CLI
 
-**Every Allrecipes recipe in your terminal — cached as data, with pantry-aware search, Bayesian-smoothed ranking, one-line grocery lists, and Cloudflare clearance.**
+**Every Allrecipes recipe in your terminal — cached as data, with pantry-aware search, Bayesian-smoothed ranking, and one-line grocery lists.**
 
 Search Allrecipes' 250k-recipe corpus from the command line, fetch a full recipe as parsed JSON-LD (ingredients with quantity+unit+name, instructions, nutrition, ratings, Made-It count), aggregate grocery lists from a meal plan, scale recipes, and export to clean markdown. Every recipe you fetch lands in a local SQLite store, which unlocks `pantry` (which recipes can I cook with what I have), `with-ingredient` (reverse index), `top-rated` with Bayesian smoothing (no more 1-review 5-star noise), and `cookbook` (export a category as a personal cookbook). Recipe detail pages are walled by Cloudflare; one-time `auth login --chrome` captures a clearance cookie from your browser — no Allrecipes account needed.
 
 Learn more at [Allrecipes](https://www.allrecipes.com).
+
+Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
 
 ## Install
 
@@ -50,6 +52,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install allrecipes --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +72,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-allrecipes --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install allrecipes --agent openclaw
 ```
-Install the pp-allrecipes skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-allrecipes. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

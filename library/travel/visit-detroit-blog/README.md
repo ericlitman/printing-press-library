@@ -4,36 +4,44 @@
 
 Inside the D CLI mirrors Visit Detroit's editorial blog into a local SQLite store, so you can full-text search every article body offline and then slice it by category, neighborhood, and date in a single query (blogs list) — something the site's single-facet instant-search can't do. blogs related surfaces articles that share the most topics and neighborhoods; blogs coverage maps where the blog is dense or thin; blogs reading-list exports a neutral, sponsored-free reading list for a team.
 
+Created by [@stanrails](https://github.com/stanrails) (stanrails).
+
 ## Install
 
 The recommended path installs both the `visit-detroit-blog-pp-cli` binary and the `pp-visit-detroit-blog` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
 
 ```bash
-npx -y @mvanhorn/printing-press install visit-detroit-blog
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog
 ```
 
 For CLI only (no skill):
 
 ```bash
-npx -y @mvanhorn/printing-press install visit-detroit-blog --cli-only
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog --cli-only
 ```
 
 For skill only — installs the skill into the same agents as the default command above, but skips the CLI binary (use this to update or reinstall just the skill):
 
 ```bash
-npx -y @mvanhorn/printing-press install visit-detroit-blog --skill-only
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog --skill-only
 ```
 
 To constrain the skill install to one or more specific agents (repeatable — agent names match the [`skills`](https://github.com/vercel-labs/skills) CLI):
 
 ```bash
-npx -y @mvanhorn/printing-press install visit-detroit-blog --agent claude-code
-npx -y @mvanhorn/printing-press install visit-detroit-blog --agent claude-code --agent codex
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog --agent claude-code
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog --agent claude-code --agent codex
 ```
 
-### Without Node
+### Without Node (Go fallback)
 
-The generated install path is category-agnostic until this CLI is published. If `npx` is not available before publish, install Node or use the category-specific Go fallback from the public-library entry after publish.
+If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.3 or newer):
+
+```bash
+go install github.com/mvanhorn/printing-press-library/library/travel/visit-detroit-blog/cmd/visit-detroit-blog-pp-cli@latest
+```
+
+This installs the CLI only — no skill.
 
 ### Pre-built binary
 
@@ -41,6 +49,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
+
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog --cli-only
+```
+
+Then install the focused Hermes skill.
 
 From the Hermes CLI:
 
@@ -54,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-visit-detroit-blog --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install visit-detroit-blog --agent openclaw
 ```
-Install the pp-visit-detroit-blog skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-visit-detroit-blog. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 
@@ -101,18 +121,14 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 # Pull the full Inside the D blog into the local store. Run once; re-run to refresh.
 visit-detroit-blog-pp-cli sync
 
-
 # Ranked full-text search across every article body, offline.
 visit-detroit-blog-pp-cli search "ethiopian food"
-
 
 # The cross-axis filter the website's single-facet search can't do.
 visit-detroit-blog-pp-cli blogs list --category Dining --region Corktown
 
-
 # Read the full article body in your terminal — no browser.
 visit-detroit-blog-pp-cli blogs get donuts
-
 
 # Find related reads by shared category and neighborhood.
 visit-detroit-blog-pp-cli blogs related donuts --limit 5
@@ -178,7 +194,6 @@ Run `visit-detroit-blog-pp-cli sync` once to populate the local store, then:
 - **`visit-detroit-blog-pp-cli regions`** - list neighborhoods/regions with article counts
 - **`visit-detroit-blog-pp-cli recent`** - newest articles by post date
 - **`visit-detroit-blog-pp-cli sync`** - pull all articles into the local store
-
 
 ## Output Formats
 

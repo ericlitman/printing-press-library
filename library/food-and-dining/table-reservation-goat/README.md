@@ -4,6 +4,8 @@
 
 OpenTable, Tock, and Resy split the US fine-dining world between them and share zero data. This CLI unifies them: `goat` searches all three at once, `watch` polls each network for cancellations, `earliest` composes availability across all three, and `drift` surfaces what changed at a venue since your last look. Auth is `auth login --chrome` (for OT + Tock cookies) plus `auth login --resy --email <you@example.com>` (for the Resy API token) — no partner keys.
 
+Created by [@pejmanjohn](https://github.com/pejmanjohn) (Pejman Pour-Moezzi).
+
 ## Install
 
 The recommended path installs both the `table-reservation-goat-pp-cli` binary and the `pp-table-reservation-goat` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
@@ -48,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install table-reservation-goat --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -60,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-table-reservation-goat --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install table-reservation-goat --agent openclaw
 ```
-Install the pp-table-reservation-goat skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-table-reservation-goat. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

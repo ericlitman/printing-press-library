@@ -6,7 +6,7 @@ searches venues and items, and pulls per-venue delivery/ETA snapshots.
 Built on Wolt's unauthenticated consumer endpoints discovered via reverse
 engineering (OzTamir gist + live browser-sniff). No login, no cart, no orders.
 
-Printed by [@Amit-Tabibi](https://github.com/Amit-Tabibi) (Amit).
+Created by [@Amit-Tabibi](https://github.com/Amit-Tabibi) (Amit).
 
 ## Install
 
@@ -35,9 +35,15 @@ npx -y @mvanhorn/printing-press-library install wolt --agent claude-code
 npx -y @mvanhorn/printing-press-library install wolt --agent claude-code --agent codex
 ```
 
-### Without Node
+### Without Node (Go fallback)
 
-The generated install path is category-agnostic until this CLI is published. If `npx` is not available before publish, install Node or use the category-specific Go fallback from the public-library entry after publish.
+If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.3 or newer):
+
+```bash
+go install github.com/mvanhorn/printing-press-library/library/food-and-dining/wolt/cmd/wolt-pp-cli@latest
+```
+
+This installs the CLI only — no skill.
 
 ### Pre-built binary
 
@@ -45,6 +51,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
+
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install wolt --cli-only
+```
+
+Then install the focused Hermes skill.
 
 From the Hermes CLI:
 
@@ -58,13 +72,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-wolt --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install wolt --agent openclaw
 ```
-Install the pp-wolt skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-wolt. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 
@@ -156,7 +174,6 @@ Manage venues
 - **`wolt-pp-cli venues <slug>`** - Documented community endpoint. As of the last sniff, returns HTTP 200 with
 empty body via CloudFront cache. The CLI surfaces this honestly and includes
 --debug to capture the failing request for upstream investigation.
-
 
 ## Output Formats
 

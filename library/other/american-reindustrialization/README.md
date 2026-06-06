@@ -4,7 +4,7 @@
 
 A read-only CLI for the company directory and jobs board at americanreindustrialization.com. Sync once, then run cross-entity queries (jobs at robotics companies in TX, sector × state heatmaps, funding × sector crosstabs, week-over-week diffs) entirely offline, with agent-native JSON and a local SQLite surface no view on the website exposes.
 
-Printed by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
 
 ## Install
 
@@ -50,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install american-reindustrialization --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-american-reindustrialization --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install american-reindustrialization --agent openclaw
 ```
-Install the pp-american-reindustrialization skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-american-reindustrialization. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 

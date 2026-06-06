@@ -4,7 +4,7 @@
 
 Tella ships an API and an official MCP server; this CLI gives you both surfaces in one binary, plus a local-first store that makes cross-video transcript search, view-milestone rollups, and webhook replay actually fast. Every endpoint is a Cobra command, every command emits structured JSON, and every mutation supports --dry-run.
 
-Printed by [@gregce](https://github.com/gregce) (Greg Ceccarelli).
+Created by [@gregce](https://github.com/gregce) (Greg Ceccarelli).
 
 ## Install
 
@@ -50,6 +50,14 @@ Download a pre-built binary for your platform from the [latest release](https://
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
+Install the CLI binary first. The installer writes binaries to a per-user managed bin directory by default: `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows.
+
+```bash
+npx -y @mvanhorn/printing-press-library install tella --cli-only
+```
+
+Then install the focused Hermes skill.
+
 From the Hermes CLI:
 
 ```bash
@@ -62,13 +70,17 @@ Inside a Hermes chat session:
 /skills install mvanhorn/printing-press-library/cli-skills/pp-tella --force
 ```
 
+Restart the Hermes session or gateway if the newly installed skill is not visible immediately.
+
 ## Install for OpenClaw
 
-Tell your OpenClaw agent (copy this):
+Install both the CLI binary and the focused OpenClaw skill. The installer defaults binaries to a per-user bin directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows):
 
+```bash
+npx -y @mvanhorn/printing-press-library install tella --agent openclaw
 ```
-Install the pp-tella skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-tella. The skill defines how its required CLI can be installed.
-```
+
+Restart the OpenClaw session or gateway if the newly installed skill is not visible immediately.
 
 ## Use with Claude Desktop
 
