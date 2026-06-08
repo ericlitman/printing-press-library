@@ -307,6 +307,9 @@ These capabilities aren't available in any other tool for this API.
 - `x-twitter-pp-cli users get-public-keys` — Returns the public keys and Juicebox configuration for the specified users.
 - `x-twitter-pp-cli users get-reposts-of-me` — Retrieves a list of Posts that repost content from the authenticated user.
 - `x-twitter-pp-cli users get-trends-personalized-trends` — Retrieves personalized trending topics for the authenticated user.
+- `x-twitter-pp-cli users bookmarks find [query]` — Searches locally synced bookmarks by keyword and/or author without another API read.
+- `x-twitter-pp-cli users likes post <id>` — Likes a post on behalf of the authenticated user.
+- `x-twitter-pp-cli users likes unlike-post <id> <tweet_id>` — Unlikes a post on behalf of the authenticated user.
 - `x-twitter-pp-cli users search` — Retrieves a list of Users matching a search query.
 
 **webhooks** — Manage webhooks
