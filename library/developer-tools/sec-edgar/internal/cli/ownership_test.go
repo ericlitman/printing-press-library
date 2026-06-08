@@ -31,6 +31,17 @@ func TestOwnershipHTMLToText(t *testing.T) {
 			in:   `<div>State Street &amp; Co.</div>`,
 			want: []string{"State Street & Co."},
 		},
+		{
+			name: "numeric and hex entities decoded not dropped",
+			in:   `<p>owns 5&#37; (or 5&#x25;) of&#160;shares</p>`,
+			want: []string{"owns 5%", "5%", "of shares"},
+		},
+		{
+			name: "mismatched script/style tags do not over-strip",
+			in:   `<script>JS_GONE</script>KEEP_ONE<style>CSS_GONE</style>KEEP_TWO A<script>STILL_HERE</style>B`,
+			want: []string{"KEEP_ONE", "KEEP_TWO", "STILL_HERE"},
+			not:  []string{"JS_GONE", "CSS_GONE"},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

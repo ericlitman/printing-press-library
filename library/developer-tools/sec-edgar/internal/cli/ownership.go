@@ -4,6 +4,7 @@ package cli
 
 import (
 	"fmt"
+	"html"
 	"os"
 	"regexp"
 	"sort"
@@ -21,35 +22,33 @@ import (
 // ---- HTML -> text -----------------------------------------------------------
 
 var (
-	ownReScriptStyle = regexp.MustCompile(`(?is)<(script|style)\b[^>]*>.*?</(script|style)>`)
-	ownReBlockTag    = regexp.MustCompile(`(?is)</?(p|div|tr|br|h[1-6]|li|table|thead|tbody)\b[^>]*>`)
-	ownReTag         = regexp.MustCompile(`(?s)<[^>]+>`)
-	ownReWS          = regexp.MustCompile(`[ \t]+`)
-	ownReBlankLines  = regexp.MustCompile(`\n{3,}`)
-	ownReNumericEnt  = regexp.MustCompile(`&#?[0-9a-zA-Z]+;`)
+	// Separate script/style regexes: RE2 has no backreferences, so a single
+	// `<(script|style)>...</(script|style)>` could match a `<script>` open
+	// against an unrelated `</style>` close. Matching each tag independently
+	// keeps the open/close pinned to the same element.
+	ownReScript     = regexp.MustCompile(`(?is)<script\b[^>]*>.*?</script>`)
+	ownReStyle      = regexp.MustCompile(`(?is)<style\b[^>]*>.*?</style>`)
+	ownReBlockTag   = regexp.MustCompile(`(?is)</?(p|div|tr|br|h[1-6]|li|table|thead|tbody)\b[^>]*>`)
+	ownReTag        = regexp.MustCompile(`(?s)<[^>]+>`)
+	ownReWS         = regexp.MustCompile(`[ \t]+`)
+	ownReBlankLines = regexp.MustCompile(`\n{3,}`)
 )
-
-var ownHTMLEntities = map[string]string{
-	"&nbsp;": " ", "&#160;": " ", "&#xa0;": " ",
-	"&amp;": "&", "&#38;": "&",
-	"&lt;": "<", "&gt;": ">",
-	"&quot;": "\"", "&#34;": "\"",
-	"&apos;": "'", "&#39;": "'", "&rsquo;": "'", "&lsquo;": "'",
-	"&ldquo;": "\"", "&rdquo;": "\"",
-	"&mdash;": "—", "&ndash;": "–", "&#8217;": "'", "&#8211;": "–", "&#8212;": "—",
-}
 
 // ownershipHTMLToText converts an HTML document to readable plain text:
 // scripts/styles removed, block-level tags turned into line breaks, remaining
-// tags stripped, entities decoded, and whitespace collapsed.
-func ownershipHTMLToText(html string) string {
-	s := ownReScriptStyle.ReplaceAllString(html, " ")
+// tags stripped, HTML entities decoded (named, decimal, and hex — via the
+// stdlib, so e.g. "&#37;" becomes "%" rather than being dropped), and
+// whitespace collapsed.
+func ownershipHTMLToText(doc string) string {
+	s := ownReScript.ReplaceAllString(doc, " ")
+	s = ownReStyle.ReplaceAllString(s, " ")
 	s = ownReBlockTag.ReplaceAllString(s, "\n")
 	s = ownReTag.ReplaceAllString(s, " ")
-	for ent, rep := range ownHTMLEntities {
-		s = strings.ReplaceAll(s, ent, rep)
-	}
-	s = ownReNumericEnt.ReplaceAllString(s, " ")
+	// Decode entities with the stdlib unescaper, then normalize non-breaking
+	// spaces (which decode to U+00A0) to plain spaces so the collapse below
+	// catches them.
+	s = html.UnescapeString(s)
+	s = strings.ReplaceAll(s, " ", " ")
 	lines := strings.Split(s, "\n")
 	for i, ln := range lines {
 		lines[i] = strings.TrimSpace(ownReWS.ReplaceAllString(ln, " "))
@@ -78,11 +77,17 @@ var ownershipHeadings = []string{
 }
 
 // ownershipNextHeadingRe matches the start of a plausible following section,
-// used to bound the extracted ownership text.
-var ownershipNextHeadingRe = regexp.MustCompile(`(?im)^\s*(item\s+\d+|proposal\s+\d+|equity compensation plan|executive compensation|section 16|certain relationships|related party transactions|audit committee|report of the|annex [a-z]|general information)\b`)
+// used to bound the extracted ownership text. It covers both numbered headings
+// ("Item 12", "Proposal 3") and the bare narrative headings ("Director
+// Compensation", "Board of Directors") that commonly follow the ownership
+// table without an "Item"/"Proposal" prefix.
+var ownershipNextHeadingRe = regexp.MustCompile(`(?im)^\s*(item\s+\d+|proposal\s+\d+|equity compensation plan|executive compensation|compensation discussion|director compensation|named executive|board of directors|corporate governance|section 16|certain relationships|related party transactions|audit committee|report of the|annex [a-z]|general information)\b`)
 
-// ownershipTokenRe scores how "ownership-ish" a span of text is.
-var ownershipTokenRe = regexp.MustCompile(`(?i)\b(shares?|beneficial|percent|stock|vanguard|blackrock|state street|holdings?|trustee)\b|%|\d{3,}`)
+// ownershipTokenRe scores how "ownership-ish" a span of text is. Alongside
+// generic terms it names a few recurring institutional-holder words (the big
+// index funds plus the common entity suffixes fund/corp/llc/trust) so the
+// scorer still discriminates for filers whose holders aren't the big three.
+var ownershipTokenRe = regexp.MustCompile(`(?i)\b(shares?|beneficial|percent|stock|vanguard|blackrock|state street|fund|corp|llc|trust|holdings?|trustee)\b|%|\d{3,}`)
 
 const (
 	ownershipMaxSectionLen  = 18000
@@ -157,11 +162,26 @@ func ExtractOwnershipSection(text string) OwnershipResult {
 
 	matches := ownershipTokenRe.FindAllStringIndex(text, -1)
 	if len(matches) > 0 {
-		bestCenter := matches[len(matches)/2][0]
-		start := bestCenter - ownershipFallbackWindow/2
-		if start < 0 {
-			start = 0
+		// Pick the densest window: for each token start, count how many token
+		// matches fall within an ownershipFallbackWindow-sized window beginning
+		// there and keep the start with the most. A two-pointer sweep over the
+		// already-sorted match starts keeps this linear. This replaces a naive
+		// "median match" center, which could land in a sparse region when
+		// tokens are spread across several distant sections.
+		bestStartIdx, bestCount, j := 0, 0, 0
+		for i := range matches {
+			if j < i {
+				j = i
+			}
+			for j < len(matches) && matches[j][0] < matches[i][0]+ownershipFallbackWindow {
+				j++
+			}
+			if j-i > bestCount {
+				bestCount = j - i
+				bestStartIdx = i
+			}
 		}
+		start := matches[bestStartIdx][0]
 		end := start + ownershipFallbackWindow
 		if end > len(text) {
 			end = len(text)
@@ -275,28 +295,40 @@ func newOwnershipCmd(flags *rootFlags) *cobra.Command {
 			rec := subs.Filings.Recent
 			n := len(rec.Form)
 			for i := 0; i < n; i++ {
-				if strings.EqualFold(strings.TrimSpace(rec.Form[i]), "DEF 14A") {
-					p := proxyRef{}
-					if i < len(rec.AccessionNumber) {
-						p.accession = rec.AccessionNumber[i]
-					}
-					if i < len(rec.FilingDate) {
-						p.date = rec.FilingDate[i]
-					}
-					if i < len(rec.PrimaryDocument) {
-						p.doc = rec.PrimaryDocument[i]
-					}
-					proxies = append(proxies, p)
+				if !strings.EqualFold(strings.TrimSpace(rec.Form[i]), "DEF 14A") {
+					continue
 				}
+				p := proxyRef{}
+				if i < len(rec.AccessionNumber) {
+					p.accession = rec.AccessionNumber[i]
+				}
+				if i < len(rec.FilingDate) {
+					p.date = rec.FilingDate[i]
+				}
+				if i < len(rec.PrimaryDocument) {
+					p.doc = rec.PrimaryDocument[i]
+				}
+				// Skip entries missing the fields needed to build a document
+				// URL — a short or mismatched parallel array would otherwise
+				// yield an invalid archive URL that fails opaquely downstream.
+				if p.accession == "" || p.doc == "" {
+					continue
+				}
+				proxies = append(proxies, p)
 			}
 			if len(proxies) == 0 {
-				return notFoundErr(fmt.Errorf("no DEF 14A proxy statement found for %s (CIK %s) in recent filings", title, cik))
+				msg := fmt.Sprintf("no DEF 14A proxy statement found for %s (CIK %s) in the recent-filings window", title, cik)
+				// filings.recent holds only ~400 of the most recent filings; a
+				// high-frequency filer's DEF 14A can sit in the older
+				// filings.files pages. Surface that so the result isn't
+				// mistaken for "this company never filed a proxy".
+				if older := len(subs.Filings.Files); older > 0 {
+					msg += fmt.Sprintf(" (%d older filing page(s) exist beyond the recent window and were not searched)", older)
+				}
+				return notFoundErr(fmt.Errorf("%s", msg))
 			}
 			sort.SliceStable(proxies, func(i, j int) bool { return proxies[i].date > proxies[j].date })
 			latest := proxies[0]
-			if latest.doc == "" {
-				return classifyAPIError(fmt.Errorf("latest DEF 14A for %s has no primary document listed", title), flags)
-			}
 
 			docURL := archiveBase(cik, latest.accession) + latest.doc
 			body, err := fetchSECRaw(c, docURL)
