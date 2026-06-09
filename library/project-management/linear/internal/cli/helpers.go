@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/cliutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -277,6 +278,17 @@ func classifyAPIError(err error, flags *rootFlags) error {
 	default:
 		return apiErr(err)
 	}
+}
+
+func classifyLiveReadError(err error, flags *rootFlags) error {
+	if err == nil || ExitCode(err) != 1 {
+		return err
+	}
+	var apiErr *client.APIError
+	if As(err, &apiErr) || strings.Contains(err.Error(), "graphql: ") {
+		return classifyAPIError(err, flags)
+	}
+	return err
 }
 
 // classifyDeleteError maps DELETE errors and supports explicit idempotent no-op handling.

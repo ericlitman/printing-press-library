@@ -306,6 +306,8 @@ See README.md or the bundled SKILL.md for recipes.`,
 
 	// v3-ported top-level commands
 	rootCmd.AddCommand(newIssuesCmd(flags))
+	rootCmd.AddCommand(newCommentsCmd(flags))
+	rootCmd.AddCommand(newDocumentsCmd(flags))
 	rootCmd.AddCommand(newMeCmd(flags))
 	rootCmd.AddCommand(newTodayCmd(flags))
 	rootCmd.AddCommand(newBottleneckCmd(flags))
