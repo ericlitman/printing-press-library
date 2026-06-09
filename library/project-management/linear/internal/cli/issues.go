@@ -147,9 +147,9 @@ func runIssuesGet(cmd *cobra.Command, flags *rootFlags, dbPath, identifier strin
 
 	// Local first when allowed by --data-source
 	if flags.dataSource != "live" && db != nil {
-		rows, err := db.ListIssues(map[string]string{"identifier": identifier}, 1)
-		if err == nil && len(rows) > 0 {
-			return renderIssue(cmd, flags, rows[0], DataProvenance{Source: "local", ResourceType: "issues"})
+		row, err := fetchLocalIssue(db, identifier)
+		if err == nil && len(row) > 0 {
+			return renderIssue(cmd, flags, row, DataProvenance{Source: "local", ResourceType: "issues"})
 		}
 	}
 
@@ -178,13 +178,27 @@ func runIssuesGet(cmd *cobra.Command, flags *rootFlags, dbPath, identifier strin
 
 	// Fall back to local if live failed (auto mode only — live mode bubbles the error up)
 	if flags.dataSource != "live" && db != nil {
-		rows, err := db.ListIssues(map[string]string{"identifier": identifier}, 1)
-		if err == nil && len(rows) > 0 {
+		row, err := fetchLocalIssue(db, identifier)
+		if err == nil && len(row) > 0 {
 			fmt.Fprintf(os.Stderr, "live fetch failed, serving from local: %v\n", liveErr)
-			return renderIssue(cmd, flags, rows[0], DataProvenance{Source: "local", ResourceType: "issues", Reason: "api_unreachable"})
+			return renderIssue(cmd, flags, row, DataProvenance{Source: "local", ResourceType: "issues", Reason: "api_unreachable"})
 		}
 	}
 	return classifyAPIError(liveErr, flags)
+}
+
+func fetchLocalIssue(db *store.Store, identifier string) (json.RawMessage, error) {
+	if isIssueUUID(identifier) {
+		raw, err := db.GetByID("issues", identifier)
+		if err != nil || len(raw) > 0 {
+			return raw, err
+		}
+	}
+	rows, err := db.ListIssues(map[string]string{"identifier": identifier}, 1)
+	if err != nil || len(rows) == 0 {
+		return nil, err
+	}
+	return rows[0], nil
 }
 
 // fetchIssueLive fetches a single issue by identifier via the Linear GraphQL API.

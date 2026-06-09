@@ -123,6 +123,7 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 						state { id name type }
 						assignee { id name displayName }
 						project { id name }
+						cycle { id }
 					}
 				}
 			}`
@@ -307,26 +308,44 @@ func writeBackIssue(errOut io.Writer, dbPath string, raw json.RawMessage) {
 		return
 	}
 	var obj map[string]any
-	if err := json.Unmarshal(raw, &obj); err == nil {
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		fmt.Fprintf(errOut, "warning: local store write-back timestamp normalization skipped: %v\n", err)
+		obj = nil
+	}
+	db, err := store.Open(dbPath)
+	if err != nil {
+		fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", err)
+		return
+	}
+	defer db.Close()
+	if obj != nil {
+		if existing, err := db.GetByID("issues", issue.ID); err == nil && len(existing) > 0 {
+			var merged map[string]any
+			if err := json.Unmarshal(existing, &merged); err == nil {
+				for key, value := range obj {
+					merged[key] = value
+				}
+				obj = merged
+			} else {
+				fmt.Fprintf(errOut, "warning: local store write-back merge skipped: %v\n", err)
+			}
+		} else if err != nil {
+			fmt.Fprintf(errOut, "warning: local store write-back merge skipped: %v\n", err)
+		}
 		obj["updatedAt"] = firstNonEmpty(issue.UpdatedAt, time.Now().UTC().Format(time.RFC3339))
 		if issue.CreatedAt == "" {
-			obj["createdAt"] = time.Now().UTC().Format(time.RFC3339)
+			if createdAt, ok := obj["createdAt"]; !ok || createdAt == nil || fmt.Sprint(createdAt) == "" {
+				obj["createdAt"] = time.Now().UTC().Format(time.RFC3339)
+			}
 		}
 		if data, err := json.Marshal(obj); err == nil {
 			raw = data
 		} else {
 			fmt.Fprintf(errOut, "warning: local store write-back timestamp normalization failed: %v\n", err)
 		}
-	} else {
-		fmt.Fprintf(errOut, "warning: local store write-back timestamp normalization skipped: %v\n", err)
 	}
-	if db, err := store.Open(dbPath); err == nil {
-		defer db.Close()
-		if upErr := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); upErr != nil {
-			fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", upErr)
-		}
-	} else {
-		fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", err)
+	if upErr := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); upErr != nil {
+		fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", upErr)
 	}
 }
 

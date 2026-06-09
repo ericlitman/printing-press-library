@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -177,6 +179,25 @@ func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
 	}
 }
 
+func TestUploadMediaFileRejectsOversizedFileBeforeRead(t *testing.T) {
+	t.Parallel()
+	path := t.TempDir() + "/oversized.bin"
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Truncate(maxLinearMediaUploadBytes + 1); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := uploadMediaFile(nil, path, false); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("uploadMediaFile oversized error = %v, want size limit refusal", err)
+	}
+}
+
 func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
 	t.Parallel()
 	uuid := "550e8400-e29b-41d4-a716-446655440000"
@@ -189,6 +210,36 @@ func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
 	team, number, ok := parseIssueIdentifier("MOB-94")
 	if !ok || team != "MOB" || number != 94 {
 		t.Fatalf("parseIssueIdentifier(MOB-94) = (%q, %v, %v), want MOB, 94, true", team, number, ok)
+	}
+}
+
+func TestFetchLocalIssueSupportsUUID(t *testing.T) {
+	t.Parallel()
+	dbPath := t.TempDir() + "/linear.db"
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	const issueID = "550e8400-e29b-41d4-a716-446655440000"
+	raw := json.RawMessage(`{"id":"550e8400-e29b-41d4-a716-446655440000","identifier":"MOB-1","title":"UUID issue","updatedAt":"2026-01-01T00:00:00Z","createdAt":"2026-01-01T00:00:00Z"}`)
+	if err := db.UpsertIssue(issueID, "MOB-1", "UUID issue", raw); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := fetchLocalIssue(db, issueID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var issue struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(got, &issue); err != nil {
+		t.Fatal(err)
+	}
+	if issue.ID != issueID {
+		t.Fatalf("fetchLocalIssue UUID id = %q, want %q", issue.ID, issueID)
 	}
 }
 
@@ -241,6 +292,69 @@ func TestRequirePPCreatedIfStrict(t *testing.T) {
 	}
 	if err := requirePPCreatedIfStrict(&rootFlags{}, dbPath, "issue-other"); err != nil {
 		t.Fatalf("non-strict mode returned error: %v", err)
+	}
+}
+
+func TestWriteBackIssuePreservesExistingLocalIssueFields(t *testing.T) {
+	t.Parallel()
+	dbPath := t.TempDir() + "/linear.db"
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seed := json.RawMessage(`{
+		"id":"issue-known",
+		"identifier":"MOB-1",
+		"title":"Old title",
+		"description":"Old description",
+		"cycle":{"id":"cycle-known"},
+		"labels":{"nodes":[{"id":"label-known"}]},
+		"createdAt":"2026-01-01T00:00:00Z",
+		"updatedAt":"2026-01-01T00:00:00Z"
+	}`)
+	if err := db.UpsertIssue("issue-known", "MOB-1", "Old title", seed); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	writeBackIssue(io.Discard, dbPath, json.RawMessage(`{
+		"id":"issue-known",
+		"identifier":"MOB-1",
+		"title":"New title",
+		"description":"New description",
+		"updatedAt":"2026-01-02T00:00:00Z"
+	}`))
+
+	db, err = store.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	rows, err := db.ListIssues(map[string]string{"cycle_id": "cycle-known"}, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("ListIssues(cycle_id) returned %d rows, want 1", len(rows))
+	}
+	var got struct {
+		Title  string `json:"title"`
+		Labels struct {
+			Nodes []struct {
+				ID string `json:"id"`
+			} `json:"nodes"`
+		} `json:"labels"`
+	}
+	if err := json.Unmarshal(rows[0], &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Title != "New title" {
+		t.Fatalf("writeBackIssue title = %q, want New title", got.Title)
+	}
+	if len(got.Labels.Nodes) != 1 || got.Labels.Nodes[0].ID != "label-known" {
+		t.Fatalf("writeBackIssue labels = %+v, want preserved label-known", got.Labels.Nodes)
 	}
 }
 

@@ -17,6 +17,8 @@ import (
 
 var uploadHTTPClient = &http.Client{Timeout: 60 * time.Second}
 
+const maxLinearMediaUploadBytes int64 = 50 << 20
+
 type uploadedAsset struct {
 	Path        string `json:"path"`
 	Filename    string `json:"filename"`
@@ -38,6 +40,16 @@ func uploadMediaFiles(c *client.Client, paths []string, makePublic bool) ([]uplo
 }
 
 func uploadMediaFile(c *client.Client, path string, makePublic bool) (uploadedAsset, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return uploadedAsset{}, fmt.Errorf("stat media file %q: %w", path, err)
+	}
+	if !info.Mode().IsRegular() {
+		return uploadedAsset{}, fmt.Errorf("media file %q is not a regular file", path)
+	}
+	if info.Size() > maxLinearMediaUploadBytes {
+		return uploadedAsset{}, fmt.Errorf("media file %q is %d bytes, exceeds %d byte limit", path, info.Size(), maxLinearMediaUploadBytes)
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return uploadedAsset{}, fmt.Errorf("reading media file %q: %w", path, err)
