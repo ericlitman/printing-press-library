@@ -78,7 +78,9 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 			}
 
 			if flags.dryRun {
-				input["body"] = body
+				if bodySet {
+					input["body"] = body
+				}
 				out := map[string]any{
 					"event":    "would_add_comment",
 					"mutation": "commentCreate",

@@ -58,10 +58,6 @@ tickets in the workspace.`,
 				}
 			}
 
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
 			resolveMarkdown := descInput.resolve
 			if flags.dryRun {
 				resolveMarkdown = descInput.resolveDryRun
@@ -128,6 +124,10 @@ tickets in the workspace.`,
 				return nil
 			}
 
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
 			var assets []uploadedAsset
 			if len(media) > 0 {
 				assets, err = uploadMediaFiles(c, media, publicMedia)
@@ -202,10 +202,13 @@ tickets in the workspace.`,
 			if sess == "" || sess == "current" {
 				sess = ppCurrentSession()
 			}
+			recorded := false
 			if db, dbErr := store.Open(dbPath); dbErr == nil {
 				defer db.Close()
 				if recErr := db.RecordPPFixture(parsed.IssueCreate.Issue.ID, parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title, sess); recErr != nil {
 					fmt.Fprintf(os.Stderr, "warning: pp_created ledger write failed: %v\n", recErr)
+				} else {
+					recorded = true
 				}
 				// Write-back to the local issues table so a subsequent
 				// `issues list` from the local store sees the new ticket
@@ -272,6 +275,7 @@ tickets in the workspace.`,
 					"state":      parsed.IssueCreate.Issue.State.Name,
 					"url":        parsed.IssueCreate.Issue.URL,
 					"session":    sess,
+					"recorded":   recorded,
 				}
 				if len(assets) > 0 {
 					out["media"] = assets
@@ -283,7 +287,9 @@ tickets in the workspace.`,
 			if len(assets) > 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "  Uploaded %d media file(s).\n", len(assets))
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "  Recorded in pp_created (session=%s) for safe pp-cleanup.\n", sess)
+			if recorded {
+				fmt.Fprintf(cmd.OutOrStdout(), "  Recorded in pp_created (session=%s) for safe pp-cleanup.\n", sess)
+			}
 			return nil
 		},
 	}

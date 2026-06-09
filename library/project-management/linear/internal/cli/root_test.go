@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -246,6 +247,26 @@ func TestMutationErrorAfterMediaUploadIncludesUploadedAssets(t *testing.T) {
 	})
 	if !strings.Contains(err.Error(), "after uploading 1 media file") || !strings.Contains(err.Error(), "https://assets.example/a.png") || !strings.Contains(err.Error(), "HTTP 500") {
 		t.Fatalf("mutationErrorAfterMediaUpload() = %v, want uploaded asset context and wrapped error", err)
+	}
+}
+
+func TestCommentsAddDryRunMediaOnlyOmitsEmptyBody(t *testing.T) {
+	t.Parallel()
+	var out bytes.Buffer
+	cmd := newCommentsAddCmd(&rootFlags{dryRun: true, asJSON: true})
+	cmd.SetOut(&out)
+	cmd.SetArgs([]string{"--issue", "MOB-1", "--media", "screen.png"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Input map[string]any `json:"input"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := got.Input["body"]; ok {
+		t.Fatalf("dry-run media-only input included body: %s", out.String())
 	}
 }
 
