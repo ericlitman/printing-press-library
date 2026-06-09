@@ -22,14 +22,36 @@ type markdownInputFlags struct {
 	stdin  bool
 }
 
-func (f *markdownInputFlags) addFlags(cmd *cobra.Command, inlineFlag, fileFlag, stdinFlag, inlineUsage string) {
-	f.inlineFlag = inlineFlag
-	f.fileFlag = fileFlag
-	f.stdinFlag = stdinFlag
+// Keep these declarations literal so the shipped SKILL verifier can match
+// documented flags back to Cobra source while the resolver stays shared.
+func addDescriptionInputFlags(cmd *cobra.Command, f *markdownInputFlags, inlineUsage string) {
+	f.inlineFlag = "description"
+	f.fileFlag = "description-file"
+	f.stdinFlag = "description-stdin"
 
-	cmd.Flags().StringVar(&f.inline, inlineFlag, "", inlineUsage)
-	cmd.Flags().StringVar(&f.file, fileFlag, "", "Read markdown from file; use '-' to read from stdin")
-	cmd.Flags().BoolVar(&f.stdin, stdinFlag, false, "Read markdown from stdin")
+	cmd.Flags().StringVar(&f.inline, "description", "", inlineUsage)
+	cmd.Flags().StringVar(&f.file, "description-file", "", "Read markdown from file; use '-' to read from stdin")
+	cmd.Flags().BoolVar(&f.stdin, "description-stdin", false, "Read markdown from stdin")
+}
+
+func addBodyInputFlags(cmd *cobra.Command, f *markdownInputFlags, inlineUsage string) {
+	f.inlineFlag = "body"
+	f.fileFlag = "body-file"
+	f.stdinFlag = "body-stdin"
+
+	cmd.Flags().StringVar(&f.inline, "body", "", inlineUsage)
+	cmd.Flags().StringVar(&f.file, "body-file", "", "Read markdown from file; use '-' to read from stdin")
+	cmd.Flags().BoolVar(&f.stdin, "body-stdin", false, "Read markdown from stdin")
+}
+
+func addContentInputFlags(cmd *cobra.Command, f *markdownInputFlags, inlineUsage string) {
+	f.inlineFlag = "content"
+	f.fileFlag = "content-file"
+	f.stdinFlag = "content-stdin"
+
+	cmd.Flags().StringVar(&f.inline, "content", "", inlineUsage)
+	cmd.Flags().StringVar(&f.file, "content-file", "", "Read markdown from file; use '-' to read from stdin")
+	cmd.Flags().BoolVar(&f.stdin, "content-stdin", false, "Read markdown from stdin")
 }
 
 func (f markdownInputFlags) resolve(cmd *cobra.Command, required bool) (string, bool, error) {

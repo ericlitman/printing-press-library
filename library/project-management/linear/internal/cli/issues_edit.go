@@ -135,7 +135,7 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&titleFlag, "title", "", "Replacement issue title")
-	descInput.addFlags(cmd, "description", "description-file", "description-stdin", "Replacement issue description (markdown); prefer --description-file for multi-line content")
+	addDescriptionInputFlags(cmd, &descInput, "Replacement issue description (markdown); prefer --description-file for multi-line content")
 	cmd.Flags().IntVar(&priorityFlag, "priority", 0, "Priority: 1=Urgent, 2=High, 3=Medium, 4=Low")
 	cmd.Flags().StringVar(&assigneeFlag, "assignee", "", "Assignee user UUID")
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")

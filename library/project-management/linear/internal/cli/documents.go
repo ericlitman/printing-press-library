@@ -100,7 +100,7 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&title, "title", "", "Document title (required)")
-	contentInput.addFlags(cmd, "content", "content-file", "content-stdin", "Document content (markdown); prefer --content-file for multi-line content")
+	addContentInputFlags(cmd, &contentInput, "Document content (markdown); prefer --content-file for multi-line content")
 	cmd.Flags().StringVar(&icon, "icon", "", "Document icon")
 	cmd.Flags().StringVar(&color, "color", "", "Document icon color")
 	cmd.Flags().StringVar(&issueID, "issue", "", "Related issue UUID or identifier (e.g. MOB-94)")
@@ -184,7 +184,7 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			return writeDocumentMutationPayload(flags, "document_edited", parsed.DocumentUpdate.Document)
 		},
 	}
-	contentInput.addFlags(cmd, "content", "content-file", "content-stdin", "Replacement document content (markdown); prefer --content-file for multi-line content")
+	addContentInputFlags(cmd, &contentInput, "Replacement document content (markdown); prefer --content-file for multi-line content")
 	cmd.Flags().StringVar(&title, "title", "", "Replacement document title")
 	cmd.Flags().StringVar(&icon, "icon", "", "Replacement document icon")
 	cmd.Flags().StringVar(&color, "color", "", "Replacement document icon color")

@@ -115,7 +115,7 @@ func TestMarkdownInputFlagsResolveExclusiveSources(t *testing.T) {
 	var input markdownInputFlags
 	cmd := &cobra.Command{}
 	cmd.SetIn(strings.NewReader("from stdin"))
-	input.addFlags(cmd, "body", "body-file", "body-stdin", "body")
+	addBodyInputFlags(cmd, &input, "body")
 	if err := cmd.Flags().Set("body", "inline"); err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestMarkdownInputFlagsResolveStdin(t *testing.T) {
 	var input markdownInputFlags
 	cmd := &cobra.Command{}
 	cmd.SetIn(strings.NewReader("hello\nworld\n"))
-	input.addFlags(cmd, "content", "content-file", "content-stdin", "content")
+	addContentInputFlags(cmd, &input, "content")
 	if err := cmd.Flags().Set("content-stdin", "true"); err != nil {
 		t.Fatal(err)
 	}

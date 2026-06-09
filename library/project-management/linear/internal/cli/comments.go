@@ -130,7 +130,7 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 			return writeMutationPayload(cmd, flags, "comment_added", parsed.CommentCreate.Comment, assets)
 		},
 	}
-	bodyInput.addFlags(cmd, "body", "body-file", "body-stdin", "Comment body (markdown); prefer --body-file for multi-line content")
+	addBodyInputFlags(cmd, &bodyInput, "Comment body (markdown); prefer --body-file for multi-line content")
 	cmd.Flags().StringVar(&issueID, "issue", "", "Issue UUID or identifier (e.g. MOB-94)")
 	cmd.Flags().StringVar(&documentContentID, "document-content", "", "DocumentContent UUID for an inline document comment")
 	cmd.Flags().StringVar(&parentID, "parent", "", "Parent comment UUID for a reply")
@@ -234,7 +234,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			return writeMutationPayload(cmd, flags, "comment_edited", parsed.CommentUpdate.Comment, assets)
 		},
 	}
-	bodyInput.addFlags(cmd, "body", "body-file", "body-stdin", "Replacement comment body (markdown); prefer --body-file for multi-line content")
+	addBodyInputFlags(cmd, &bodyInput, "Replacement comment body (markdown); prefer --body-file for multi-line content")
 	cmd.Flags().StringArrayVar(&media, "media", nil, "Upload a media/file path and append it to the comment body (repeatable)")
 	cmd.Flags().BoolVar(&publicMedia, "media-public", false, "Make uploaded media publicly accessible instead of workspace-scoped")
 	return cmd

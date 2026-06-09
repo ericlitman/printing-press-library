@@ -282,7 +282,7 @@ tickets in the workspace.`,
 	}
 	cmd.Flags().StringVar(&titleFlag, "title", "", "Issue title (required)")
 	cmd.Flags().StringVar(&teamFlag, "team", "", "Team key (e.g. ENG) or team UUID (required)")
-	descInput.addFlags(cmd, "description", "description-file", "description-stdin", "Issue description (markdown); prefer --description-file for multi-line content")
+	addDescriptionInputFlags(cmd, &descInput, "Issue description (markdown); prefer --description-file for multi-line content")
 	cmd.Flags().IntVar(&priorityFlag, "priority", 0, "Priority: 1=Urgent, 2=High, 3=Medium, 4=Low (0=None)")
 	cmd.Flags().StringVar(&assigneeFlag, "assignee", "", "Assignee user UUID")
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
