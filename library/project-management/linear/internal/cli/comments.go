@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -89,6 +88,13 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 			c, err := flags.newClient()
 			if err != nil {
 				return err
+			}
+			if issueID != "" {
+				resolvedIssueID, err := resolveIssueIDForMutation(c, issueID)
+				if err != nil {
+					return err
+				}
+				input["issueId"] = resolvedIssueID
 			}
 			var assets []uploadedAsset
 			if len(media) > 0 {
@@ -288,15 +294,18 @@ func writeMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, pa
 		ID  string `json:"id"`
 		URL string `json:"url"`
 	}
-	_ = json.Unmarshal(payload, &item)
+	if err := json.Unmarshal(payload, &item); err != nil {
+		return fmt.Errorf("parsing %s response: %w", event, err)
+	}
+	out := cmd.OutOrStdout()
 	if item.ID != "" {
-		fmt.Fprintf(os.Stdout, "%s %s\n", event, item.ID)
+		fmt.Fprintf(out, "%s %s\n", event, item.ID)
 	}
 	if item.URL != "" {
-		fmt.Fprintf(os.Stdout, "  URL: %s\n", item.URL)
+		fmt.Fprintf(out, "  URL: %s\n", item.URL)
 	}
 	if len(assets) > 0 {
-		fmt.Fprintf(os.Stdout, "  Uploaded %d media file(s).\n", len(assets))
+		fmt.Fprintf(out, "  Uploaded %d media file(s).\n", len(assets))
 	}
 	return nil
 }

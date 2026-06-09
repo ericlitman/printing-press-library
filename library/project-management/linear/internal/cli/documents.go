@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -68,6 +67,13 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if issueID != "" {
+				resolvedIssueID, err := resolveIssueIDForMutation(c, issueID)
+				if err != nil {
+					return err
+				}
+				input["issueId"] = resolvedIssueID
+			}
 			const mutation = `mutation CreateDocument($input: DocumentCreateInput!) {
 				documentCreate(input: $input) {
 					success
@@ -96,7 +102,7 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			if !parsed.DocumentCreate.Success {
 				return fmt.Errorf("Linear reported documentCreate success=false")
 			}
-			return writeDocumentMutationPayload(flags, "document_created", parsed.DocumentCreate.Document)
+			return writeDocumentMutationPayload(cmd, flags, "document_created", parsed.DocumentCreate.Document)
 		},
 	}
 	cmd.Flags().StringVar(&title, "title", "", "Document title (required)")
@@ -181,7 +187,7 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			if !parsed.DocumentUpdate.Success {
 				return fmt.Errorf("Linear reported documentUpdate success=false")
 			}
-			return writeDocumentMutationPayload(flags, "document_edited", parsed.DocumentUpdate.Document)
+			return writeDocumentMutationPayload(cmd, flags, "document_edited", parsed.DocumentUpdate.Document)
 		},
 	}
 	addContentInputFlags(cmd, &contentInput, "Replacement document content (markdown); prefer --content-file for multi-line content")
@@ -223,13 +229,13 @@ func runDocumentsGet(cmd *cobra.Command, flags *rootFlags, id string) error {
 	return printOutputWithFlags(cmd.OutOrStdout(), resp.Document, flags)
 }
 
-func writeDocumentMutationPayload(flags *rootFlags, event string, payload json.RawMessage) error {
+func writeDocumentMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, payload json.RawMessage) error {
 	if flags.asJSON {
 		var value any
 		if err := json.Unmarshal(payload, &value); err != nil {
 			return err
 		}
-		enc := json.NewEncoder(os.Stdout)
+		enc := json.NewEncoder(cmd.OutOrStdout())
 		enc.SetIndent("", "  ")
 		return enc.Encode(map[string]any{"event": event, "document": value})
 	}
@@ -238,10 +244,13 @@ func writeDocumentMutationPayload(flags *rootFlags, event string, payload json.R
 		Title string `json:"title"`
 		URL   string `json:"url"`
 	}
-	_ = json.Unmarshal(payload, &item)
-	fmt.Printf("%s %s — %s\n", event, item.ID, item.Title)
+	if err := json.Unmarshal(payload, &item); err != nil {
+		return fmt.Errorf("parsing %s response: %w", event, err)
+	}
+	out := cmd.OutOrStdout()
+	fmt.Fprintf(out, "%s %s — %s\n", event, item.ID, item.Title)
 	if item.URL != "" {
-		fmt.Printf("  URL: %s\n", item.URL)
+		fmt.Fprintf(out, "  URL: %s\n", item.URL)
 	}
 	return nil
 }

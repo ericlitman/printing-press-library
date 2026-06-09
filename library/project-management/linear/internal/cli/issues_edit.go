@@ -3,7 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
@@ -130,8 +130,8 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 			if !parsed.IssueUpdate.Success {
 				return fmt.Errorf("Linear reported issueUpdate success=false")
 			}
-			writeBackIssue(dbPath, parsed.IssueUpdate.Issue)
-			return writeIssueMutationPayload(flags, "issue_edited", parsed.IssueUpdate.Issue, assets)
+			writeBackIssue(cmd.ErrOrStderr(), dbPath, parsed.IssueUpdate.Issue)
+			return writeIssueMutationPayload(cmd, flags, "issue_edited", parsed.IssueUpdate.Issue, assets)
 		},
 	}
 	cmd.Flags().StringVar(&titleFlag, "title", "", "Replacement issue title")
@@ -150,17 +150,12 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 func fetchIssueMutationTarget(c *client.Client, id string) (issueMutationTarget, error) {
 	var raw json.RawMessage
 	var err error
-	if _, _, ok := parseIssueIdentifier(id); ok {
+	if isIssueUUID(id) {
+		raw, err = fetchIssueByID(c, id)
+	} else if _, _, ok := parseIssueIdentifier(id); ok {
 		raw, err = fetchIssueLive(c, id)
 	} else {
-		const query = `query GetIssueForMutation($id: String!) {
-			issue(id: $id) { id identifier title description url }
-		}`
-		var resp struct {
-			Issue json.RawMessage `json:"issue"`
-		}
-		err = c.QueryInto(query, map[string]any{"id": id}, &resp)
-		raw = resp.Issue
+		raw, err = fetchIssueByID(c, id)
 	}
 	if err != nil {
 		return issueMutationTarget{}, fmt.Errorf("fetching issue %s: %w", id, err)
@@ -173,6 +168,33 @@ func fetchIssueMutationTarget(c *client.Client, id string) (issueMutationTarget,
 		return issueMutationTarget{}, notFoundErr(fmt.Errorf("issue %q not found", id))
 	}
 	return target, nil
+}
+
+func fetchIssueByID(c *client.Client, id string) (json.RawMessage, error) {
+	const query = `query GetIssueForMutation($id: String!) {
+		issue(id: $id) { id identifier title description url }
+	}`
+	var resp struct {
+		Issue json.RawMessage `json:"issue"`
+	}
+	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Issue, nil
+}
+
+func resolveIssueIDForMutation(c *client.Client, id string) (string, error) {
+	if id == "" || isIssueUUID(id) {
+		return id, nil
+	}
+	if _, _, ok := parseIssueIdentifier(id); !ok {
+		return id, nil
+	}
+	target, err := fetchIssueMutationTarget(c, id)
+	if err != nil {
+		return "", err
+	}
+	return target.ID, nil
 }
 
 func requirePPCreatedIfStrict(flags *rootFlags, dbPath, issueID string) error {
@@ -194,7 +216,7 @@ func requirePPCreatedIfStrict(flags *rootFlags, dbPath, issueID string) error {
 	return nil
 }
 
-func writeBackIssue(dbPath string, raw json.RawMessage) {
+func writeBackIssue(errOut io.Writer, dbPath string, raw json.RawMessage) {
 	var issue struct {
 		ID         string `json:"id"`
 		Identifier string `json:"identifier"`
@@ -202,7 +224,12 @@ func writeBackIssue(dbPath string, raw json.RawMessage) {
 		UpdatedAt  string `json:"updatedAt"`
 		CreatedAt  string `json:"createdAt"`
 	}
-	if err := json.Unmarshal(raw, &issue); err != nil || issue.ID == "" {
+	if err := json.Unmarshal(raw, &issue); err != nil {
+		fmt.Fprintf(errOut, "warning: local store write-back skipped: parsing issue response failed: %v\n", err)
+		return
+	}
+	if issue.ID == "" {
+		fmt.Fprintln(errOut, "warning: local store write-back skipped: issue response missing id")
 		return
 	}
 	var obj map[string]any
@@ -213,17 +240,23 @@ func writeBackIssue(dbPath string, raw json.RawMessage) {
 		}
 		if data, err := json.Marshal(obj); err == nil {
 			raw = data
+		} else {
+			fmt.Fprintf(errOut, "warning: local store write-back timestamp normalization failed: %v\n", err)
 		}
+	} else {
+		fmt.Fprintf(errOut, "warning: local store write-back timestamp normalization skipped: %v\n", err)
 	}
 	if db, err := store.Open(dbPath); err == nil {
 		defer db.Close()
 		if upErr := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); upErr != nil {
-			fmt.Fprintf(os.Stderr, "warning: local store write-back failed: %v\n", upErr)
+			fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", upErr)
 		}
+	} else {
+		fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", err)
 	}
 }
 
-func writeIssueMutationPayload(flags *rootFlags, event string, payload json.RawMessage, assets []uploadedAsset) error {
+func writeIssueMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, payload json.RawMessage, assets []uploadedAsset) error {
 	if flags.asJSON {
 		var value any
 		if err := json.Unmarshal(payload, &value); err != nil {
@@ -233,7 +266,7 @@ func writeIssueMutationPayload(flags *rootFlags, event string, payload json.RawM
 		if len(assets) > 0 {
 			out["media"] = assets
 		}
-		enc := json.NewEncoder(os.Stdout)
+		enc := json.NewEncoder(cmd.OutOrStdout())
 		enc.SetIndent("", "  ")
 		return enc.Encode(out)
 	}
@@ -242,13 +275,16 @@ func writeIssueMutationPayload(flags *rootFlags, event string, payload json.RawM
 		Title      string `json:"title"`
 		URL        string `json:"url"`
 	}
-	_ = json.Unmarshal(payload, &item)
-	fmt.Printf("%s %s — %s\n", event, item.Identifier, item.Title)
+	if err := json.Unmarshal(payload, &item); err != nil {
+		return fmt.Errorf("parsing %s response: %w", event, err)
+	}
+	out := cmd.OutOrStdout()
+	fmt.Fprintf(out, "%s %s — %s\n", event, item.Identifier, item.Title)
 	if item.URL != "" {
-		fmt.Printf("  URL: %s\n", item.URL)
+		fmt.Fprintf(out, "  URL: %s\n", item.URL)
 	}
 	if len(assets) > 0 {
-		fmt.Printf("  Uploaded %d media file(s).\n", len(assets))
+		fmt.Fprintf(out, "  Uploaded %d media file(s).\n", len(assets))
 	}
 	return nil
 }

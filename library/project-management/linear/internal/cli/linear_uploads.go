@@ -10,9 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
 )
+
+var uploadHTTPClient = &http.Client{Timeout: 60 * time.Second}
 
 type uploadedAsset struct {
 	Path        string `json:"path"`
@@ -107,7 +110,7 @@ func uploadMediaFile(c *client.Client, path string, makePublic bool) (uploadedAs
 	}
 	req.ContentLength = int64(len(data))
 
-	respHTTP, err := c.HTTPClient.Do(req)
+	respHTTP, err := uploadHTTPClient.Do(req)
 	if err != nil {
 		return uploadedAsset{}, fmt.Errorf("uploading %q: %w", path, err)
 	}

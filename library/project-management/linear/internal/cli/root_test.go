@@ -157,6 +157,21 @@ func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
 	}
 }
 
+func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
+	t.Parallel()
+	uuid := "550e8400-e29b-41d4-a716-446655440000"
+	if !isIssueUUID(uuid) {
+		t.Fatalf("isIssueUUID(%q) = false, want true", uuid)
+	}
+	if team, number, ok := parseIssueIdentifier(uuid); ok {
+		t.Fatalf("parseIssueIdentifier(%q) = (%q, %v, true), want rejected UUID", uuid, team, number)
+	}
+	team, number, ok := parseIssueIdentifier("MOB-94")
+	if !ok || team != "MOB" || number != 94 {
+		t.Fatalf("parseIssueIdentifier(MOB-94) = (%q, %v, %v), want MOB, 94, true", team, number, ok)
+	}
+}
+
 func mustFindCommand(t *testing.T, root *cobra.Command, path ...string) *cobra.Command {
 	t.Helper()
 	cmd := root
