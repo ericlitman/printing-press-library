@@ -62,7 +62,11 @@ tickets in the workspace.`,
 			if err != nil {
 				return err
 			}
-			description, descSet, err := descInput.resolve(cmd, false)
+			resolveMarkdown := descInput.resolve
+			if flags.dryRun {
+				resolveMarkdown = descInput.resolveDryRun
+			}
+			description, descSet, err := resolveMarkdown(cmd, false)
 			if err != nil {
 				return err
 			}

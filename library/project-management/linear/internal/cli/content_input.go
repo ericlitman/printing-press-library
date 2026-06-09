@@ -55,24 +55,9 @@ func addContentInputFlags(cmd *cobra.Command, f *markdownInputFlags, inlineUsage
 }
 
 func (f markdownInputFlags) resolve(cmd *cobra.Command, required bool) (string, bool, error) {
-	set := make([]string, 0, 3)
-	if cmd.Flags().Changed(f.inlineFlag) {
-		set = append(set, "--"+f.inlineFlag)
-	}
-	if cmd.Flags().Changed(f.fileFlag) {
-		set = append(set, "--"+f.fileFlag)
-	}
-	if cmd.Flags().Changed(f.stdinFlag) && f.stdin {
-		set = append(set, "--"+f.stdinFlag)
-	}
-	if len(set) > 1 {
-		return "", false, usageErr(fmt.Errorf("choose only one of %s, %s, or %s", "--"+f.inlineFlag, "--"+f.fileFlag, "--"+f.stdinFlag))
-	}
-	if len(set) == 0 {
-		if required {
-			return "", false, usageErr(fmt.Errorf("one of %s, %s, or %s is required", "--"+f.inlineFlag, "--"+f.fileFlag, "--"+f.stdinFlag))
-		}
-		return "", false, nil
+	set, err := f.selectedSources(cmd, required)
+	if err != nil || len(set) == 0 {
+		return "", false, err
 	}
 
 	switch set[0] {
@@ -103,4 +88,38 @@ func (f markdownInputFlags) resolve(cmd *cobra.Command, required bool) (string, 
 	default:
 		return "", false, fmt.Errorf("internal error: unexpected markdown source %q", set[0])
 	}
+}
+
+func (f markdownInputFlags) resolveDryRun(cmd *cobra.Command, required bool) (string, bool, error) {
+	set, err := f.selectedSources(cmd, required)
+	if err != nil || len(set) == 0 {
+		return "", false, err
+	}
+	if set[0] == "--"+f.stdinFlag {
+		return "", true, nil
+	}
+	return f.resolve(cmd, required)
+}
+
+func (f markdownInputFlags) selectedSources(cmd *cobra.Command, required bool) ([]string, error) {
+	set := make([]string, 0, 3)
+	if cmd.Flags().Changed(f.inlineFlag) {
+		set = append(set, "--"+f.inlineFlag)
+	}
+	if cmd.Flags().Changed(f.fileFlag) {
+		set = append(set, "--"+f.fileFlag)
+	}
+	if cmd.Flags().Changed(f.stdinFlag) && f.stdin {
+		set = append(set, "--"+f.stdinFlag)
+	}
+	if len(set) > 1 {
+		return nil, usageErr(fmt.Errorf("choose only one of %s, %s, or %s", "--"+f.inlineFlag, "--"+f.fileFlag, "--"+f.stdinFlag))
+	}
+	if len(set) == 0 {
+		if required {
+			return nil, usageErr(fmt.Errorf("one of %s, %s, or %s is required", "--"+f.inlineFlag, "--"+f.fileFlag, "--"+f.stdinFlag))
+		}
+		return nil, nil
+	}
+	return set, nil
 }

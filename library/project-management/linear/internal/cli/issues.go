@@ -241,14 +241,15 @@ func isIssueUUID(identifier string) bool {
 	if len(identifier) != 36 {
 		return false
 	}
-	for i, r := range identifier {
+	for i := 0; i < len(identifier); i++ {
+		c := identifier[i]
 		switch i {
 		case 8, 13, 18, 23:
-			if r != '-' {
+			if c != '-' {
 				return false
 			}
 		default:
-			if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')) {
+			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
 				return false
 			}
 		}

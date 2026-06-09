@@ -36,7 +36,11 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
   linear-pp-cli comments add --issue MOB-94 --body-stdin < /tmp/comment.md
   linear-pp-cli comments add --issue MOB-94 --body-file /tmp/comment.md --media screenshot.png`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			body, bodySet, err := bodyInput.resolve(cmd, false)
+			resolveMarkdown := bodyInput.resolve
+			if flags.dryRun {
+				resolveMarkdown = bodyInput.resolveDryRun
+			}
+			body, bodySet, err := resolveMarkdown(cmd, false)
 			if err != nil {
 				return err
 			}
@@ -183,7 +187,11 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
   linear-pp-cli comments edit 550e8400-e29b-41d4-a716-446655440000 --media screenshot.png`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			body, bodySet, err := bodyInput.resolve(cmd, false)
+			resolveMarkdown := bodyInput.resolve
+			if flags.dryRun {
+				resolveMarkdown = bodyInput.resolveDryRun
+			}
+			body, bodySet, err := resolveMarkdown(cmd, false)
 			if err != nil {
 				return err
 			}
@@ -350,13 +358,14 @@ func writeMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, pa
 		return fmt.Errorf("parsing %s response: %w", event, err)
 	}
 	out := cmd.OutOrStdout()
+	fmt.Fprintf(out, "%s", event)
 	if item.ID != "" {
-		if item.Issue != nil && item.Issue.Identifier != "" {
-			fmt.Fprintf(out, "%s %s on %s\n", event, item.ID, item.Issue.Identifier)
-		} else {
-			fmt.Fprintf(out, "%s %s\n", event, item.ID)
-		}
+		fmt.Fprintf(out, " %s", item.ID)
 	}
+	if item.Issue != nil && item.Issue.Identifier != "" {
+		fmt.Fprintf(out, " on %s", item.Issue.Identifier)
+	}
+	fmt.Fprintln(out)
 	if item.URL != "" {
 		fmt.Fprintf(out, "  URL: %s\n", item.URL)
 	}

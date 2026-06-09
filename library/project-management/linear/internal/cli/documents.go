@@ -39,7 +39,11 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			if title == "" {
 				return usageErr(fmt.Errorf("--title is required"))
 			}
-			content, contentSet, err := contentInput.resolve(cmd, false)
+			resolveMarkdown := contentInput.resolve
+			if flags.dryRun {
+				resolveMarkdown = contentInput.resolveDryRun
+			}
+			content, contentSet, err := resolveMarkdown(cmd, false)
 			if err != nil {
 				return err
 			}
@@ -142,7 +146,11 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
   linear-pp-cli documents edit MOB-94-session-report --title "Updated title"`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			content, contentSet, err := contentInput.resolve(cmd, false)
+			resolveMarkdown := contentInput.resolve
+			if flags.dryRun {
+				resolveMarkdown = contentInput.resolveDryRun
+			}
+			content, contentSet, err := resolveMarkdown(cmd, false)
 			if err != nil {
 				return err
 			}

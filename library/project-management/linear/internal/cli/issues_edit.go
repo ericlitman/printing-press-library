@@ -37,7 +37,11 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
   linear-pp-cli issues update MOB-94 --title "Updated title" --priority 2`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			description, descSet, err := descInput.resolve(cmd, false)
+			resolveMarkdown := descInput.resolve
+			if flags.dryRun {
+				resolveMarkdown = descInput.resolveDryRun
+			}
+			description, descSet, err := resolveMarkdown(cmd, false)
 			if err != nil {
 				return err
 			}

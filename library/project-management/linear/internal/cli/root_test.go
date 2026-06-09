@@ -146,6 +146,23 @@ func TestMarkdownInputFlagsResolveStdin(t *testing.T) {
 	}
 }
 
+func TestMarkdownInputFlagsResolveDryRunSkipsStdinRead(t *testing.T) {
+	t.Parallel()
+	var input markdownInputFlags
+	cmd := &cobra.Command{}
+	addBodyInputFlags(cmd, &input, "body")
+	if err := cmd.Flags().Set("body-stdin", "true"); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := input.resolveDryRun(cmd, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok || got != "" {
+		t.Fatalf("resolveDryRun stdin = (%q, %v), want empty preview and ok", got, ok)
+	}
+}
+
 func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
 	t.Parallel()
 	got := appendMediaMarkdown("Body", []uploadedAsset{
