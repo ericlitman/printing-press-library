@@ -145,7 +145,7 @@ tickets in the workspace.`,
 					success
 					issue {
 						id identifier title description url priority estimate dueDate updatedAt createdAt
-						team { id key }
+						team { id key name }
 						state { id name type }
 						assignee { id name displayName }
 						project { id name }
@@ -155,7 +155,7 @@ tickets in the workspace.`,
 
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
-				return classifyAPIError(fmt.Errorf("issueCreate failed: %w", err), flags)
+				return classifyAPIError(mutationErrorAfterMediaUpload("issueCreate", err, assets), flags)
 			}
 			var parsed struct {
 				IssueCreate struct {
@@ -172,8 +172,9 @@ tickets in the workspace.`,
 						UpdatedAt   string  `json:"updatedAt"`
 						CreatedAt   string  `json:"createdAt"`
 						Team        struct {
-							ID  string `json:"id"`
-							Key string `json:"key"`
+							ID   string `json:"id"`
+							Key  string `json:"key"`
+							Name string `json:"name"`
 						} `json:"team"`
 						State struct {
 							ID   string `json:"id"`
@@ -196,7 +197,7 @@ tickets in the workspace.`,
 				return fmt.Errorf("parsing issueCreate response: %w", err)
 			}
 			if !parsed.IssueCreate.Success {
-				return fmt.Errorf("Linear reported issueCreate success=false")
+				return mutationErrorAfterMediaUpload("issueCreate", fmt.Errorf("Linear reported success=false"), assets)
 			}
 
 			sess := resolvePPSession(flags, session)
@@ -223,8 +224,9 @@ tickets in the workspace.`,
 					"estimate":    parsed.IssueCreate.Issue.Estimate,
 					"dueDate":     parsed.IssueCreate.Issue.DueDate,
 					"team": map[string]any{
-						"id":  parsed.IssueCreate.Issue.Team.ID,
-						"key": parsed.IssueCreate.Issue.Team.Key,
+						"id":   parsed.IssueCreate.Issue.Team.ID,
+						"key":  parsed.IssueCreate.Issue.Team.Key,
+						"name": parsed.IssueCreate.Issue.Team.Name,
 					},
 					"teamId": parsed.IssueCreate.Issue.Team.ID,
 					"state": map[string]any{

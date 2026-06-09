@@ -32,11 +32,43 @@ func uploadMediaFiles(c *client.Client, paths []string, makePublic bool) ([]uplo
 	for _, path := range paths {
 		asset, err := uploadMediaFile(c, path, makePublic)
 		if err != nil {
+			if len(assets) > 0 {
+				return nil, fmt.Errorf("%w; %d media file(s) were already uploaded (%s)", err, len(assets), uploadedAssetURLSummary(assets))
+			}
 			return nil, err
 		}
 		assets = append(assets, asset)
 	}
 	return assets, nil
+}
+
+func mutationErrorAfterMediaUpload(operation string, err error, assets []uploadedAsset) error {
+	if len(assets) == 0 {
+		return fmt.Errorf("%s failed: %w", operation, err)
+	}
+	return fmt.Errorf("%s failed after uploading %d media file(s) (%s); manual cleanup may be needed: %w", operation, len(assets), uploadedAssetURLSummary(assets), err)
+}
+
+func uploadedAssetURLSummary(assets []uploadedAsset) string {
+	if len(assets) == 0 {
+		return "no asset URLs"
+	}
+	limit := len(assets)
+	if limit > 3 {
+		limit = 3
+	}
+	urls := make([]string, 0, limit+1)
+	for i := 0; i < limit; i++ {
+		url := assets[i].AssetURL
+		if url == "" {
+			url = assets[i].Filename
+		}
+		urls = append(urls, url)
+	}
+	if len(assets) > limit {
+		urls = append(urls, fmt.Sprintf("and %d more", len(assets)-limit))
+	}
+	return strings.Join(urls, ", ")
 }
 
 func uploadMediaFile(c *client.Client, path string, makePublic bool) (uploadedAsset, error) {

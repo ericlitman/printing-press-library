@@ -142,7 +142,7 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
-				return classifyAPIError(fmt.Errorf("commentCreate failed: %w", err), flags)
+				return classifyAPIError(mutationErrorAfterMediaUpload("commentCreate", err, assets), flags)
 			}
 			var parsed struct {
 				CommentCreate struct {
@@ -154,7 +154,7 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 				return fmt.Errorf("parsing commentCreate response: %w", err)
 			}
 			if !parsed.CommentCreate.Success {
-				return fmt.Errorf("Linear reported commentCreate success=false")
+				return mutationErrorAfterMediaUpload("commentCreate", fmt.Errorf("Linear reported success=false"), assets)
 			}
 			return writeMutationPayload(cmd, flags, "comment_added", parsed.CommentCreate.Comment, assets)
 		},
@@ -264,7 +264,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"id": args[0], "input": input})
 			if err != nil {
-				return classifyAPIError(fmt.Errorf("commentUpdate failed: %w", err), flags)
+				return classifyAPIError(mutationErrorAfterMediaUpload("commentUpdate", err, assets), flags)
 			}
 			var parsed struct {
 				CommentUpdate struct {
@@ -276,7 +276,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 				return fmt.Errorf("parsing commentUpdate response: %w", err)
 			}
 			if !parsed.CommentUpdate.Success {
-				return fmt.Errorf("Linear reported commentUpdate success=false")
+				return mutationErrorAfterMediaUpload("commentUpdate", fmt.Errorf("Linear reported success=false"), assets)
 			}
 			return writeMutationPayload(cmd, flags, "comment_edited", parsed.CommentUpdate.Comment, assets)
 		},

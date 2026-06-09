@@ -198,6 +198,16 @@ func TestUploadMediaFileRejectsOversizedFileBeforeRead(t *testing.T) {
 	}
 }
 
+func TestMutationErrorAfterMediaUploadIncludesUploadedAssets(t *testing.T) {
+	t.Parallel()
+	err := mutationErrorAfterMediaUpload("commentCreate", errors.New("HTTP 500"), []uploadedAsset{
+		{AssetURL: "https://assets.example/a.png"},
+	})
+	if !strings.Contains(err.Error(), "after uploading 1 media file") || !strings.Contains(err.Error(), "https://assets.example/a.png") || !strings.Contains(err.Error(), "HTTP 500") {
+		t.Fatalf("mutationErrorAfterMediaUpload() = %v, want uploaded asset context and wrapped error", err)
+	}
+}
+
 func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
 	t.Parallel()
 	uuid := "550e8400-e29b-41d4-a716-446655440000"

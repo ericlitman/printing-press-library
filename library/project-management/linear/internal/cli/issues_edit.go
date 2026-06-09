@@ -131,7 +131,7 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"id": target.ID, "input": input})
 			if err != nil {
-				return classifyAPIError(fmt.Errorf("issueUpdate failed: %w", err), flags)
+				return classifyAPIError(mutationErrorAfterMediaUpload("issueUpdate", err, assets), flags)
 			}
 			var parsed struct {
 				IssueUpdate struct {
@@ -143,7 +143,7 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 				return fmt.Errorf("parsing issueUpdate response: %w", err)
 			}
 			if !parsed.IssueUpdate.Success {
-				return fmt.Errorf("Linear reported issueUpdate success=false")
+				return mutationErrorAfterMediaUpload("issueUpdate", fmt.Errorf("Linear reported success=false"), assets)
 			}
 			writeBackIssue(cmd.ErrOrStderr(), dbPath, parsed.IssueUpdate.Issue)
 			return writeIssueMutationPayload(cmd, flags, "issue_edited", parsed.IssueUpdate.Issue, assets)
