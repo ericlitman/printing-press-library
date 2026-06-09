@@ -187,6 +187,16 @@ func TestTrustModeEnvBinding(t *testing.T) {
 	}
 }
 
+func TestTrustModeRejectsInvalidEnvBinding(t *testing.T) {
+	t.Setenv("LINEAR_PP_CLI_TRUST_MODE", "enabled")
+	var flags rootFlags
+	root := newRootCmd(&flags)
+	err := root.PersistentPreRunE(root, nil)
+	if err == nil || !strings.Contains(err.Error(), "invalid --trust-mode value") {
+		t.Fatalf("PersistentPreRunE error = %v, want invalid trust-mode", err)
+	}
+}
+
 func TestRequirePPCreatedIfStrict(t *testing.T) {
 	flags := &rootFlags{trustMode: "strict"}
 	missingPath := t.TempDir() + "/missing.db"
@@ -223,16 +233,16 @@ func (f queryIntoFunc) QueryInto(query string, variables map[string]any, dest an
 	return f(query, variables, dest)
 }
 
-func TestFetchCommentBodyNotFound(t *testing.T) {
+func TestFetchCommentMutationTargetNotFound(t *testing.T) {
 	t.Parallel()
-	_, err := fetchCommentBody(queryIntoFunc(func(_ string, _ map[string]any, _ any) error {
+	_, err := fetchCommentMutationTarget(queryIntoFunc(func(_ string, _ map[string]any, _ any) error {
 		return nil
 	}), "missing-comment")
 	if err == nil {
-		t.Fatalf("fetchCommentBody returned nil error for missing comment")
+		t.Fatalf("fetchCommentMutationTarget returned nil error for missing comment")
 	}
 	if !strings.Contains(err.Error(), "comment \"missing-comment\" not found") {
-		t.Fatalf("fetchCommentBody error = %v, want not found", err)
+		t.Fatalf("fetchCommentMutationTarget error = %v, want not found", err)
 	}
 }
 

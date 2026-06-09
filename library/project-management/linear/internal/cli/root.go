@@ -254,6 +254,13 @@ See README.md or the bundled SKILL.md for recipes.`,
 		if flags.trustMode == "" {
 			flags.trustMode = os.Getenv("LINEAR_PP_CLI_TRUST_MODE")
 		}
+		if flags.trustMode != "" {
+			normalizedTrustMode := strings.ToLower(strings.TrimSpace(flags.trustMode))
+			if normalizedTrustMode != "strict" {
+				return usageErr(fmt.Errorf("invalid --trust-mode value %q: must be strict", flags.trustMode))
+			}
+			flags.trustMode = normalizedTrustMode
+		}
 		switch flags.dataSource {
 		case "auto", "live", "local":
 			// valid

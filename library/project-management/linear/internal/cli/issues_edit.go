@@ -159,11 +159,11 @@ func fetchIssueMutationTarget(c *client.Client, id string) (issueMutationTarget,
 	var raw json.RawMessage
 	var err error
 	if isIssueUUID(id) {
-		raw, err = fetchIssueByID(c, id)
+		raw, err = fetchIssueByIDForMutation(c, id)
 	} else if _, _, ok := parseIssueIdentifier(id); ok {
-		raw, err = fetchIssueLive(c, id)
+		raw, err = fetchIssueLiveForMutation(c, id)
 	} else {
-		raw, err = fetchIssueByID(c, id)
+		raw, err = fetchIssueByIDForMutation(c, id)
 	}
 	if err != nil {
 		return issueMutationTarget{}, fmt.Errorf("fetching issue %s: %w", id, err)
@@ -179,7 +179,7 @@ func fetchIssueMutationTarget(c *client.Client, id string) (issueMutationTarget,
 }
 
 func fetchIssueByID(c *client.Client, id string) (json.RawMessage, error) {
-	const query = `query GetIssueForMutation($id: String!) {
+	const query = `query GetIssueByID($id: String!) {
 		issue(id: $id) {
 			id identifier title description priority estimate dueDate url updatedAt createdAt
 			state { name type }
@@ -194,7 +194,47 @@ func fetchIssueByID(c *client.Client, id string) (json.RawMessage, error) {
 	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
 		return nil, err
 	}
+	if len(resp.Issue) == 0 || string(resp.Issue) == "null" {
+		return nil, notFoundErr(fmt.Errorf("issue %q not found", id))
+	}
 	return resp.Issue, nil
+}
+
+func fetchIssueByIDForMutation(c *client.Client, id string) (json.RawMessage, error) {
+	const query = `query GetIssueForMutation($id: String!) {
+		issue(id: $id) { id identifier title description url }
+	}`
+	var resp struct {
+		Issue json.RawMessage `json:"issue"`
+	}
+	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Issue, nil
+}
+
+func fetchIssueLiveForMutation(c *client.Client, identifier string) (json.RawMessage, error) {
+	teamKey, number, ok := parseIssueIdentifier(identifier)
+	if !ok {
+		return nil, fmt.Errorf("invalid issue identifier %q (expected TEAM-NUMBER, e.g. ESP-1155)", identifier)
+	}
+	query := `query($teamKey: String!, $number: Float!) {
+		issues(filter: { team: { key: { eq: $teamKey } }, number: { eq: $number } }, first: 1) {
+			nodes { id identifier title description url }
+		}
+	}`
+	var resp struct {
+		Issues struct {
+			Nodes []json.RawMessage `json:"nodes"`
+		} `json:"issues"`
+	}
+	if err := c.QueryInto(query, map[string]any{"teamKey": teamKey, "number": number}, &resp); err != nil {
+		return nil, err
+	}
+	if len(resp.Issues.Nodes) == 0 {
+		return nil, notFoundErr(fmt.Errorf("issue %q not found", identifier))
+	}
+	return resp.Issues.Nodes[0], nil
 }
 
 func requireIssueScopedMutationIfStrict(flags *rootFlags, dbPath, issueID, surface string) error {

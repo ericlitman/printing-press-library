@@ -279,16 +279,6 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 	return cmd
 }
 
-func fetchCommentBody(c interface {
-	QueryInto(string, map[string]any, any) error
-}, id string) (string, error) {
-	target, err := fetchCommentMutationTarget(c, id)
-	if err != nil {
-		return "", err
-	}
-	return target.Body, nil
-}
-
 type commentMutationTarget struct {
 	ID    string
 	Body  string
