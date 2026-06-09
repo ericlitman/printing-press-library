@@ -282,11 +282,13 @@ linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png --agent
 linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --agent
 linear-pp-cli comments add --issue ENG-123 --body-stdin --agent < /tmp/comment.md
 linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
+linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --quoted-text "Original selected text" --agent
 linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md --agent
 linear-pp-cli comments edit <comment-id> --media /tmp/screenshot.png --agent
 ```
 
 `comments add` accepts exactly one target: `--issue`, `--document-content`, `--parent`, `--project`, `--project-update`, `--initiative`, `--initiative-update`, or `--post`. `comments edit <id> --media ...` with no `--body*` flag fetches the existing body and appends uploaded media links.
+`--quoted-text` can be passed to `comments add` for inline comments tied to selected source text.
 
 **Linear docs**
 
@@ -312,6 +314,7 @@ Add or edit Linear comments
 - **`linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md`** - Add a comment to an issue
 - **`linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md`** - Edit a comment
 - **`linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png`** - Upload media and append it to the comment body
+- **`linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --quoted-text "Original selected text"`** - Attach quoted source text to a comment
 
 ### documents
 
@@ -558,6 +561,8 @@ Read commands fall into three categories with different data-source semantics. T
 | **Live-first with local fallback** | `attachments`, `projects get`, `teams`, `initiatives get`, `issues`, `issues list` (the v4 refactor) | `--data-source auto`: live API → write-through → fall back to local on network error | `--data-source live` (no fallback), `--data-source local` (no API) |
 | **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
 | **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND changed issues are written back to the local store | n/a |
+
+`--trust-mode strict` guards `issues edit` only. Comment and document mutations are live write surfaces, but they are not scoped by the `pp_created` issue ledger.
 
 **`--max-age` (default 30 minutes):**
 

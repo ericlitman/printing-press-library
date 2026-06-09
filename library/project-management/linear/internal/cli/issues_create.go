@@ -151,7 +151,7 @@ tickets in the workspace.`,
 
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
-				return fmt.Errorf("issueCreate failed: %w", err)
+				return classifyAPIError(fmt.Errorf("issueCreate failed: %w", err), flags)
 			}
 			var parsed struct {
 				IssueCreate struct {

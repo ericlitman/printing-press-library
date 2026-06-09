@@ -83,6 +83,9 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 						issue { id identifier title url }
 						project { id name url }
 						team { id key name }
+						initiative { id name }
+						cycle { id name }
+						release { id name }
 					}
 				}
 			}`
@@ -168,6 +171,9 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 						issue { id identifier title url }
 						project { id name url }
 						team { id key name }
+						initiative { id name }
+						cycle { id name }
+						release { id name }
 					}
 				}
 			}`
@@ -209,6 +215,9 @@ func runDocumentsGet(cmd *cobra.Command, flags *rootFlags, id string) error {
 			issue { id identifier title url }
 			project { id name url }
 			team { id key name }
+			initiative { id name }
+			cycle { id name }
+			release { id name }
 		}
 	}`
 	var resp struct {
