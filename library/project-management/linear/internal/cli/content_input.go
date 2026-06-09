@@ -101,6 +101,10 @@ func (f markdownInputFlags) resolveDryRun(cmd *cobra.Command, required bool) (st
 	return f.resolve(cmd, required)
 }
 
+func (f markdownInputFlags) createValueSet(cmd *cobra.Command, value string, set bool) bool {
+	return set && (value != "" || !cmd.Flags().Changed(f.inlineFlag))
+}
+
 func (f markdownInputFlags) selectedSources(cmd *cobra.Command, required bool) ([]string, error) {
 	set := make([]string, 0, 3)
 	if cmd.Flags().Changed(f.inlineFlag) {

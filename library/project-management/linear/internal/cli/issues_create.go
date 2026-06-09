@@ -87,7 +87,7 @@ tickets in the workspace.`,
 				"title":  titleFlag,
 				"teamId": teamID,
 			}
-			if descSet {
+			if descInput.createValueSet(cmd, description, descSet) {
 				input["description"] = description
 			}
 			if priorityFlag > 0 {

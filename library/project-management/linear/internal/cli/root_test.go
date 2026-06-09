@@ -183,6 +183,29 @@ func TestMarkdownInputFlagsResolveDryRunSkipsDashFileRead(t *testing.T) {
 	}
 }
 
+func TestMarkdownInputFlagsCreateValueSetOmitsEmptyInline(t *testing.T) {
+	t.Parallel()
+	var input markdownInputFlags
+	cmd := &cobra.Command{}
+	addDescriptionInputFlags(cmd, &input, "description")
+	if err := cmd.Flags().Set("description", ""); err != nil {
+		t.Fatal(err)
+	}
+	if input.createValueSet(cmd, "", true) {
+		t.Fatalf("createValueSet accepted explicit empty inline description")
+	}
+
+	fileCmd := &cobra.Command{}
+	var fileInput markdownInputFlags
+	addDescriptionInputFlags(fileCmd, &fileInput, "description")
+	if err := fileCmd.Flags().Set("description-file", "/tmp/empty.md"); err != nil {
+		t.Fatal(err)
+	}
+	if !fileInput.createValueSet(fileCmd, "", true) {
+		t.Fatalf("createValueSet rejected empty file-sourced description")
+	}
+}
+
 func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
 	t.Parallel()
 	got := appendMediaMarkdown("Body", []uploadedAsset{
