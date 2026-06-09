@@ -201,10 +201,11 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			if !bodySet && len(media) == 0 {
 				return usageErr(fmt.Errorf("one of --body, --body-file, --body-stdin, or --media is required"))
 			}
+			appendMediaToExisting := len(media) > 0 && (!bodySet || bodyInput.emptyInlineSet(cmd, body, bodySet))
 
 			if flags.dryRun {
 				input := map[string]any{}
-				if bodySet {
+				if bodySet && !appendMediaToExisting {
 					input["body"] = body
 				}
 				out := map[string]any{
@@ -215,7 +216,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 				}
 				if len(media) > 0 {
 					out["media"] = mediaDryRun(media, publicMedia)
-					if !bodySet {
+					if appendMediaToExisting {
 						out["note"] = "live run will fetch the existing comment body and append media markdown"
 					}
 				}
@@ -233,7 +234,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if flags.trustMode == "strict" || (len(media) > 0 && !bodySet) {
+			if flags.trustMode == "strict" || appendMediaToExisting {
 				target, err := fetchCommentMutationTarget(c, args[0])
 				if err != nil {
 					return err
@@ -241,7 +242,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 				if err := requireIssueScopedMutationIfStrict(flags, dbPath, target.issueID(), "comment"); err != nil {
 					return err
 				}
-				if len(media) > 0 && !bodySet {
+				if appendMediaToExisting {
 					body = target.Body
 				}
 			}

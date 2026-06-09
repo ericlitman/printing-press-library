@@ -72,7 +72,12 @@ func uploadedAssetURLSummary(assets []uploadedAsset) string {
 }
 
 func uploadMediaFile(c *client.Client, path string, makePublic bool) (uploadedAsset, error) {
-	info, err := os.Stat(path)
+	f, err := os.Open(path)
+	if err != nil {
+		return uploadedAsset{}, fmt.Errorf("opening media file %q: %w", path, err)
+	}
+	defer f.Close()
+	info, err := f.Stat()
 	if err != nil {
 		return uploadedAsset{}, fmt.Errorf("stat media file %q: %w", path, err)
 	}
@@ -82,9 +87,12 @@ func uploadMediaFile(c *client.Client, path string, makePublic bool) (uploadedAs
 	if info.Size() > maxLinearMediaUploadBytes {
 		return uploadedAsset{}, fmt.Errorf("media file %q is %d bytes, exceeds %d byte limit", path, info.Size(), maxLinearMediaUploadBytes)
 	}
-	data, err := os.ReadFile(path)
+	data, err := io.ReadAll(io.LimitReader(f, maxLinearMediaUploadBytes+1))
 	if err != nil {
 		return uploadedAsset{}, fmt.Errorf("reading media file %q: %w", path, err)
+	}
+	if int64(len(data)) > maxLinearMediaUploadBytes {
+		return uploadedAsset{}, fmt.Errorf("media file %q exceeds %d byte limit while reading", path, maxLinearMediaUploadBytes)
 	}
 	filename := filepath.Base(path)
 	contentType := detectMediaContentType(filename, data)

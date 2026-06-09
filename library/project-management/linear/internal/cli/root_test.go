@@ -277,6 +277,30 @@ func TestCommentsAddDryRunMediaOnlyOmitsEmptyBody(t *testing.T) {
 	}
 }
 
+func TestCommentsEditDryRunEmptyInlineMediaOmitsBody(t *testing.T) {
+	t.Parallel()
+	var out bytes.Buffer
+	cmd := newCommentsEditCmd(&rootFlags{dryRun: true, asJSON: true})
+	cmd.SetOut(&out)
+	cmd.SetArgs([]string{"comment-known", "--body", "", "--media", "screen.png"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Input map[string]any `json:"input"`
+		Note  string         `json:"note"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := got.Input["body"]; ok {
+		t.Fatalf("dry-run empty-inline media input included body: %s", out.String())
+	}
+	if !strings.Contains(got.Note, "existing comment body") {
+		t.Fatalf("dry-run empty-inline media note = %q, want existing-body note", got.Note)
+	}
+}
+
 func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
 	t.Parallel()
 	uuid := "550e8400-e29b-41d4-a716-446655440000"
