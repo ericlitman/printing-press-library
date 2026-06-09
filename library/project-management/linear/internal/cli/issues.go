@@ -81,6 +81,7 @@ Use 'issues list' for filtered listing against the local sqlite store.`,
 
 	cmd.AddCommand(newIssuesListCmd(flags, &dbPath))
 	cmd.AddCommand(newIssuesCreateCmd(flags))
+	cmd.AddCommand(newIssuesEditCmd(flags))
 	return cmd
 }
 

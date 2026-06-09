@@ -15,9 +15,12 @@ import (
 // in init(). Calls Linear's issueCreate mutation and records the resulting issue
 // into the local pp_created ledger so pp-cleanup can find it later.
 func newIssuesCreateCmd(flags *rootFlags) *cobra.Command {
-	var titleFlag, teamFlag, descFlag, assigneeFlag, projectFlag, stateFlag string
+	var titleFlag, teamFlag, assigneeFlag, projectFlag, stateFlag string
+	var descInput markdownInputFlags
 	var priorityFlag int
 	var labelsFlag []string
+	var media []string
+	var publicMedia bool
 	var dbPath string
 	var session string
 	cmd := &cobra.Command{
@@ -34,7 +37,10 @@ tickets in the workspace.`,
   linear-pp-cli issues create --title "x" --team ENG --dry-run
 
   # JSON output (agent-mode)
-  linear-pp-cli issues create --title "x" --team ENG --json`,
+  linear-pp-cli issues create --title "x" --team ENG --json
+
+  # Shell-safe markdown body plus media upload
+  linear-pp-cli issues create --title "x" --team ENG --description-file /tmp/body.md --media screenshot.png`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if titleFlag == "" {
 				return fmt.Errorf("--title is required")
@@ -56,6 +62,10 @@ tickets in the workspace.`,
 			if err != nil {
 				return err
 			}
+			description, descSet, err := descInput.resolve(cmd, false)
+			if err != nil {
+				return err
+			}
 
 			// Resolve team key/name to UUID via the local store if possible.
 			teamID := teamFlag
@@ -73,8 +83,8 @@ tickets in the workspace.`,
 				"title":  titleFlag,
 				"teamId": teamID,
 			}
-			if descFlag != "" {
-				input["description"] = descFlag
+			if descSet {
+				input["description"] = description
 			}
 			if priorityFlag > 0 {
 				input["priority"] = priorityFlag
@@ -92,24 +102,14 @@ tickets in the workspace.`,
 				input["labelIds"] = labelsFlag
 			}
 
-			const mutation = `mutation CreateIssue($input: IssueCreateInput!) {
-				issueCreate(input: $input) {
-					success
-					issue {
-						id identifier title url priority
-						team { id key }
-						state { id name type }
-						assignee { id name displayName }
-						project { id name }
-					}
-				}
-			}`
-
 			if flags.dryRun {
 				out := map[string]any{
 					"event":    "would_create_issue",
 					"mutation": "issueCreate",
 					"input":    input,
+				}
+				if len(media) > 0 {
+					out["media"] = mediaDryRun(media, publicMedia)
 				}
 				if flags.asJSON {
 					enc := json.NewEncoder(os.Stdout)
@@ -117,8 +117,34 @@ tickets in the workspace.`,
 					return enc.Encode(out)
 				}
 				fmt.Printf("Would create issue: title=%q team=%s\n", titleFlag, teamID)
+				if len(media) > 0 {
+					fmt.Printf("Would upload %d media file(s) and append markdown links to the description.\n", len(media))
+				}
 				return nil
 			}
+
+			var assets []uploadedAsset
+			if len(media) > 0 {
+				assets, err = uploadMediaFiles(c, media, publicMedia)
+				if err != nil {
+					return err
+				}
+				description = appendMediaMarkdown(description, assets)
+				input["description"] = description
+			}
+
+			const mutation = `mutation CreateIssue($input: IssueCreateInput!) {
+				issueCreate(input: $input) {
+					success
+					issue {
+						id identifier title description url priority estimate dueDate updatedAt createdAt
+						team { id key }
+						state { id name type }
+						assignee { id name displayName }
+						project { id name }
+					}
+				}
+			}`
 
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
@@ -128,12 +154,17 @@ tickets in the workspace.`,
 				IssueCreate struct {
 					Success bool `json:"success"`
 					Issue   struct {
-						ID         string `json:"id"`
-						Identifier string `json:"identifier"`
-						Title      string `json:"title"`
-						URL        string `json:"url"`
-						Priority   int    `json:"priority"`
-						Team       struct {
+						ID          string  `json:"id"`
+						Identifier  string  `json:"identifier"`
+						Title       string  `json:"title"`
+						Description string  `json:"description"`
+						URL         string  `json:"url"`
+						Priority    int     `json:"priority"`
+						Estimate    float64 `json:"estimate"`
+						DueDate     string  `json:"dueDate"`
+						UpdatedAt   string  `json:"updatedAt"`
+						CreatedAt   string  `json:"createdAt"`
+						Team        struct {
 							ID  string `json:"id"`
 							Key string `json:"key"`
 						} `json:"team"`
@@ -176,11 +207,14 @@ tickets in the workspace.`,
 				// HTTP cache is already invalidated by client.do on every
 				// non-GET success; this closes the SQLite-store-side gap.
 				wb := map[string]any{
-					"id":         parsed.IssueCreate.Issue.ID,
-					"identifier": parsed.IssueCreate.Issue.Identifier,
-					"title":      parsed.IssueCreate.Issue.Title,
-					"url":        parsed.IssueCreate.Issue.URL,
-					"priority":   parsed.IssueCreate.Issue.Priority,
+					"id":          parsed.IssueCreate.Issue.ID,
+					"identifier":  parsed.IssueCreate.Issue.Identifier,
+					"title":       parsed.IssueCreate.Issue.Title,
+					"description": parsed.IssueCreate.Issue.Description,
+					"url":         parsed.IssueCreate.Issue.URL,
+					"priority":    parsed.IssueCreate.Issue.Priority,
+					"estimate":    parsed.IssueCreate.Issue.Estimate,
+					"dueDate":     parsed.IssueCreate.Issue.DueDate,
 					"team": map[string]any{
 						"id":  parsed.IssueCreate.Issue.Team.ID,
 						"key": parsed.IssueCreate.Issue.Team.Key,
@@ -191,8 +225,8 @@ tickets in the workspace.`,
 						"name": parsed.IssueCreate.Issue.State.Name,
 						"type": parsed.IssueCreate.Issue.State.Type,
 					},
-					"createdAt": time.Now().UTC().Format(time.RFC3339),
-					"updatedAt": time.Now().UTC().Format(time.RFC3339),
+					"createdAt": firstNonEmpty(parsed.IssueCreate.Issue.CreatedAt, time.Now().UTC().Format(time.RFC3339)),
+					"updatedAt": firstNonEmpty(parsed.IssueCreate.Issue.UpdatedAt, time.Now().UTC().Format(time.RFC3339)),
 				}
 				if parsed.IssueCreate.Issue.Assignee != nil {
 					wb["assignee"] = map[string]any{
@@ -222,7 +256,7 @@ tickets in the workspace.`,
 			if flags.asJSON {
 				enc := json.NewEncoder(os.Stdout)
 				enc.SetIndent("", "  ")
-				return enc.Encode(map[string]any{
+				out := map[string]any{
 					"event":      "issue_created",
 					"identifier": parsed.IssueCreate.Issue.Identifier,
 					"id":         parsed.IssueCreate.Issue.ID,
@@ -231,22 +265,31 @@ tickets in the workspace.`,
 					"state":      parsed.IssueCreate.Issue.State.Name,
 					"url":        parsed.IssueCreate.Issue.URL,
 					"session":    sess,
-				})
+				}
+				if len(assets) > 0 {
+					out["media"] = assets
+				}
+				return enc.Encode(out)
 			}
 			fmt.Printf("Created %s — %s\n", parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title)
 			fmt.Printf("  URL: %s\n", parsed.IssueCreate.Issue.URL)
+			if len(assets) > 0 {
+				fmt.Printf("  Uploaded %d media file(s).\n", len(assets))
+			}
 			fmt.Printf("  Recorded in pp_created (session=%s) for safe pp-cleanup.\n", sess)
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&titleFlag, "title", "", "Issue title (required)")
 	cmd.Flags().StringVar(&teamFlag, "team", "", "Team key (e.g. ENG) or team UUID (required)")
-	cmd.Flags().StringVar(&descFlag, "description", "", "Issue description (markdown)")
+	descInput.addFlags(cmd, "description", "description-file", "description-stdin", "Issue description (markdown); prefer --description-file for multi-line content")
 	cmd.Flags().IntVar(&priorityFlag, "priority", 0, "Priority: 1=Urgent, 2=High, 3=Medium, 4=Low (0=None)")
 	cmd.Flags().StringVar(&assigneeFlag, "assignee", "", "Assignee user UUID")
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID")
 	cmd.Flags().StringSliceVar(&labelsFlag, "label", nil, "Label UUIDs (repeatable)")
+	cmd.Flags().StringArrayVar(&media, "media", nil, "Upload a media/file path and append it to the issue description (repeatable)")
+	cmd.Flags().BoolVar(&publicMedia, "media-public", false, "Make uploaded media publicly accessible instead of workspace-scoped")
 	cmd.Flags().StringVar(&dbPath, "db", "", "Database path (for team-key resolution and pp_created ledger)")
 	cmd.Flags().StringVar(&session, "session", "", "Session tag (defaults to PP_SESSION env or current run timestamp)")
 	return cmd
@@ -274,4 +317,13 @@ func resolveTeamID(db *store.Store, keyOrID string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }

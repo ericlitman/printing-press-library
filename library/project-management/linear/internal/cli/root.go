@@ -170,6 +170,8 @@ Highlights (not in the official API docs):
   • initiatives health   Rolled-up portfolio view per initiative: child project progress, milestone target-vs-projected dates, slippage flags.
   • milestones at-risk   List portfolio milestones whose projected landing date has slipped past their target, ranked by slip magnitude.
   • pp-test list   List Linear issues this CLI created in the current or named session, then archive them with pp-cleanup.
+  • comments add/edit   Add or edit Linear comments with shell-safe markdown and uploaded media.
+  • documents create/edit   Create or edit Linear documents with shell-safe markdown.
   • issues create --trust-mode strict   Refuse mutations on Linear issues not in the local pp_created ledger when --trust-mode strict is set; works on create and any future mutation surface.
 
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
@@ -306,6 +308,8 @@ See README.md or the bundled SKILL.md for recipes.`,
 
 	// v3-ported top-level commands
 	rootCmd.AddCommand(newIssuesCmd(flags))
+	rootCmd.AddCommand(newCommentsCmd(flags))
+	rootCmd.AddCommand(newDocumentsCmd(flags))
 	rootCmd.AddCommand(newMeCmd(flags))
 	rootCmd.AddCommand(newTodayCmd(flags))
 	rootCmd.AddCommand(newBottleneckCmd(flags))

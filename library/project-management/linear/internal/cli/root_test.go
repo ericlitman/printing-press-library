@@ -7,7 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 // TestIsCobraUsageError covers the six pre-RunE error shapes Cobra and
@@ -76,6 +79,101 @@ func TestExitCode_UsageError_WrappedAsCode2(t *testing.T) {
 	if got := ExitCode(wrapped); got != 2 {
 		t.Errorf("ExitCode(usageErr(...)) = %d, want 2 (POSIX usage convention)", got)
 	}
+}
+
+func TestAgentSafeLinearMutationCommandsAreRegistered(t *testing.T) {
+	t.Parallel()
+	var flags rootFlags
+	root := newRootCmd(&flags)
+
+	cases := []struct {
+		path  []string
+		flags []string
+	}{
+		{[]string{"issues", "create"}, []string{"description", "description-file", "description-stdin", "media"}},
+		{[]string{"issues", "edit"}, []string{"description", "description-file", "description-stdin", "media"}},
+		{[]string{"comments", "add"}, []string{"body", "body-file", "body-stdin", "media"}},
+		{[]string{"comments", "edit"}, []string{"body", "body-file", "body-stdin", "media"}},
+		{[]string{"documents", "create"}, []string{"content", "content-file", "content-stdin"}},
+		{[]string{"documents", "edit"}, []string{"content", "content-file", "content-stdin"}},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(strings.Join(tc.path, " "), func(t *testing.T) {
+			cmd := mustFindCommand(t, root, tc.path...)
+			for _, flagName := range tc.flags {
+				if cmd.Flags().Lookup(flagName) == nil {
+					t.Fatalf("%s missing --%s", cmd.CommandPath(), flagName)
+				}
+			}
+		})
+	}
+}
+
+func TestMarkdownInputFlagsResolveExclusiveSources(t *testing.T) {
+	t.Parallel()
+	var input markdownInputFlags
+	cmd := &cobra.Command{}
+	cmd.SetIn(strings.NewReader("from stdin"))
+	input.addFlags(cmd, "body", "body-file", "body-stdin", "body")
+	if err := cmd.Flags().Set("body", "inline"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cmd.Flags().Set("body-stdin", "true"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := input.resolve(cmd, false); err == nil {
+		t.Fatalf("resolve accepted multiple markdown sources")
+	}
+}
+
+func TestMarkdownInputFlagsResolveStdin(t *testing.T) {
+	t.Parallel()
+	var input markdownInputFlags
+	cmd := &cobra.Command{}
+	cmd.SetIn(strings.NewReader("hello\nworld\n"))
+	input.addFlags(cmd, "content", "content-file", "content-stdin", "content")
+	if err := cmd.Flags().Set("content-stdin", "true"); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := input.resolve(cmd, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok || got != "hello\nworld\n" {
+		t.Fatalf("resolve stdin = (%q, %v), want content and ok", got, ok)
+	}
+}
+
+func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
+	t.Parallel()
+	got := appendMediaMarkdown("Body", []uploadedAsset{
+		{Filename: "screen[1].png", ContentType: "image/png", AssetURL: "https://assets.example/screen.png"},
+		{Filename: "trace.txt", ContentType: "text/plain", AssetURL: "https://assets.example/trace.txt"},
+	})
+	want := "Body\n\n![screen\\[1\\].png](https://assets.example/screen.png)\n[trace.txt](https://assets.example/trace.txt)"
+	if got != want {
+		t.Fatalf("appendMediaMarkdown() = %q, want %q", got, want)
+	}
+}
+
+func mustFindCommand(t *testing.T, root *cobra.Command, path ...string) *cobra.Command {
+	t.Helper()
+	cmd := root
+	for _, name := range path {
+		var next *cobra.Command
+		for _, child := range cmd.Commands() {
+			if child.Name() == name {
+				next = child
+				break
+			}
+		}
+		if next == nil {
+			t.Fatalf("command %s not found under %s", name, cmd.CommandPath())
+		}
+		cmd = next
+	}
+	return cmd
 }
 
 // TestFilterFields covers --select projection against the four payload

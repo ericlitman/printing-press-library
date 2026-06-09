@@ -250,12 +250,86 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
   ```
+- **Shell-safe writes with media uploads** — Create and update issue descriptions, comments, and Linear docs without putting markdown bodies on the shell command line.
+
+  _Reach for this whenever a body contains newlines, quotes, backticks, `$()` expansions, shell commands, images, logs, or agent-generated markdown._
+
+  ```bash
+  linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md --media /tmp/screenshot.png --agent
+  linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
+  linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  ```
+
+## Agent-Safe Write Syntax
+
+Use these command shapes literally. Prefer file/stdin flags for every non-trivial markdown body; inline flags are only for short one-line prose.
+
+**Issue descriptions**
+
+```bash
+linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md --agent
+linear-pp-cli issues create --title "Title" --team ENG --description-stdin --agent < /tmp/body.md
+linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md --media /tmp/screenshot.png --media /tmp/log.txt --agent
+linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --agent
+linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png --agent
+```
+
+`issues edit <id> --media ...` with no `--description*` flag fetches the existing description and appends uploaded media links. With `--description-file`, media is appended to the replacement body. Images become markdown image embeds; non-images become markdown links. Add `--media-public` only when the asset must be publicly reachable outside the workspace.
+
+**Comments**
+
+```bash
+linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --agent
+linear-pp-cli comments add --issue ENG-123 --body-stdin --agent < /tmp/comment.md
+linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
+linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md --agent
+linear-pp-cli comments edit <comment-id> --media /tmp/screenshot.png --agent
+```
+
+`comments add` accepts exactly one target: `--issue`, `--document-content`, `--parent`, `--project`, `--project-update`, `--initiative`, `--initiative-update`, or `--post`. `comments edit <id> --media ...` with no `--body*` flag fetches the existing body and appends uploaded media links.
+
+**Linear docs**
+
+```bash
+linear-pp-cli documents <document-id-or-slug> --agent
+linear-pp-cli documents create --title "Title" --issue ENG-123 --content-file /tmp/doc.md --agent
+linear-pp-cli documents create --title "Title" --team <team-uuid> --content-stdin --agent < /tmp/doc.md
+linear-pp-cli documents edit <document-id-or-slug> --content-file /tmp/doc.md --agent
+```
+
+**Shell quoting rule:** write markdown to a temp file with a single-quoted heredoc (`<<'EOF'`) or another literal file-write method, then pass the filename. Do not interpolate untrusted markdown into an inline shell argument.
 
 ## Usage
 
 Run `linear-pp-cli --help` for the full command reference and flag list.
 
 ## Commands
+
+### comments
+
+Add or edit Linear comments
+
+- **`linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md`** - Add a comment to an issue
+- **`linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md`** - Edit a comment
+- **`linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png`** - Upload media and append it to the comment body
+
+### documents
+
+View, create, or edit Linear docs
+
+- **`linear-pp-cli documents <document-id-or-slug>`** - View a document
+- **`linear-pp-cli documents create --title "Title" --issue ENG-123 --content-file /tmp/doc.md`** - Create an issue-linked document
+- **`linear-pp-cli documents edit <document-id-or-slug> --content-file /tmp/doc.md`** - Replace document content
+
+### issues
+
+Get, list, create, or edit Linear issues
+
+- **`linear-pp-cli issues ENG-123`** - Get a single issue
+- **`linear-pp-cli issues list --team ENG --state started`** - List issues from the local store
+- **`linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md`** - Create an issue with a shell-safe markdown body
+- **`linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md`** - Replace an issue description
+- **`linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png`** - Upload media and append it to the existing issue description
 
 ### attachments
 
@@ -483,7 +557,7 @@ Read commands fall into three categories with different data-source semantics. T
 | --- | --- | --- | --- |
 | **Live-first with local fallback** | `attachments`, `projects get`, `teams`, `initiatives get`, `issues`, `issues list` (the v4 refactor) | `--data-source auto`: live API → write-through → fall back to local on network error | `--data-source live` (no fallback), `--data-source local` (no API) |
 | **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
-| **Mutations** | `issues create`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND the entity is written back to the local store | n/a |
+| **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND changed issues are written back to the local store | n/a |
 
 **`--max-age` (default 30 minutes):**
 
@@ -503,7 +577,7 @@ linear-pp-cli bottleneck --team ENG --data-source local
 linear-pp-cli issues list --assignee me --data-source local
 
 # Mutate — write-back keeps the store fresh, no re-sync needed
-linear-pp-cli issues create --title "..." --team ENG --pp-session $SESSION
+linear-pp-cli issues create --title "..." --team ENG --description-file /tmp/body.md --pp-session $SESSION
 
 # Verify from local
 linear-pp-cli issues list --data-source local --pp-session $SESSION

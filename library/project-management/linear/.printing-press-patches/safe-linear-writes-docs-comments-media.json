@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "id": "safe-linear-writes-docs-comments-media",
+  "applied_at": "2026-06-09",
+  "base_run_id": "20260601-linear-current",
+  "base_printing_press_version": "unknown",
+  "summary": "Adds agent-safe Linear write commands for file/stdin-backed issue descriptions, comments, and documents, plus repeatable media uploads for issue descriptions and comments.",
+  "reason": "Agents were repeatedly guessing Linear CLI command shapes and passing markdown bodies through shell arguments. Ticket bodies can contain shell commands and expansions intended for downstream automation, so inline shell interpolation can corrupt durable Linear content. Linear's current GraphQL API exposes markdown fields for issues, comments, and documents, and fileUpload returns asset URLs that can be embedded in markdown bodies.",
+  "files": [
+    "internal/cli/content_input.go",
+    "internal/cli/linear_uploads.go",
+    "internal/cli/comments.go",
+    "internal/cli/documents.go",
+    "internal/cli/issues.go",
+    "internal/cli/issues_create.go",
+    "internal/cli/issues_edit.go",
+    "internal/cli/root.go",
+    "internal/cli/root_test.go",
+    "README.md",
+    "SKILL.md"
+  ],
+  "validated_outcome": "go test ./... passes under library/project-management/linear; root command tests assert issues/comments/documents expose file/stdin markdown flags and media upload flags where supported."
+}
