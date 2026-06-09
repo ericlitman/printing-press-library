@@ -90,7 +90,7 @@
     },
     {
       "name": "Trust Mode Mutation Guard",
-      "command": "issues create --trust-mode strict",
+      "command": "issues edit --trust-mode strict",
       "description": "Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set."
     }
   ]

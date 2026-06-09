@@ -172,7 +172,7 @@ Highlights (not in the official API docs):
   • pp-test list   List Linear issues this CLI created in the current or named session, then archive them with pp-cleanup.
   • comments add/edit   Add or edit Linear comments with shell-safe markdown and uploaded media.
   • documents create/edit   Create or edit Linear documents with shell-safe markdown.
-  • issues create --trust-mode strict   Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.
+  • issues edit --trust-mode strict   Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.
 
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'linear-pp-cli doctor' to verify auth and connectivity.
@@ -250,6 +250,9 @@ See README.md or the bundled SKILL.md for recipes.`,
 			if !cmd.Flags().Changed("no-color") {
 				noColor = true
 			}
+		}
+		if flags.trustMode == "" {
+			flags.trustMode = os.Getenv("LINEAR_PP_CLI_TRUST_MODE")
 		}
 		switch flags.dataSource {
 		case "auto", "live", "local":

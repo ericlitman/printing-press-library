@@ -803,7 +803,7 @@ func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToo
 			{"name": "Initiatives Health", "command": "initiatives health", "description": "Rolled-up portfolio view per initiative: child project progress, milestone target-vs-projected dates, slippage flags.", "rationale": "", "via": "mcp-command-mirror"},
 			{"name": "At-Risk Milestones", "command": "milestones at-risk", "description": "List portfolio milestones whose projected landing date has slipped past their target, ranked by slip magnitude.", "rationale": "", "via": "mcp-command-mirror"},
 			{"name": "Test Fixture Lifecycle", "command": "pp-test list", "description": "List Linear issues this CLI created in the current or named session, then archive them with pp-cleanup.", "rationale": "", "via": "mcp-command-mirror"},
-			{"name": "Trust Mode Mutation Guard", "command": "issues create --trust-mode strict", "description": "Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.", "rationale": "", "via": "mcp-command-mirror"},
+			{"name": "Trust Mode Mutation Guard", "command": "issues edit --trust-mode strict", "description": "Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.", "rationale": "", "via": "mcp-command-mirror"},
 		},
 		"playbook": []map[string]string{
 			{"topic": "Today View", "insight": ""},

@@ -132,12 +132,12 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli pp-test list --json
   ```
-- **`issues create --trust-mode strict`** — Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.
+- **`issues edit --trust-mode strict`** — Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.
 
   _Reach for this when running an agent against a real workspace with real data — strict mode blocks edits to issues the CLI did not create._
 
   ```bash
-  linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
+  linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --trust-mode strict
   ```
 - **Shell-safe writes with media uploads** — Create and update issue descriptions, comments, and Linear docs without putting markdown bodies on the shell command line.
 

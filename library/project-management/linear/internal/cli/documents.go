@@ -217,6 +217,9 @@ func runDocumentsGet(cmd *cobra.Command, flags *rootFlags, id string) error {
 	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
 		return classifyAPIError(fmt.Errorf("document fetch failed: %w", err), flags)
 	}
+	if len(resp.Document) == 0 || string(resp.Document) == "null" {
+		return notFoundErr(fmt.Errorf("document %q not found", id))
+	}
 	if flags.asJSON || (!isTerminal(cmd.OutOrStdout()) && !flags.csv && !flags.quiet && !flags.plain) {
 		filtered := resp.Document
 		if flags.selectFields != "" {

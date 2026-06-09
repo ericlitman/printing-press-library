@@ -173,6 +173,18 @@ func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
 	}
 }
 
+func TestTrustModeEnvBinding(t *testing.T) {
+	t.Setenv("LINEAR_PP_CLI_TRUST_MODE", "strict")
+	var flags rootFlags
+	root := newRootCmd(&flags)
+	if err := root.PersistentPreRunE(root, nil); err != nil {
+		t.Fatal(err)
+	}
+	if flags.trustMode != "strict" {
+		t.Fatalf("trustMode = %q, want strict from env", flags.trustMode)
+	}
+}
+
 type queryIntoFunc func(string, map[string]any, any) error
 
 func (f queryIntoFunc) QueryInto(query string, variables map[string]any, dest any) error {
