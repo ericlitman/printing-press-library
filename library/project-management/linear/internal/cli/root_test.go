@@ -195,6 +195,9 @@ func TestMarkdownInputFlagsCreateValueSetOmitsEmptyInline(t *testing.T) {
 	if input.createValueSet(cmd, "", true) {
 		t.Fatalf("createValueSet accepted explicit empty inline description")
 	}
+	if !input.emptyInlineSet(cmd, "", true) {
+		t.Fatalf("emptyInlineSet rejected explicit empty inline description")
+	}
 
 	fileCmd := &cobra.Command{}
 	var fileInput markdownInputFlags
@@ -204,6 +207,9 @@ func TestMarkdownInputFlagsCreateValueSetOmitsEmptyInline(t *testing.T) {
 	}
 	if !fileInput.createValueSet(fileCmd, "", true) {
 		t.Fatalf("createValueSet rejected empty file-sourced description")
+	}
+	if fileInput.emptyInlineSet(fileCmd, "", true) {
+		t.Fatalf("emptyInlineSet accepted empty file-sourced description")
 	}
 }
 
@@ -235,6 +241,7 @@ func TestUploadMediaFileRejectsOversizedFileBeforeRead(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Nil is intentional: this verifies the size guard runs before any client call.
 	if _, err := uploadMediaFile(nil, path, false); err == nil || !strings.Contains(err.Error(), "exceeds") {
 		t.Fatalf("uploadMediaFile oversized error = %v, want size limit refusal", err)
 	}

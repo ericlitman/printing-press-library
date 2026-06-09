@@ -164,6 +164,7 @@ linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png --agent
 ```
 
 `issues edit <id> --media ...` with no `--description*` flag fetches the existing description and appends uploaded media links. With `--description-file`, media is appended to the replacement body. Images become markdown image embeds; non-images become markdown links. Add `--media-public` only when the asset must be publicly reachable outside the workspace.
+Media uploads use Linear's two-step upload flow. If a later upload or mutation fails, the CLI reports already-uploaded asset URLs; retrying the same multi-file command can upload those files again, so split risky batches into one media file per invocation.
 
 **Comments**
 

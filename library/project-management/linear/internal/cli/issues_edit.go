@@ -48,13 +48,14 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 			if titleFlag == "" && !descSet && priorityFlag == 0 && assigneeFlag == "" && projectFlag == "" && stateFlag == "" && len(labelsFlag) == 0 && len(media) == 0 {
 				return usageErr(fmt.Errorf("nothing to update: pass --title, --description, --description-file, --description-stdin, --media, --priority, --assignee, --project, --state, or --label"))
 			}
+			appendMediaToExisting := len(media) > 0 && (!descSet || descInput.emptyInlineSet(cmd, description, descSet))
 			if dbPath == "" {
 				dbPath = defaultDBPath("linear-pp-cli")
 			}
 
 			input := map[string]any{}
 			addOptionalString(input, "title", titleFlag)
-			if descSet {
+			if descSet && !appendMediaToExisting {
 				input["description"] = description
 			}
 			if priorityFlag > 0 {
@@ -101,7 +102,7 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 			if err := requirePPCreatedIfStrict(flags, dbPath, target.ID); err != nil {
 				return err
 			}
-			if len(media) > 0 && !descSet {
+			if appendMediaToExisting {
 				description = target.Description
 			}
 			var assets []uploadedAsset
