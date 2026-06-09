@@ -561,7 +561,7 @@ Read commands fall into three categories with different data-source semantics. T
 | --- | --- | --- | --- |
 | **Live-first with local fallback** | `attachments`, `projects get`, `teams`, `initiatives get`, `issues`, `issues list` (the v4 refactor) | `--data-source auto`: live API → write-through → fall back to local on network error | `--data-source live` (no fallback), `--data-source local` (no API) |
 | **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
-| **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND changed issues are written back to the local store | n/a |
+| **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated. Issue create/edit also writes the changed issue back to the local store. | n/a |
 
 `--trust-mode strict` guards `issues edit` plus issue-scoped comment/document writes. Comment and document writes without an issue target are refused while strict mode is active.
 
