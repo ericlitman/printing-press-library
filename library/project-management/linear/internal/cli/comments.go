@@ -27,6 +27,7 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 	var issueID, documentContentID, parentID, projectID, projectUpdateID, initiativeID, initiativeUpdateID, postID, quotedText string
 	var media []string
 	var publicMedia bool
+	dbPath := defaultDBPath("linear-pp-cli")
 	cmd := &cobra.Command{
 		Use:     "add",
 		Aliases: []string{"create"},
@@ -110,6 +111,10 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 				}
 				input["issueId"] = resolvedIssueID
 			}
+			issueScope, _ := input["issueId"].(string)
+			if err := requireIssueScopedMutationIfStrict(flags, dbPath, issueScope, "comment"); err != nil {
+				return err
+			}
 			var assets []uploadedAsset
 			if len(media) > 0 {
 				assets, err = uploadMediaFiles(c, media, publicMedia)
@@ -169,6 +174,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 	var bodyInput markdownInputFlags
 	var media []string
 	var publicMedia bool
+	dbPath := defaultDBPath("linear-pp-cli")
 	cmd := &cobra.Command{
 		Use:     "edit <comment-id>",
 		Aliases: []string{"update"},
@@ -216,10 +222,16 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if len(media) > 0 && !bodySet {
-				body, err = fetchCommentBody(c, args[0])
+			if flags.trustMode == "strict" || (len(media) > 0 && !bodySet) {
+				target, err := fetchCommentMutationTarget(c, args[0])
 				if err != nil {
 					return err
+				}
+				if err := requireIssueScopedMutationIfStrict(flags, dbPath, target.issueID(), "comment"); err != nil {
+					return err
+				}
+				if len(media) > 0 && !bodySet {
+					body = target.Body
 				}
 			}
 			var assets []uploadedAsset
@@ -270,22 +282,44 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 func fetchCommentBody(c interface {
 	QueryInto(string, map[string]any, any) error
 }, id string) (string, error) {
+	target, err := fetchCommentMutationTarget(c, id)
+	if err != nil {
+		return "", err
+	}
+	return target.Body, nil
+}
+
+type commentMutationTarget struct {
+	ID    string
+	Body  string
+	Issue *struct {
+		ID string `json:"id"`
+	} `json:"issue"`
+}
+
+func (t commentMutationTarget) issueID() string {
+	if t.Issue == nil {
+		return ""
+	}
+	return t.Issue.ID
+}
+
+func fetchCommentMutationTarget(c interface {
+	QueryInto(string, map[string]any, any) error
+}, id string) (commentMutationTarget, error) {
 	const query = `query GetCommentBody($id: String!) {
-		comment(id: $id) { id body }
+		comment(id: $id) { id body issue { id } }
 	}`
 	var resp struct {
-		Comment struct {
-			ID   string `json:"id"`
-			Body string `json:"body"`
-		} `json:"comment"`
+		Comment commentMutationTarget `json:"comment"`
 	}
 	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
-		return "", fmt.Errorf("fetching existing comment %s: %w", id, err)
+		return commentMutationTarget{}, fmt.Errorf("fetching existing comment %s: %w", id, err)
 	}
 	if resp.Comment.ID == "" {
-		return "", notFoundErr(fmt.Errorf("comment %q not found", id))
+		return commentMutationTarget{}, notFoundErr(fmt.Errorf("comment %q not found", id))
 	}
-	return resp.Comment.Body, nil
+	return resp.Comment, nil
 }
 
 func mediaDryRun(paths []string, public bool) []map[string]any {

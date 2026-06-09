@@ -427,9 +427,9 @@ linear-pp-cli sync
 
 **Cleanup contract:**
 
-Every `issues create` records the new ticket in a local `pp_created` table tagged with the session (default: timestamp, override with `--pp-session <tag>` or `PP_SESSION` env var). `pp-cleanup --session <tag>` archives only those tickets via the real Linear archive mutation. `--trust-mode strict` refuses `issues edit` calls for issues not in `pp_created` — pair with the session tag for a hard floor against agent-driven workspace pollution.
+Every `issues create` records the new ticket in a local `pp_created` table tagged with the session (default: timestamp, override with `--pp-session <tag>` or `PP_SESSION` env var). `pp-cleanup --session <tag>` archives only those tickets via the real Linear archive mutation. `--trust-mode strict` refuses `issues edit` and issue-scoped comment/document writes for issues not in `pp_created` — pair with the session tag for a hard floor against agent-driven workspace pollution.
 
-`--trust-mode strict` guards `issues edit` only. Comment and document mutations are live write surfaces, but they are not scoped by the `pp_created` issue ledger.
+`--trust-mode strict` guards `issues edit` plus issue-scoped comment/document writes. Comment and document writes without an issue target are refused while strict mode is active.
 
 ## Agent Mode
 

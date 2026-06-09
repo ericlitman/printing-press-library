@@ -29,6 +29,7 @@ func newDocumentsCmd(flags *rootFlags) *cobra.Command {
 func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 	var title, icon, color, issueID, projectID, teamID, initiativeID, cycleID, releaseID string
 	var contentInput markdownInputFlags
+	dbPath := defaultDBPath("linear-pp-cli")
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a Linear document",
@@ -77,6 +78,10 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 					return err
 				}
 				input["issueId"] = resolvedIssueID
+			}
+			issueScope, _ := input["issueId"].(string)
+			if err := requireIssueScopedMutationIfStrict(flags, dbPath, issueScope, "document"); err != nil {
+				return err
 			}
 			const mutation = `mutation CreateDocument($input: DocumentCreateInput!) {
 				documentCreate(input: $input) {
@@ -128,6 +133,7 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 	var title, icon, color string
 	var contentInput markdownInputFlags
+	dbPath := defaultDBPath("linear-pp-cli")
 	cmd := &cobra.Command{
 		Use:     "edit <document-id-or-slug>",
 		Aliases: []string{"update"},
@@ -169,6 +175,15 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			c, err := flags.newClient()
 			if err != nil {
 				return err
+			}
+			if flags.trustMode == "strict" {
+				issueID, err := fetchDocumentIssueID(c, args[0])
+				if err != nil {
+					return err
+				}
+				if err := requireIssueScopedMutationIfStrict(flags, dbPath, issueID, "document"); err != nil {
+					return err
+				}
 			}
 			const mutation = `mutation UpdateDocument($id: String!, $input: DocumentUpdateInput!) {
 				documentUpdate(id: $id, input: $input) {
@@ -247,6 +262,32 @@ func runDocumentsGet(cmd *cobra.Command, flags *rootFlags, id string) error {
 		return printOutput(cmd.OutOrStdout(), filtered, true)
 	}
 	return printOutputWithFlags(cmd.OutOrStdout(), resp.Document, flags)
+}
+
+func fetchDocumentIssueID(c interface {
+	QueryInto(string, map[string]any, any) error
+}, id string) (string, error) {
+	const query = `query GetDocumentIssue($id: String!) {
+		document(id: $id) { id issue { id } }
+	}`
+	var resp struct {
+		Document struct {
+			ID    string `json:"id"`
+			Issue *struct {
+				ID string `json:"id"`
+			} `json:"issue"`
+		} `json:"document"`
+	}
+	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
+		return "", fmt.Errorf("fetching existing document %s: %w", id, err)
+	}
+	if resp.Document.ID == "" {
+		return "", notFoundErr(fmt.Errorf("document %q not found", id))
+	}
+	if resp.Document.Issue == nil {
+		return "", nil
+	}
+	return resp.Document.Issue.ID, nil
 }
 
 func writeDocumentMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, payload json.RawMessage) error {

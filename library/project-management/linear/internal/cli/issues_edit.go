@@ -76,6 +76,13 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 						out["note"] = "live run will fetch the existing issue description and append media markdown"
 					}
 				}
+				if !flags.asJSON {
+					fmt.Fprintf(cmd.OutOrStdout(), "Would edit issue %s\n", args[0])
+					if len(media) > 0 {
+						fmt.Fprintf(cmd.OutOrStdout(), "Would upload %d media file(s) and append markdown links to the description.\n", len(media))
+					}
+					return nil
+				}
 				return writeCommandResult(cmd, flags, out)
 			}
 
@@ -173,7 +180,13 @@ func fetchIssueMutationTarget(c *client.Client, id string) (issueMutationTarget,
 
 func fetchIssueByID(c *client.Client, id string) (json.RawMessage, error) {
 	const query = `query GetIssueForMutation($id: String!) {
-		issue(id: $id) { id identifier title description url }
+		issue(id: $id) {
+			id identifier title description priority estimate dueDate url updatedAt createdAt
+			state { name type }
+			team { id key name }
+			project { id name }
+			assignee { id name displayName email }
+		}
 	}`
 	var resp struct {
 		Issue json.RawMessage `json:"issue"`
@@ -182,6 +195,16 @@ func fetchIssueByID(c *client.Client, id string) (json.RawMessage, error) {
 		return nil, err
 	}
 	return resp.Issue, nil
+}
+
+func requireIssueScopedMutationIfStrict(flags *rootFlags, dbPath, issueID, surface string) error {
+	if flags == nil || flags.trustMode != "strict" {
+		return nil
+	}
+	if issueID == "" {
+		return fmt.Errorf("trust-mode=strict: refusing to mutate %s because it is not scoped to a pp_created issue", surface)
+	}
+	return requirePPCreatedIfStrict(flags, dbPath, issueID)
 }
 
 func resolveIssueIDForMutation(c *client.Client, id string) (string, error) {

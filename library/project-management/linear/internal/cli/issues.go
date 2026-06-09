@@ -165,7 +165,13 @@ func runIssuesGet(cmd *cobra.Command, flags *rootFlags, dbPath, identifier strin
 	if err != nil {
 		return err
 	}
-	data, liveErr := fetchIssueLive(c, identifier)
+	var data json.RawMessage
+	var liveErr error
+	if isIssueUUID(identifier) {
+		data, liveErr = fetchIssueByID(c, identifier)
+	} else {
+		data, liveErr = fetchIssueLive(c, identifier)
+	}
 	if liveErr == nil {
 		return renderIssue(cmd, flags, data, DataProvenance{Source: "live", ResourceType: "issues"})
 	}
