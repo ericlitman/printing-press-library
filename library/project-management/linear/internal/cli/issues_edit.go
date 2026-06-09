@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
@@ -200,6 +201,12 @@ func resolveIssueIDForMutation(c *client.Client, id string) (string, error) {
 func requirePPCreatedIfStrict(flags *rootFlags, dbPath, issueID string) error {
 	if flags == nil || flags.trustMode != "strict" {
 		return nil
+	}
+	if _, err := os.Stat(dbPath); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("trust-mode=strict: no local store found at %s; run 'linear-pp-cli sync' first", dbPath)
+		}
+		return fmt.Errorf("trust-mode=strict: checking local store %s: %w", dbPath, err)
 	}
 	db, err := store.Open(dbPath)
 	if err != nil {

@@ -243,9 +243,9 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli pp-test list --json
   ```
-- **`issues create --trust-mode strict`** — Refuse mutations on Linear issues not in the local pp_created ledger when --trust-mode strict is set; works on create and any future mutation surface.
+- **`issues create --trust-mode strict`** — Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.
 
-  _Reach for this when running an agent against a real workspace with real data — strict mode makes accidental mutation impossible._
+  _Reach for this when running an agent against a real workspace with real data — strict mode blocks edits to issues the CLI did not create._
 
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
@@ -600,7 +600,7 @@ linear-pp-cli sync
 - **Rate limit error / complexity budget exceeded** — Lower concurrency on sync and prefer offline reads — Linear meters by complexity points (~1500/hr for personal API keys), mutations cost more than queries.
 - **`sync --full` is slow or paginates indefinitely** — Run `linear-pp-cli sync` after the first full sync — it cursors on updatedAt and only fetches changed rows.
 - **FTS5 search returns no rows for a term you know exists** — Run `linear-pp-cli sync` to refresh the FTS index, or `linear-pp-cli doctor` to confirm the FTS triggers fired on the latest sync.
-- **Agent accidentally mutated an issue it did not create** — Set `LINEAR_PP_CLI_TRUST_MODE=strict` in the environment — strict mode refuses any mutation on an issue ID not in the local pp_created ledger.
+- **Agent accidentally edited an issue it did not create** — Set `LINEAR_PP_CLI_TRUST_MODE=strict` in the environment — strict mode refuses issue edits when the issue ID is not in the local pp_created ledger.
 
 ---
 

@@ -149,9 +149,10 @@ func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
 	t.Parallel()
 	got := appendMediaMarkdown("Body", []uploadedAsset{
 		{Filename: "screen[1].png", ContentType: "image/png", AssetURL: "https://assets.example/screen.png"},
+		{Filename: "report(v2).png", ContentType: "image/png", AssetURL: "https://assets.example/report.png"},
 		{Filename: "trace.txt", ContentType: "text/plain", AssetURL: "https://assets.example/trace.txt"},
 	})
-	want := "Body\n\n![screen\\[1\\].png](https://assets.example/screen.png)\n[trace.txt](https://assets.example/trace.txt)"
+	want := "Body\n\n![screen\\[1\\].png](https://assets.example/screen.png)\n![report\\(v2\\).png](https://assets.example/report.png)\n[trace.txt](https://assets.example/trace.txt)"
 	if got != want {
 		t.Fatalf("appendMediaMarkdown() = %q, want %q", got, want)
 	}
@@ -169,6 +170,25 @@ func TestIssueIdentifierParserRejectsUUIDs(t *testing.T) {
 	team, number, ok := parseIssueIdentifier("MOB-94")
 	if !ok || team != "MOB" || number != 94 {
 		t.Fatalf("parseIssueIdentifier(MOB-94) = (%q, %v, %v), want MOB, 94, true", team, number, ok)
+	}
+}
+
+type queryIntoFunc func(string, map[string]any, any) error
+
+func (f queryIntoFunc) QueryInto(query string, variables map[string]any, dest any) error {
+	return f(query, variables, dest)
+}
+
+func TestFetchCommentBodyNotFound(t *testing.T) {
+	t.Parallel()
+	_, err := fetchCommentBody(queryIntoFunc(func(_ string, _ map[string]any, _ any) error {
+		return nil
+	}), "missing-comment")
+	if err == nil {
+		t.Fatalf("fetchCommentBody returned nil error for missing comment")
+	}
+	if !strings.Contains(err.Error(), "comment \"missing-comment\" not found") {
+		t.Fatalf("fetchCommentBody error = %v, want not found", err)
 	}
 }
 

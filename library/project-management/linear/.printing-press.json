@@ -91,7 +91,7 @@
     {
       "name": "Trust Mode Mutation Guard",
       "command": "issues create --trust-mode strict",
-      "description": "Refuse mutations on Linear issues not in the local pp_created ledger when --trust-mode strict is set; works on create and any future mutation surface."
+      "description": "Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set."
     }
   ]
 }

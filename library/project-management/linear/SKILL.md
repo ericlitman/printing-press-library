@@ -132,9 +132,9 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli pp-test list --json
   ```
-- **`issues create --trust-mode strict`** — Refuse mutations on Linear issues not in the local pp_created ledger when --trust-mode strict is set; works on create and any future mutation surface.
+- **`issues create --trust-mode strict`** — Refuse issue edits outside the local pp_created ledger when --trust-mode strict is set.
 
-  _Reach for this when running an agent against a real workspace with real data — strict mode makes accidental mutation impossible._
+  _Reach for this when running an agent against a real workspace with real data — strict mode blocks edits to issues the CLI did not create._
 
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
@@ -424,7 +424,7 @@ linear-pp-cli sync
 
 **Cleanup contract:**
 
-Every `issues create` records the new ticket in a local `pp_created` table tagged with the session (default: timestamp, override with `--pp-session <tag>` or `PP_SESSION` env var). `pp-cleanup --session <tag>` archives only those tickets via the real Linear archive mutation. `--trust-mode strict` refuses mutations on issues not in `pp_created` — pair with the session tag for a hard floor against agent-driven workspace pollution.
+Every `issues create` records the new ticket in a local `pp_created` table tagged with the session (default: timestamp, override with `--pp-session <tag>` or `PP_SESSION` env var). `pp-cleanup --session <tag>` archives only those tickets via the real Linear archive mutation. `--trust-mode strict` refuses `issues edit` calls for issues not in `pp_created` — pair with the session tag for a hard floor against agent-driven workspace pollution.
 
 ## Agent Mode
 

@@ -81,6 +81,9 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 				}
 				if len(media) > 0 {
 					out["media"] = mediaDryRun(media, publicMedia)
+					if !bodySet {
+						out["note"] = "live run will upload media and append markdown links to the body"
+					}
 				}
 				return writeCommandResult(cmd, flags, out)
 			}
@@ -250,15 +253,19 @@ func fetchCommentBody(c interface {
 	QueryInto(string, map[string]any, any) error
 }, id string) (string, error) {
 	const query = `query GetCommentBody($id: String!) {
-		comment(id: $id) { body }
+		comment(id: $id) { id body }
 	}`
 	var resp struct {
 		Comment struct {
+			ID   string `json:"id"`
 			Body string `json:"body"`
 		} `json:"comment"`
 	}
 	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
 		return "", fmt.Errorf("fetching existing comment %s: %w", id, err)
+	}
+	if resp.Comment.ID == "" {
+		return "", notFoundErr(fmt.Errorf("comment %q not found", id))
 	}
 	return resp.Comment.Body, nil
 }
@@ -291,15 +298,22 @@ func writeMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, pa
 		return writeCommandResult(cmd, flags, out)
 	}
 	var item struct {
-		ID  string `json:"id"`
-		URL string `json:"url"`
+		ID    string `json:"id"`
+		URL   string `json:"url"`
+		Issue *struct {
+			Identifier string `json:"identifier"`
+		} `json:"issue"`
 	}
 	if err := json.Unmarshal(payload, &item); err != nil {
 		return fmt.Errorf("parsing %s response: %w", event, err)
 	}
 	out := cmd.OutOrStdout()
 	if item.ID != "" {
-		fmt.Fprintf(out, "%s %s\n", event, item.ID)
+		if item.Issue != nil && item.Issue.Identifier != "" {
+			fmt.Fprintf(out, "%s %s on %s\n", event, item.ID, item.Issue.Identifier)
+		} else {
+			fmt.Fprintf(out, "%s %s\n", event, item.ID)
+		}
 	}
 	if item.URL != "" {
 		fmt.Fprintf(out, "  URL: %s\n", item.URL)

@@ -110,6 +110,9 @@ tickets in the workspace.`,
 				}
 				if len(media) > 0 {
 					out["media"] = mediaDryRun(media, publicMedia)
+					if !descSet {
+						out["note"] = "live run will upload media and append markdown links to the description"
+					}
 				}
 				if flags.asJSON {
 					enc := json.NewEncoder(os.Stdout)
