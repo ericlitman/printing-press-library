@@ -119,13 +119,11 @@ tickets in the workspace.`,
 					}
 				}
 				if flags.asJSON {
-					enc := json.NewEncoder(os.Stdout)
-					enc.SetIndent("", "  ")
-					return enc.Encode(out)
+					return writeCommandResult(cmd, flags, out)
 				}
-				fmt.Printf("Would create issue: title=%q team=%s\n", titleFlag, teamID)
+				fmt.Fprintf(cmd.OutOrStdout(), "Would create issue: title=%q team=%s\n", titleFlag, teamID)
 				if len(media) > 0 {
-					fmt.Printf("Would upload %d media file(s) and append markdown links to the description.\n", len(media))
+					fmt.Fprintf(cmd.OutOrStdout(), "Would upload %d media file(s) and append markdown links to the description.\n", len(media))
 				}
 				return nil
 			}
@@ -263,7 +261,7 @@ tickets in the workspace.`,
 			}
 
 			if flags.asJSON {
-				enc := json.NewEncoder(os.Stdout)
+				enc := json.NewEncoder(cmd.OutOrStdout())
 				enc.SetIndent("", "  ")
 				out := map[string]any{
 					"event":      "issue_created",
@@ -280,12 +278,12 @@ tickets in the workspace.`,
 				}
 				return enc.Encode(out)
 			}
-			fmt.Printf("Created %s — %s\n", parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title)
-			fmt.Printf("  URL: %s\n", parsed.IssueCreate.Issue.URL)
+			fmt.Fprintf(cmd.OutOrStdout(), "Created %s — %s\n", parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title)
+			fmt.Fprintf(cmd.OutOrStdout(), "  URL: %s\n", parsed.IssueCreate.Issue.URL)
 			if len(assets) > 0 {
-				fmt.Printf("  Uploaded %d media file(s).\n", len(assets))
+				fmt.Fprintf(cmd.OutOrStdout(), "  Uploaded %d media file(s).\n", len(assets))
 			}
-			fmt.Printf("  Recorded in pp_created (session=%s) for safe pp-cleanup.\n", sess)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Recorded in pp_created (session=%s) for safe pp-cleanup.\n", sess)
 			return nil
 		},
 	}

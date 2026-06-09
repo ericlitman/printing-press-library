@@ -131,6 +131,7 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&initiativeID, "initiative", "", "Related initiative UUID")
 	cmd.Flags().StringVar(&cycleID, "cycle", "", "Related cycle UUID")
 	cmd.Flags().StringVar(&releaseID, "release", "", "Related release UUID")
+	cmd.Flags().StringVar(&dbPath, "db", dbPath, "Database path (for trust-mode)")
 	return cmd
 }
 
@@ -231,6 +232,7 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&title, "title", "", "Replacement document title")
 	cmd.Flags().StringVar(&icon, "icon", "", "Replacement document icon")
 	cmd.Flags().StringVar(&color, "color", "", "Replacement document icon color")
+	cmd.Flags().StringVar(&dbPath, "db", dbPath, "Database path (for trust-mode)")
 	return cmd
 }
 

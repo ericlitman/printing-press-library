@@ -95,7 +95,7 @@ func (f markdownInputFlags) resolveDryRun(cmd *cobra.Command, required bool) (st
 	if err != nil || len(set) == 0 {
 		return "", false, err
 	}
-	if set[0] == "--"+f.stdinFlag {
+	if set[0] == "--"+f.stdinFlag || (set[0] == "--"+f.fileFlag && f.file == "-") {
 		return "", true, nil
 	}
 	return f.resolve(cmd, required)

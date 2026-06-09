@@ -171,6 +171,7 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&quotedText, "quoted-text", "", "Quoted text for inline comments")
 	cmd.Flags().StringArrayVar(&media, "media", nil, "Upload a media/file path and append it to the comment body (repeatable)")
 	cmd.Flags().BoolVar(&publicMedia, "media-public", false, "Make uploaded media publicly accessible instead of workspace-scoped")
+	cmd.Flags().StringVar(&dbPath, "db", dbPath, "Database path (for trust-mode)")
 	return cmd
 }
 
@@ -284,6 +285,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 	addBodyInputFlags(cmd, &bodyInput, "Replacement comment body (markdown); prefer --body-file for multi-line content")
 	cmd.Flags().StringArrayVar(&media, "media", nil, "Upload a media/file path and append it to the comment body (repeatable)")
 	cmd.Flags().BoolVar(&publicMedia, "media-public", false, "Make uploaded media publicly accessible instead of workspace-scoped")
+	cmd.Flags().StringVar(&dbPath, "db", dbPath, "Database path (for trust-mode)")
 	return cmd
 }
 

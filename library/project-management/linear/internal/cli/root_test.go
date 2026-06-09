@@ -95,10 +95,10 @@ func TestAgentSafeLinearMutationCommandsAreRegistered(t *testing.T) {
 	}{
 		{[]string{"issues", "create"}, []string{"description", "description-file", "description-stdin", "media"}},
 		{[]string{"issues", "edit"}, []string{"description", "description-file", "description-stdin", "media"}},
-		{[]string{"comments", "add"}, []string{"body", "body-file", "body-stdin", "media"}},
-		{[]string{"comments", "edit"}, []string{"body", "body-file", "body-stdin", "media"}},
-		{[]string{"documents", "create"}, []string{"content", "content-file", "content-stdin"}},
-		{[]string{"documents", "edit"}, []string{"content", "content-file", "content-stdin"}},
+		{[]string{"comments", "add"}, []string{"body", "body-file", "body-stdin", "media", "db"}},
+		{[]string{"comments", "edit"}, []string{"body", "body-file", "body-stdin", "media", "db"}},
+		{[]string{"documents", "create"}, []string{"content", "content-file", "content-stdin", "db"}},
+		{[]string{"documents", "edit"}, []string{"content", "content-file", "content-stdin", "db"}},
 	}
 	for _, tc := range cases {
 		tc := tc
@@ -162,6 +162,24 @@ func TestMarkdownInputFlagsResolveDryRunSkipsStdinRead(t *testing.T) {
 	}
 	if !ok || got != "" {
 		t.Fatalf("resolveDryRun stdin = (%q, %v), want empty preview and ok", got, ok)
+	}
+}
+
+func TestMarkdownInputFlagsResolveDryRunSkipsDashFileRead(t *testing.T) {
+	t.Parallel()
+	var input markdownInputFlags
+	cmd := &cobra.Command{}
+	cmd.SetIn(strings.NewReader("would block in an interactive shell"))
+	addBodyInputFlags(cmd, &input, "body")
+	if err := cmd.Flags().Set("body-file", "-"); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := input.resolveDryRun(cmd, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok || got != "" {
+		t.Fatalf("resolveDryRun dash file = (%q, %v), want empty preview and ok", got, ok)
 	}
 }
 
