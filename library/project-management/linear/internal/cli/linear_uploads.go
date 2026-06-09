@@ -160,10 +160,13 @@ func appendMediaMarkdown(body string, assets []uploadedAsset) string {
 }
 
 func escapeMarkdownLinkText(s string) string {
-	s = strings.ReplaceAll(s, "\\", "\\\\")
-	s = strings.ReplaceAll(s, "[", "\\[")
-	s = strings.ReplaceAll(s, "]", "\\]")
-	s = strings.ReplaceAll(s, "(", "\\(")
-	s = strings.ReplaceAll(s, ")", "\\)")
-	return s
+	var b strings.Builder
+	for _, r := range s {
+		switch r {
+		case '\\', '[', ']', '(', ')':
+			b.WriteRune('\\')
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }

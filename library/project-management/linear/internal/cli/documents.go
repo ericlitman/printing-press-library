@@ -56,6 +56,10 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			addOptionalString(input, "releaseId", releaseID)
 
 			if flags.dryRun {
+				if !flags.asJSON {
+					fmt.Fprintf(cmd.OutOrStdout(), "Would create document: title=%q\n", title)
+					return nil
+				}
 				return writeCommandResult(cmd, flags, map[string]any{
 					"event":    "would_create_document",
 					"mutation": "documentCreate",
@@ -150,6 +154,10 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			}
 
 			if flags.dryRun {
+				if !flags.asJSON {
+					fmt.Fprintf(cmd.OutOrStdout(), "Would edit document %s\n", args[0])
+					return nil
+				}
 				return writeCommandResult(cmd, flags, map[string]any{
 					"event":       "would_edit_document",
 					"mutation":    "documentUpdate",

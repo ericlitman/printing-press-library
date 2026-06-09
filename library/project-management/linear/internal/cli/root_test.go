@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 	"github.com/spf13/cobra"
 )
 
@@ -150,9 +151,10 @@ func TestAppendMediaMarkdownUsesImageSyntaxForImages(t *testing.T) {
 	got := appendMediaMarkdown("Body", []uploadedAsset{
 		{Filename: "screen[1].png", ContentType: "image/png", AssetURL: "https://assets.example/screen.png"},
 		{Filename: "report(v2).png", ContentType: "image/png", AssetURL: "https://assets.example/report.png"},
+		{Filename: `literal\[1].png`, ContentType: "image/png", AssetURL: "https://assets.example/literal.png"},
 		{Filename: "trace.txt", ContentType: "text/plain", AssetURL: "https://assets.example/trace.txt"},
 	})
-	want := "Body\n\n![screen\\[1\\].png](https://assets.example/screen.png)\n![report\\(v2\\).png](https://assets.example/report.png)\n[trace.txt](https://assets.example/trace.txt)"
+	want := "Body\n\n![screen\\[1\\].png](https://assets.example/screen.png)\n![report\\(v2\\).png](https://assets.example/report.png)\n![literal\\\\\\[1\\].png](https://assets.example/literal.png)\n[trace.txt](https://assets.example/trace.txt)"
 	if got != want {
 		t.Fatalf("appendMediaMarkdown() = %q, want %q", got, want)
 	}
@@ -182,6 +184,36 @@ func TestTrustModeEnvBinding(t *testing.T) {
 	}
 	if flags.trustMode != "strict" {
 		t.Fatalf("trustMode = %q, want strict from env", flags.trustMode)
+	}
+}
+
+func TestRequirePPCreatedIfStrict(t *testing.T) {
+	flags := &rootFlags{trustMode: "strict"}
+	missingPath := t.TempDir() + "/missing.db"
+	if err := requirePPCreatedIfStrict(flags, missingPath, "issue-known"); err == nil || !strings.Contains(err.Error(), "no local store found") {
+		t.Fatalf("missing store error = %v, want no local store found", err)
+	}
+
+	dbPath := t.TempDir() + "/linear.db"
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.RecordPPFixture("issue-known", "MOB-1", "Known issue", "test"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := requirePPCreatedIfStrict(flags, dbPath, "issue-known"); err != nil {
+		t.Fatalf("known fixture rejected: %v", err)
+	}
+	if err := requirePPCreatedIfStrict(flags, dbPath, "issue-other"); err == nil || !strings.Contains(err.Error(), "not in the local pp_created ledger") {
+		t.Fatalf("unknown fixture error = %v, want ledger refusal", err)
+	}
+	if err := requirePPCreatedIfStrict(&rootFlags{}, dbPath, "issue-other"); err != nil {
+		t.Fatalf("non-strict mode returned error: %v", err)
 	}
 }
 

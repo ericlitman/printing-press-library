@@ -85,6 +85,17 @@ func newCommentsAddCmd(flags *rootFlags) *cobra.Command {
 						out["note"] = "live run will upload media and append markdown links to the body"
 					}
 				}
+				if !flags.asJSON {
+					fmt.Fprintf(cmd.OutOrStdout(), "Would add comment")
+					if issueID != "" {
+						fmt.Fprintf(cmd.OutOrStdout(), " on %s", issueID)
+					}
+					fmt.Fprintln(cmd.OutOrStdout())
+					if len(media) > 0 {
+						fmt.Fprintf(cmd.OutOrStdout(), "Would upload %d media file(s) and append markdown links to the body.\n", len(media))
+					}
+					return nil
+				}
 				return writeCommandResult(cmd, flags, out)
 			}
 
@@ -190,6 +201,13 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 					if !bodySet {
 						out["note"] = "live run will fetch the existing comment body and append media markdown"
 					}
+				}
+				if !flags.asJSON {
+					fmt.Fprintf(cmd.OutOrStdout(), "Would edit comment %s\n", args[0])
+					if len(media) > 0 {
+						fmt.Fprintf(cmd.OutOrStdout(), "Would upload %d media file(s) and append markdown links to the body.\n", len(media))
+					}
+					return nil
 				}
 				return writeCommandResult(cmd, flags, out)
 			}
