@@ -119,11 +119,13 @@ func newIssuesEditCmd(flags *rootFlags) *cobra.Command {
 					success
 					issue {
 						id identifier title description url priority estimate dueDate updatedAt createdAt
-						team { id key }
+						team { id key name }
 						state { id name type }
-						assignee { id name displayName }
+						assignee { id name displayName email }
 						project { id name }
-						cycle { id }
+						cycle { id name number }
+						labels { nodes { id name color } }
+						parent { id identifier title }
 					}
 				}
 			}`
@@ -322,10 +324,7 @@ func writeBackIssue(errOut io.Writer, dbPath string, raw json.RawMessage) {
 		if existing, err := db.GetByID("issues", issue.ID); err == nil && len(existing) > 0 {
 			var merged map[string]any
 			if err := json.Unmarshal(existing, &merged); err == nil {
-				for key, value := range obj {
-					merged[key] = value
-				}
-				obj = merged
+				obj = mergeIssuePayload(merged, obj)
 			} else {
 				fmt.Fprintf(errOut, "warning: local store write-back merge skipped: %v\n", err)
 			}
@@ -347,6 +346,19 @@ func writeBackIssue(errOut io.Writer, dbPath string, raw json.RawMessage) {
 	if upErr := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); upErr != nil {
 		fmt.Fprintf(errOut, "warning: local store write-back failed: %v\n", upErr)
 	}
+}
+
+func mergeIssuePayload(existing, update map[string]any) map[string]any {
+	for key, value := range update {
+		updateMap, updateOK := value.(map[string]any)
+		existingMap, existingOK := existing[key].(map[string]any)
+		if updateOK && existingOK {
+			existing[key] = mergeIssuePayload(existingMap, updateMap)
+			continue
+		}
+		existing[key] = value
+	}
+	return existing
 }
 
 func writeIssueMutationPayload(cmd *cobra.Command, flags *rootFlags, event string, payload json.RawMessage, assets []uploadedAsset) error {

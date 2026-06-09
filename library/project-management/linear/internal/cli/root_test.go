@@ -307,6 +307,7 @@ func TestWriteBackIssuePreservesExistingLocalIssueFields(t *testing.T) {
 		"identifier":"MOB-1",
 		"title":"Old title",
 		"description":"Old description",
+		"team":{"id":"team-known","key":"MOB","name":"Mobilyze"},
 		"cycle":{"id":"cycle-known"},
 		"labels":{"nodes":[{"id":"label-known"}]},
 		"createdAt":"2026-01-01T00:00:00Z",
@@ -324,6 +325,7 @@ func TestWriteBackIssuePreservesExistingLocalIssueFields(t *testing.T) {
 		"identifier":"MOB-1",
 		"title":"New title",
 		"description":"New description",
+		"team":{"id":"team-known","key":"MOB"},
 		"updatedAt":"2026-01-02T00:00:00Z"
 	}`))
 
@@ -340,7 +342,10 @@ func TestWriteBackIssuePreservesExistingLocalIssueFields(t *testing.T) {
 		t.Fatalf("ListIssues(cycle_id) returned %d rows, want 1", len(rows))
 	}
 	var got struct {
-		Title  string `json:"title"`
+		Title string `json:"title"`
+		Team  struct {
+			Name string `json:"name"`
+		} `json:"team"`
 		Labels struct {
 			Nodes []struct {
 				ID string `json:"id"`
@@ -352,6 +357,9 @@ func TestWriteBackIssuePreservesExistingLocalIssueFields(t *testing.T) {
 	}
 	if got.Title != "New title" {
 		t.Fatalf("writeBackIssue title = %q, want New title", got.Title)
+	}
+	if got.Team.Name != "Mobilyze" {
+		t.Fatalf("writeBackIssue team.name = %q, want preserved Mobilyze", got.Team.Name)
 	}
 	if len(got.Labels.Nodes) != 1 || got.Labels.Nodes[0].ID != "label-known" {
 		t.Fatalf("writeBackIssue labels = %+v, want preserved label-known", got.Labels.Nodes)
@@ -366,8 +374,8 @@ func (f queryIntoFunc) QueryInto(query string, variables map[string]any, dest an
 
 func TestFetchCommentMutationTargetNotFound(t *testing.T) {
 	t.Parallel()
-	_, err := fetchCommentMutationTarget(queryIntoFunc(func(_ string, _ map[string]any, _ any) error {
-		return nil
+	_, err := fetchCommentMutationTarget(queryIntoFunc(func(_ string, _ map[string]any, dest any) error {
+		return json.Unmarshal([]byte(`{"comment":null}`), dest)
 	}), "missing-comment")
 	if err == nil {
 		t.Fatalf("fetchCommentMutationTarget returned nil error for missing comment")
