@@ -250,6 +250,22 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
   ```
+- **Shell-safe Linear writes with media** — Create and update issue descriptions, comments, and Linear docs without putting Markdown bodies on the shell command line.
+
+  _Reach for this whenever a body contains newlines, quotes, backticks, `$()` expansions, shell commands, images, logs, or agent-generated Markdown._
+
+  ```bash
+  linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md --media /tmp/screenshot.png --agent
+  linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --agent
+  linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
+  linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  ```
+- **Current issue reads and comments** — Read full issue bodies and discussion from live Linear when freshness matters.
+
+  ```bash
+  linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.name,url
+  linear-pp-cli comments list --issue ENG-123 --agent
+  ```
 
 ## Usage
 
@@ -455,6 +471,16 @@ This CLI is designed for AI agent consumption:
 
 Exit codes: `0` success, `2` usage error, `3` not found, `4` auth error, `5` API error, `7` rate limited, `10` config error.
 
+Agent recipes:
+
+```bash
+# Full current issue body; compact output strips descriptions unless selected
+linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.name,url
+
+# Safe multiline writes; body files preserve shell snippets literally
+linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --agent
+```
+
 ## Health Check
 
 ```bash
@@ -483,7 +509,8 @@ Read commands fall into three categories with different data-source semantics. T
 | --- | --- | --- | --- |
 | **Live-first with local fallback** | `attachments`, `projects get`, `teams`, `initiatives get`, `issues`, `issues list` (the v4 refactor) | `--data-source auto`: live API → write-through → fall back to local on network error | `--data-source live` (no fallback), `--data-source local` (no API) |
 | **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
-| **Mutations** | `issues create`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND the entity is written back to the local store | n/a |
+| **Live collaboration reads** | `comments list`, `documents`, `documents list` | Always live; comments and working-session docs are collaboration surfaces where stale local state is misleading | n/a |
+| **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND issue mutations are written back to the local store | n/a |
 
 **`--max-age` (default 30 minutes):**
 

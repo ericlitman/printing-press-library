@@ -21,6 +21,7 @@ import (
 )
 
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+var ftsQueryTokenPattern = regexp.MustCompile(`[\p{L}\p{N}][\p{L}\p{N}_-]*`)
 
 func IsUUID(s string) bool { return uuidPattern.MatchString(s) }
 
@@ -546,13 +547,33 @@ func (s *Store) upsertEntity(table string, columns []string, values ...any) erro
 }
 
 func (s *Store) SearchIssues(query string) ([]json.RawMessage, error) {
+	match := IssueSearchFTSQuery(query)
+	if match == "" {
+		return nil, nil
+	}
 	return s.queryJSON(
 		`SELECT data FROM issues WHERE rowid IN (
 		  SELECT rowid FROM issues_fts WHERE issues_fts MATCH ?
 		  ORDER BY rank LIMIT 50
 		)`,
-		query,
+		match,
 	)
+}
+
+// IssueSearchFTSQuery converts user prose into a safe SQLite FTS5 MATCH
+// expression. Raw issue keys such as "SYMPH-309" and hyphenated prose such as
+// "follow-ups" are parsed as FTS operators/column selectors unless quoted.
+func IssueSearchFTSQuery(query string) string {
+	tokens := ftsQueryTokenPattern.FindAllString(query, -1)
+	quoted := make([]string, 0, len(tokens))
+	for _, token := range tokens {
+		token = strings.Trim(token, "_-")
+		if token == "" {
+			continue
+		}
+		quoted = append(quoted, `"`+strings.ReplaceAll(token, `"`, `""`)+`"`)
+	}
+	return strings.Join(quoted, " ")
 }
 
 func (s *Store) ListIssues(filter map[string]string, limit int) ([]json.RawMessage, error) {

@@ -1,0 +1,367 @@
+package cli
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
+
+	"github.com/spf13/cobra"
+)
+
+func newDocumentsCmd(flags *rootFlags) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:         "documents [document-id-or-slug]",
+		Short:       "View, list, create, and edit Linear documents",
+		Annotations: map[string]string{"pp:typed-exit-codes": "0,2,3,4,5,7"},
+		Args:        cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return cmd.Help()
+			}
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			doc, err := fetchDocumentLive(c, args[0])
+			if err != nil {
+				return classifyLiveReadError(err, flags)
+			}
+			return renderLiveObject(cmd, flags, doc, "documents")
+		},
+	}
+	cmd.AddCommand(newDocumentsListCmd(flags))
+	cmd.AddCommand(newDocumentsCreateCmd(flags))
+	cmd.AddCommand(newDocumentsEditCmd(flags))
+	return cmd
+}
+
+func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
+	var issue, project, team string
+	var limit int
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List Linear documents",
+		Example: `  linear-pp-cli documents list --issue ENG-123 --agent
+  linear-pp-cli documents list --project <project-uuid> --limit 50 --agent`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			filter := map[string]any{}
+			if issue != "" {
+				issueID, err := resolveIssueID(c, issue)
+				if err != nil {
+					return classifyLiveReadError(err, flags)
+				}
+				filter["issue"] = map[string]any{"id": map[string]any{"eq": issueID}}
+			}
+			if project != "" {
+				filter["project"] = map[string]any{"id": map[string]any{"eq": project}}
+			}
+			if team != "" {
+				filter["team"] = map[string]any{"id": map[string]any{"eq": team}}
+			}
+			if limit <= 0 {
+				limit = 50
+			}
+			const query = `query($first: Int!, $filter: DocumentFilter) {
+				documents(first: $first, filter: $filter) {
+					nodes {
+						id title slugId url createdAt updatedAt summary
+						creator { id name displayName email }
+						issue { id identifier title }
+						project { id name }
+						team { id key name }
+						documentContentId
+					}
+					pageInfo { hasNextPage endCursor }
+				}
+			}`
+			var resp struct {
+				Documents struct {
+					Nodes    []json.RawMessage `json:"nodes"`
+					PageInfo struct {
+						HasNextPage bool   `json:"hasNextPage"`
+						EndCursor   string `json:"endCursor"`
+					} `json:"pageInfo"`
+				} `json:"documents"`
+			}
+			if err := c.QueryInto(query, map[string]any{"first": limit, "filter": filter}, &resp); err != nil {
+				return classifyAPIError(err, flags)
+			}
+			out, err := json.Marshal(map[string]any{
+				"documents": resp.Documents.Nodes,
+				"pageInfo":  resp.Documents.PageInfo,
+			})
+			if err != nil {
+				return err
+			}
+			return renderLivePayload(cmd, flags, out, "documents", true)
+		},
+	}
+	cmd.Flags().StringVar(&issue, "issue", "", "Filter by issue identifier or UUID")
+	cmd.Flags().StringVar(&project, "project", "", "Filter by project UUID")
+	cmd.Flags().StringVar(&team, "team", "", "Filter by team UUID")
+	cmd.Flags().IntVar(&limit, "limit", 50, "Maximum documents to return")
+	return cmd
+}
+
+func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
+	var title, contentFlag, contentFile string
+	var contentStdin bool
+	var issue, project, team, initiative, cycle, release, folder string
+	var mediaFlag []string
+	var mediaPublic bool
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a Linear document",
+		Example: `  linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  linear-pp-cli documents create --title "Project brief" --project <project-uuid> --content-stdin --agent < /tmp/brief.md`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if title == "" {
+				return usageErr(fmt.Errorf("--title is required"))
+			}
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			body, bodySet, err := readMarkdownBody(cmd, markdownBodySpec{
+				InlineFlag: "content",
+				Inline:     contentFlag,
+				FileFlag:   "content-file",
+				File:       contentFile,
+				StdinFlag:  "content-stdin",
+				Stdin:      contentStdin,
+				Label:      "content",
+			})
+			if err != nil {
+				return err
+			}
+			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
+			if err != nil {
+				return mediaUploadFailure(err, uploaded)
+			}
+			if !bodySet && len(mediaFlag) == 0 {
+				return usageErr(fmt.Errorf("document content is required; pass --content-file, --content-stdin, --content, or --media"))
+			}
+			input := map[string]any{"title": title, "content": body}
+			if err := applyDocumentParents(c, input, issue, project, team, initiative, cycle, release, folder); err != nil {
+				return classifyLiveReadError(err, flags)
+			}
+			const mutation = `mutation($input: DocumentCreateInput!) {
+				documentCreate(input: $input) {
+					success
+					document {
+						id title slugId url content createdAt updatedAt documentContentId
+						creator { id name displayName email }
+						issue { id identifier title }
+						project { id name }
+						team { id key name }
+					}
+				}
+			}`
+			resp, err := c.Mutate(mutation, map[string]any{"input": input})
+			if err != nil {
+				return classifyLiveReadError(fmt.Errorf("documentCreate failed: %w", err), flags)
+			}
+			doc, err := extractMutationObject(resp, "documentCreate", "document")
+			if err != nil {
+				return err
+			}
+			return renderLiveObject(cmd, flags, doc, "documents")
+		},
+	}
+	bindDocumentParentFlags(cmd, &issue, &project, &team, &initiative, &cycle, &release, &folder)
+	cmd.Flags().StringVar(&title, "title", "", "Document title")
+	cmd.Flags().StringVar(&contentFlag, "content", "", "Document content markdown")
+	cmd.Flags().StringVar(&contentFile, "content-file", "", "Read document content markdown from file")
+	cmd.Flags().BoolVar(&contentStdin, "content-stdin", false, "Read document content markdown from stdin")
+	cmd.Flags().StringSliceVar(&mediaFlag, "media", nil, "Upload file and append it to the document markdown (repeatable)")
+	cmd.Flags().BoolVar(&mediaPublic, "media-public", false, "Request public Linear asset URLs for uploaded media")
+	return cmd
+}
+
+func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
+	var title, contentFlag, contentFile string
+	var contentStdin bool
+	var issue, project, team, initiative, cycle, release, folder string
+	var mediaFlag []string
+	var mediaPublic bool
+	cmd := &cobra.Command{
+		Use:   "edit <document-id-or-slug>",
+		Short: "Edit a Linear document",
+		Example: `  linear-pp-cli documents edit <document-id> --content-file /tmp/updated.md --agent
+  linear-pp-cli documents edit <document-id> --media /tmp/screenshot.png --agent`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			input := map[string]any{}
+			if cmd.Flags().Changed("title") {
+				input["title"] = title
+			}
+			body, bodySet, err := readMarkdownBody(cmd, markdownBodySpec{
+				InlineFlag: "content",
+				Inline:     contentFlag,
+				FileFlag:   "content-file",
+				File:       contentFile,
+				StdinFlag:  "content-stdin",
+				Stdin:      contentStdin,
+				Label:      "content",
+			})
+			if err != nil {
+				return err
+			}
+			existing, err := fetchDocumentLive(c, args[0])
+			if err != nil {
+				return classifyLiveReadError(err, flags)
+			}
+			var doc struct {
+				ID      string `json:"id"`
+				Content string `json:"content"`
+			}
+			if err := json.Unmarshal(existing, &doc); err != nil {
+				return fmt.Errorf("parsing existing document: %w", err)
+			}
+			if doc.ID == "" {
+				return fmt.Errorf("document %q did not include an id", args[0])
+			}
+			if len(mediaFlag) > 0 && !bodySet {
+				body = doc.Content
+				bodySet = true
+			}
+			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
+			if err != nil {
+				return mediaUploadFailure(err, uploaded)
+			}
+			if bodySet {
+				input["content"] = body
+			}
+			if err := applyDocumentParents(c, input, issue, project, team, initiative, cycle, release, folder); err != nil {
+				return classifyLiveReadError(err, flags)
+			}
+			if len(input) == 0 {
+				return usageErr(fmt.Errorf("no document fields supplied; pass --title, --content-file, --content-stdin, --content, --media, or a parent flag"))
+			}
+			const mutation = `mutation($id: String!, $input: DocumentUpdateInput!) {
+				documentUpdate(id: $id, input: $input) {
+					success
+					document {
+						id title slugId url content createdAt updatedAt documentContentId
+						creator { id name displayName email }
+						issue { id identifier title }
+						project { id name }
+						team { id key name }
+					}
+				}
+			}`
+			resp, err := c.Mutate(mutation, map[string]any{"id": doc.ID, "input": input})
+			if err != nil {
+				return classifyLiveReadError(fmt.Errorf("documentUpdate failed: %w", err), flags)
+			}
+			docRaw, err := extractMutationObject(resp, "documentUpdate", "document")
+			if err != nil {
+				return err
+			}
+			return renderLiveObject(cmd, flags, docRaw, "documents")
+		},
+	}
+	bindDocumentParentFlags(cmd, &issue, &project, &team, &initiative, &cycle, &release, &folder)
+	cmd.Flags().StringVar(&title, "title", "", "Document title")
+	cmd.Flags().StringVar(&contentFlag, "content", "", "Document content markdown")
+	cmd.Flags().StringVar(&contentFile, "content-file", "", "Read document content markdown from file")
+	cmd.Flags().BoolVar(&contentStdin, "content-stdin", false, "Read document content markdown from stdin")
+	cmd.Flags().StringSliceVar(&mediaFlag, "media", nil, "Upload file and append it to the document markdown (repeatable)")
+	cmd.Flags().BoolVar(&mediaPublic, "media-public", false, "Request public Linear asset URLs for uploaded media")
+	return cmd
+}
+
+func bindDocumentParentFlags(cmd *cobra.Command, issue, project, team, initiative, cycle, release, folder *string) {
+	cmd.Flags().StringVar(issue, "issue", "", "Attach document to issue identifier or UUID")
+	cmd.Flags().StringVar(project, "project", "", "Attach document to project UUID")
+	cmd.Flags().StringVar(team, "team", "", "Attach document to team UUID")
+	cmd.Flags().StringVar(initiative, "initiative", "", "Attach document to initiative UUID")
+	cmd.Flags().StringVar(cycle, "cycle", "", "Attach document to cycle UUID")
+	cmd.Flags().StringVar(release, "release", "", "Attach document to release UUID")
+	cmd.Flags().StringVar(folder, "folder", "", "Attach document to resource folder UUID")
+}
+
+func applyDocumentParents(c graphqlQueryer, input map[string]any, issue, project, team, initiative, cycle, release, folder string) error {
+	if issue != "" {
+		issueID, err := resolveIssueID(c, issue)
+		if err != nil {
+			return err
+		}
+		input["issueId"] = issueID
+	}
+	if project != "" {
+		input["projectId"] = project
+	}
+	if team != "" {
+		input["teamId"] = team
+	}
+	if initiative != "" {
+		input["initiativeId"] = initiative
+	}
+	if cycle != "" {
+		input["cycleId"] = cycle
+	}
+	if release != "" {
+		input["releaseId"] = release
+	}
+	if folder != "" {
+		input["resourceFolderId"] = folder
+	}
+	return nil
+}
+
+func fetchDocumentLive(c graphqlQueryer, idOrSlug string) (json.RawMessage, error) {
+	if store.IsUUID(idOrSlug) {
+		const byID = `query($id: String!) {
+		document(id: $id) {
+			id title slugId url content createdAt updatedAt documentContentId
+			creator { id name displayName email }
+			issue { id identifier title }
+			project { id name }
+			team { id key name }
+		}
+	}`
+		var resp struct {
+			Document json.RawMessage `json:"document"`
+		}
+		if err := c.QueryInto(byID, map[string]any{"id": idOrSlug}, &resp); err != nil {
+			return nil, err
+		}
+		if len(resp.Document) == 0 || string(resp.Document) == "null" {
+			return nil, notFoundErr(fmt.Errorf("document %q not found", idOrSlug))
+		}
+		return resp.Document, nil
+	}
+	const bySlug = `query($slug: String!) {
+		documents(filter: { slugId: { eq: $slug } }, first: 1) {
+			nodes {
+				id title slugId url content createdAt updatedAt documentContentId
+				creator { id name displayName email }
+				issue { id identifier title }
+				project { id name }
+				team { id key name }
+			}
+		}
+	}`
+	var slugResp struct {
+		Documents struct {
+			Nodes []json.RawMessage `json:"nodes"`
+		} `json:"documents"`
+	}
+	if err := c.QueryInto(bySlug, map[string]any{"slug": idOrSlug}, &slugResp); err != nil {
+		return nil, err
+	}
+	if len(slugResp.Documents.Nodes) == 0 {
+		return nil, notFoundErr(fmt.Errorf("document %q not found", idOrSlug))
+	}
+	return slugResp.Documents.Nodes[0], nil
+}

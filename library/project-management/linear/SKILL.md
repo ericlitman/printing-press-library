@@ -16,7 +16,7 @@ metadata:
 
 ## Prerequisites: Install the CLI
 
-This skill drives the `linear-pp-cli` binary. **You must verify the CLI is installed before invoking any command from this skill.** If it is missing, install it first:
+This skill drives the `linear-pp-cli` binary. **Do not invoke a command named `linear` when this skill is active.** If `linear-pp-cli` is missing, install it first:
 
 1. Install via the Printing Press installer. It defaults binaries to `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows:
    ```bash
@@ -32,6 +32,13 @@ go install github.com/mvanhorn/printing-press-library/library/project-management
 ```
 
 If `--version` reports "command not found" after install, the runtime cannot see the binary directory on `$PATH`. Do not proceed with skill commands until verification succeeds.
+
+## Agent Contract
+
+- Add `--agent` to commands unless a human-readable table is explicitly needed. It implies JSON, compact output, non-interactive mode, no color, and confirmation-safe scripting.
+- Use `--data-source live` for closeout/state/description checks where current truth matters. Use `--data-source local` or `similar` for duplicate search and analytics after `sync`.
+- A missing `description` in compact output does not mean an empty issue body. Request it explicitly: `linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.name,url`.
+- Never pass multiline Markdown, shell snippets, GraphQL, logs, backticks, `$()` expansions, or media-rich content as inline shell arguments. Write the body to a file or stdin and use the `*-file` / `*-stdin` flags below.
 
 ## When to Use This CLI
 
@@ -138,6 +145,27 @@ These capabilities aren't available in any other tool for this API.
 
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
+  ```
+- **Shell-safe Linear writes with media** — Create and update issue descriptions, comments, and Linear docs without putting Markdown bodies on the shell command line.
+
+  _Reach for this whenever a body contains newlines, quotes, backticks, `$()` expansions, shell commands, images, logs, or agent-generated Markdown._
+
+  ```bash
+  linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md --media /tmp/screenshot.png --agent
+  linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --agent
+  linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png --agent
+  linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
+  linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md --agent
+  linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  linear-pp-cli documents edit <document-id-or-slug> --content-file /tmp/updated.md --agent
+  ```
+
+  `issues edit --media`, `comments edit --media`, and `documents edit --media` with no body/content flag fetch the existing Markdown live and append uploaded media links. Images become Markdown image embeds; non-images become Markdown links. Add `--media-public` only when the uploaded asset must be reachable outside the Linear workspace.
+- **Current issue reads and comments** — Read full issue bodies and discussion without falling back to stale local state.
+
+  ```bash
+  linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.name,url
+  linear-pp-cli comments list --issue ENG-123 --agent
   ```
 
 ## Command Reference
@@ -331,8 +359,13 @@ Commands fall into three categories with different data-source semantics. Use `-
 
 **Category 3: Mutations**
 
-- `issues create`, `pp-cleanup`
+- `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup`
 - Always hit the API. On success, the HTTP response cache is invalidated AND the new/changed entity is written back to the local store, so a subsequent `issues list --data-source local` sees the mutation without requiring another sync.
+
+**Live-only collaboration reads**
+
+- `comments list`, `documents <id-or-slug>`, `documents list`
+- These read the current Linear API because comments and working-session docs are collaboration surfaces where stale local state is more misleading than helpful.
 
 **The budget-conscious agent loop:**
 
