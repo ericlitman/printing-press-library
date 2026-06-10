@@ -291,6 +291,15 @@ func classifyLiveReadError(err error, flags *rootFlags) error {
 	return err
 }
 
+func classifyMutationError(operation string, err error, flags *rootFlags, uploaded []client.UploadedFile) error {
+	if err == nil {
+		return nil
+	}
+	wrapped := fmt.Errorf("%s failed: %w", operation, err)
+	wrapped = mediaUploadFailure(wrapped, uploaded)
+	return classifyLiveReadError(wrapped, flags)
+}
+
 // classifyDeleteError maps DELETE errors and supports explicit idempotent no-op handling.
 func classifyDeleteError(err error, flags *rootFlags) error {
 	msg := err.Error()

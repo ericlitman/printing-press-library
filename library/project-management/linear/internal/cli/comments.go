@@ -176,7 +176,7 @@ for Markdown so shell snippets, backticks, and GraphQL variables stay literal.`,
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
-				return classifyLiveReadError(fmt.Errorf("commentCreate failed: %w", err), flags)
+				return classifyMutationError("commentCreate", err, flags, uploaded)
 			}
 			comment, err := extractMutationObject(resp, "commentCreate", "comment")
 			if err != nil {
@@ -286,7 +286,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"id": args[0], "input": input})
 			if err != nil {
-				return classifyLiveReadError(fmt.Errorf("commentUpdate failed: %w", err), flags)
+				return classifyMutationError("commentUpdate", err, flags, uploaded)
 			}
 			comment, err := extractMutationObject(resp, "commentUpdate", "comment")
 			if err != nil {

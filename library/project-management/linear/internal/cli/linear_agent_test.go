@@ -458,6 +458,92 @@ func TestWriteCommandsClassifyResolverAPIErrors(t *testing.T) {
 	}
 }
 
+func TestIssueCreateClassifiesMutationAPIErrors(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "issueCreate") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--team", "00000000-0000-0000-0000-000000000001", "--title", "Mutation failure", "--db", filepath.Join(t.TempDir(), "linear.db"), "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("issues create succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 4 {
+		t.Fatalf("ExitCode() = %d, want 4; err=%v\n%s", got, err, out)
+	}
+}
+
+func TestMutationFailureAfterMediaUploadReportsAssetURL(t *testing.T) {
+	mediaPath := filepath.Join(t.TempDir(), "screenshot.png")
+	if err := os.WriteFile(mediaPath, []byte("image bytes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	const assetURL = "https://asset.example/screenshot.png"
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut && r.URL.Path == "/upload" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "fileUpload"):
+			uploadURL := srv.URL + "/upload"
+			if err := json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"fileUpload": map[string]any{
+						"success": true,
+						"uploadFile": map[string]any{
+							"uploadUrl": uploadURL,
+							"assetUrl":  assetURL,
+							"headers":   []map[string]string{},
+						},
+					},
+				},
+			}); err != nil {
+				t.Errorf("encode fileUpload response: %v", err)
+			}
+		case strings.Contains(req.Query, "commentCreate"):
+			fmt.Fprint(w, `{"errors":[{"message":"mutation rejected"}]}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("comments", "add", "--project", "project-1", "--body", "body", "--media", mediaPath, "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("comments add succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 5 {
+		t.Fatalf("ExitCode() = %d, want 5; err=%v\n%s", got, err, out)
+	}
+	if !strings.Contains(err.Error(), assetURL) || !strings.Contains(out, assetURL) {
+		t.Fatalf("uploaded asset URL was not surfaced; err=%v\n%s", err, out)
+	}
+}
+
 func TestIssuesEditDryRunWithLabelsDoesNotCallAPI(t *testing.T) {
 	calls := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
