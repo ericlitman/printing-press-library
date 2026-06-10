@@ -480,6 +480,64 @@ func TestIssuesEditDryRunWithLabelsDoesNotCallAPI(t *testing.T) {
 	}
 }
 
+func TestCommentsAndDocumentsDryRunDoNotCallAPI(t *testing.T) {
+	tests := []struct {
+		name      string
+		args      []string
+		wantEvent string
+		wantToken string
+	}{
+		{
+			name:      "comments add",
+			args:      []string{"comments", "add", "--issue", "MOB-99", "--media", "/tmp/nonexistent-dry-run.png", "--dry-run", "--agent"},
+			wantEvent: "would_create_comment",
+			wantToken: "/tmp/nonexistent-dry-run.png",
+		},
+		{
+			name:      "comments edit",
+			args:      []string{"comments", "edit", "comment-1", "--media", "/tmp/nonexistent-dry-run.png", "--dry-run", "--agent"},
+			wantEvent: "would_update_comment",
+			wantToken: "comment-1",
+		},
+		{
+			name:      "documents create",
+			args:      []string{"documents", "create", "--title", "Runbook", "--issue", "MOB-99", "--media", "/tmp/nonexistent-dry-run.png", "--dry-run", "--agent"},
+			wantEvent: "would_create_document",
+			wantToken: "MOB-99",
+		},
+		{
+			name:      "documents edit",
+			args:      []string{"documents", "edit", "doc-slug", "--media", "/tmp/nonexistent-dry-run.png", "--dry-run", "--agent"},
+			wantEvent: "would_update_document",
+			wantToken: "doc-slug",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			calls := 0
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls++
+				http.Error(w, "dry-run should not call API", http.StatusInternalServerError)
+			}))
+			t.Cleanup(srv.Close)
+			t.Setenv("LINEAR_BASE_URL", srv.URL)
+			t.Setenv("LINEAR_API_KEY", "test-token")
+
+			out, err := executeRootForTest(tt.args...)
+			if err != nil {
+				t.Fatalf("%s dry-run failed: %v\n%s", tt.name, err, out)
+			}
+			if calls != 0 {
+				t.Fatalf("%s dry-run made %d API calls; output:\n%s", tt.name, calls, out)
+			}
+			if !strings.Contains(out, tt.wantEvent) || !strings.Contains(out, tt.wantToken) {
+				t.Fatalf("%s dry-run output missing preview details: %s", tt.name, out)
+			}
+		})
+	}
+}
+
 func TestIssuesEditPriorityZeroIsSent(t *testing.T) {
 	var seenInput map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

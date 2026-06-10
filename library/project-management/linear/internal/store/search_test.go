@@ -51,3 +51,54 @@ func TestSearchIssuesAcceptsIssueKeysAndHyphenatedProse(t *testing.T) {
 		}
 	}
 }
+
+func TestSearchIssuesPreservesFTSRankOrdering(t *testing.T) {
+	t.Parallel()
+	db, err := Open(filepath.Join(t.TempDir(), "linear.db"))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	lessRelevant, err := json.Marshal(map[string]any{
+		"id":          "issue-1",
+		"identifier":  "MOB-LOW",
+		"title":       "Pipeline token burn",
+		"description": "Pipeline token burn",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	moreRelevant, err := json.Marshal(map[string]any{
+		"id":          "issue-2",
+		"identifier":  "MOB-HIGH",
+		"title":       "Pipeline token burn pipeline token burn pipeline token burn",
+		"description": "Pipeline token burn pipeline token burn pipeline token burn",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.UpsertIssue("issue-1", "MOB-LOW", "Pipeline token burn", lessRelevant); err != nil {
+		t.Fatalf("UpsertIssue low: %v", err)
+	}
+	if err := db.UpsertIssue("issue-2", "MOB-HIGH", "Pipeline token burn pipeline token burn pipeline token burn", moreRelevant); err != nil {
+		t.Fatalf("UpsertIssue high: %v", err)
+	}
+
+	results, err := db.SearchIssues("pipeline token burn")
+	if err != nil {
+		t.Fatalf("SearchIssues returned error: %v", err)
+	}
+	if len(results) < 2 {
+		t.Fatalf("SearchIssues returned %d results, want at least 2", len(results))
+	}
+	var first struct {
+		Identifier string `json:"identifier"`
+	}
+	if err := json.Unmarshal(results[0], &first); err != nil {
+		t.Fatalf("unmarshal first result: %v", err)
+	}
+	if first.Identifier != "MOB-HIGH" {
+		t.Fatalf("first result = %s, want MOB-HIGH; results=%s", first.Identifier, results)
+	}
+}

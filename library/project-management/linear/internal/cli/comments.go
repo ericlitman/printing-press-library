@@ -111,14 +111,6 @@ for Markdown so shell snippets, backticks, and GraphQL variables stay literal.`,
   linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
   linear-pp-cli comments add --document-content <document-content-id> --body-stdin --agent < /tmp/comment.md`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
-			input, err := targets.input(c)
-			if err != nil {
-				return classifyLiveReadError(err, flags)
-			}
 			body, bodySet, err := readMarkdownBody(cmd, markdownBodySpec{
 				InlineFlag: "body",
 				Inline:     bodyFlag,
@@ -131,12 +123,38 @@ for Markdown so shell snippets, backticks, and GraphQL variables stay literal.`,
 			if err != nil {
 				return err
 			}
+			if !bodySet && len(mediaFlag) == 0 {
+				return usageErr(fmt.Errorf("comment body is required; pass --body-file, --body-stdin, --body, or --media"))
+			}
+			input, err := targets.inputRaw()
+			if err != nil {
+				return err
+			}
+			if bodySet {
+				input["body"] = body
+			}
+			if quotedText != "" {
+				input["quotedText"] = quotedText
+			}
+			if flags.dryRun {
+				out := map[string]any{"input": input}
+				if len(mediaFlag) > 0 {
+					out["media"] = mediaFlag
+					out["media_public"] = mediaPublic
+				}
+				return renderMutationDryRun(cmd, flags, "would_create_comment", "commentCreate", out)
+			}
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			input, err = targets.input(c)
+			if err != nil {
+				return classifyLiveReadError(err, flags)
+			}
 			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
 			if err != nil {
 				return mediaUploadFailure(err, uploaded)
-			}
-			if !bodySet && len(mediaFlag) == 0 {
-				return usageErr(fmt.Errorf("comment body is required; pass --body-file, --body-stdin, --body, or --media"))
 			}
 			input["body"] = body
 			if quotedText != "" {
@@ -190,10 +208,6 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
   linear-pp-cli comments edit <comment-id> --media /tmp/screenshot.png --agent`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
 			body, bodySet, err := readMarkdownBody(cmd, markdownBodySpec{
 				InlineFlag: "body",
 				Inline:     bodyFlag,
@@ -203,6 +217,28 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 				Stdin:      bodyStdin,
 				Label:      "body",
 			})
+			if err != nil {
+				return err
+			}
+			input := map[string]any{}
+			if bodySet {
+				input["body"] = body
+			}
+			if quotedText != "" {
+				input["quotedText"] = quotedText
+			}
+			if len(input) == 0 && len(mediaFlag) == 0 {
+				return usageErr(fmt.Errorf("no comment fields supplied; pass --body-file, --body-stdin, --body, --media, or --quoted-text"))
+			}
+			if flags.dryRun {
+				out := map[string]any{"comment": args[0], "input": input}
+				if len(mediaFlag) > 0 {
+					out["media"] = mediaFlag
+					out["media_public"] = mediaPublic
+				}
+				return renderMutationDryRun(cmd, flags, "would_update_comment", "commentUpdate", out)
+			}
+			c, err := flags.newClient()
 			if err != nil {
 				return err
 			}
@@ -224,7 +260,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return mediaUploadFailure(err, uploaded)
 			}
-			input := map[string]any{}
+			input = map[string]any{}
 			if bodySet {
 				input["body"] = body
 			}
@@ -295,6 +331,21 @@ type graphqlQueryer interface {
 }
 
 func (t commentTargetFlags) input(c graphqlQueryer) (map[string]any, error) {
+	input, err := t.inputRaw()
+	if err != nil {
+		return nil, err
+	}
+	if t.Issue != "" {
+		issueID, err := resolveIssueID(c, t.Issue)
+		if err != nil {
+			return nil, err
+		}
+		input["issueId"] = issueID
+	}
+	return input, nil
+}
+
+func (t commentTargetFlags) inputRaw() (map[string]any, error) {
 	values := []struct {
 		key   string
 		value string
@@ -319,13 +370,6 @@ func (t commentTargetFlags) input(c graphqlQueryer) (map[string]any, error) {
 	}
 	if count != 1 {
 		return nil, usageErr(fmt.Errorf("pass exactly one comment target: --issue, --document-content, --parent, --project, --project-update, --initiative, --initiative-update, or --post"))
-	}
-	if t.Issue != "" {
-		issueID, err := resolveIssueID(c, t.Issue)
-		if err != nil {
-			return nil, err
-		}
-		input["issueId"] = issueID
 	}
 	return input, nil
 }

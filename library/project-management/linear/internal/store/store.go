@@ -579,10 +579,12 @@ func (s *Store) SearchIssues(query string) ([]json.RawMessage, error) {
 		return nil, nil
 	}
 	return s.queryJSON(
-		`SELECT data FROM issues WHERE rowid IN (
-		  SELECT rowid FROM issues_fts WHERE issues_fts MATCH ?
-		  ORDER BY rank LIMIT 50
-		)`,
+		`SELECT i.data
+		 FROM issues i
+		 JOIN issues_fts f ON i.rowid = f.rowid
+		 WHERE issues_fts MATCH ?
+		 ORDER BY rank
+		 LIMIT 50`,
 		match,
 	)
 }
