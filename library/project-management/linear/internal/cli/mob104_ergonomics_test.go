@@ -353,6 +353,113 @@ func TestIssuesEditStateFlagValidation(t *testing.T) {
 	}
 }
 
+func TestWorkflowStatesListPaginatesAllPages(t *testing.T) {
+	var stateCalls int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		stateCalls++
+		if after, ok := req.Variables["after"].(string); ok && after == "cursor-1" {
+			fmt.Fprint(w, `{"data":{"workflowStates":{"nodes":[{"id":"state-page2","name":"Done","type":"completed","position":9,"team":{"id":"team-1","key":"SYMPH","name":"Symphony"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+			return
+		}
+		fmt.Fprint(w, `{"data":{"workflowStates":{"nodes":[{"id":"state-page1","name":"Todo","type":"unstarted","position":1,"team":{"id":"team-1","key":"SYMPH","name":"Symphony"}}],"pageInfo":{"hasNextPage":true,"endCursor":"cursor-1"}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("workflow-states", "list", "--team", "SYMPH",
+		"--db", filepath.Join(t.TempDir(), "linear.db"),
+		"--agent", "--data-source", "live", "--select", "id")
+	if err != nil {
+		t.Fatalf("workflow-states list failed: %v\n%s", err, out)
+	}
+	if stateCalls != 2 {
+		t.Fatalf("expected 2 paginated requests, got %d", stateCalls)
+	}
+	if !strings.Contains(out, "state-page1") || !strings.Contains(out, "state-page2") {
+		t.Fatalf("paginated results missing a page: %s", out)
+	}
+}
+
+func TestValidateIssueLabelTeamsBatchesOneRequest(t *testing.T) {
+	var labelQueryCalls int
+	var seenIDs []any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "issues(filter"):
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-uuid","identifier":"MOB-105","title":"Issue","description":"","team":{"id":"team-1","key":"MOB","name":"Mobilyze"}}]}}}`)
+		case strings.Contains(req.Query, "issueLabels(filter"):
+			labelQueryCalls++
+			seenIDs, _ = req.Variables["ids"].([]any)
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[
+				{"id":"label-1","name":"kind:bug","color":"#111","team":{"id":"team-1","key":"MOB","name":"Mobilyze"}},
+				{"id":"label-2","name":"area:cli","color":"#222","team":null},
+				{"id":"label-3","name":"risk:low","color":"#333","team":{"id":"team-1","key":"MOB","name":"Mobilyze"}}
+			]}}}`)
+		case strings.Contains(req.Query, "issueUpdate"):
+			fmt.Fprint(w, `{"data":{"issueUpdate":{"success":true,"issue":{"id":"issue-uuid","identifier":"MOB-105","title":"Issue"}}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "edit", "MOB-105",
+		"--label", "label-1", "--label", "label-2", "--label", "label-3",
+		"--db", filepath.Join(t.TempDir(), "linear.db"), "--agent")
+	if err != nil {
+		t.Fatalf("issues edit with labels failed: %v\n%s", err, out)
+	}
+	if labelQueryCalls != 1 {
+		t.Fatalf("label validation made %d requests, want 1 batched call", labelQueryCalls)
+	}
+	if len(seenIDs) != 3 {
+		t.Fatalf("batched query sent %d ids, want 3: %v", len(seenIDs), seenIDs)
+	}
+}
+
+func TestValidateIssueLabelTeamsMissingLabelIsNotFound(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		switch {
+		case strings.Contains(req.Query, "issues(filter"):
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-uuid","identifier":"MOB-105","title":"Issue","description":"","team":{"id":"team-1","key":"MOB","name":"Mobilyze"}}]}}}`)
+		case strings.Contains(req.Query, "issueLabels(filter"):
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[]}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	_, err := executeRootForTest("issues", "edit", "MOB-105", "--label", "label-missing",
+		"--db", filepath.Join(t.TempDir(), "linear.db"), "--agent")
+	if err == nil || ExitCode(err) != 3 {
+		t.Fatalf("missing label should be a code-3 not-found error, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "label-missing") {
+		t.Fatalf("error should name the missing label: %v", err)
+	}
+}
+
 func TestFinalizeErrorEmitsJSONEnvelope(t *testing.T) {
 	t.Parallel()
 	var stdout, stderr bytes.Buffer

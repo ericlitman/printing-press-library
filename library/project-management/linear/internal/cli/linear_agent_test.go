@@ -333,8 +333,8 @@ func TestIssueCreateRejectsCrossTeamLabelBeforeMutation(t *testing.T) {
 			return
 		}
 		switch {
-		case strings.Contains(req.Query, "issueLabel(id:"):
-			fmt.Fprint(w, `{"data":{"issueLabel":{"id":"label-hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}}}`)
+		case strings.Contains(req.Query, "issueLabels(filter"):
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
 		case strings.Contains(req.Query, "issueCreate"):
 			createCalled = true
 			http.Error(w, "issueCreate should not be called", http.StatusInternalServerError)
@@ -604,12 +604,12 @@ func TestIssuesCreateValidatesLabelsBeforeUploadingMedia(t *testing.T) {
 			http.Error(w, "bad request", http.StatusBadRequest)
 			return
 		}
-		if !strings.Contains(req.Query, "issueLabel") {
+		if !strings.Contains(req.Query, "issueLabels(filter") {
 			t.Errorf("unexpected query before media upload: %s", req.Query)
 			http.Error(w, "unexpected query", http.StatusBadRequest)
 			return
 		}
-		fmt.Fprint(w, `{"data":{"issueLabel":{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}}}`)
+		fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
 	}))
 	t.Cleanup(srv.Close)
 	t.Setenv("LINEAR_BASE_URL", srv.URL)

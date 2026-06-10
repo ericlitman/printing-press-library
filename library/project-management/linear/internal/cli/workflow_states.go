@@ -190,9 +190,10 @@ func resolveWorkflowState(c graphqlQueryer, team issueTeamInfo, name, stateType 
 		return "", err
 	}
 	nodes := resp.WorkflowStates.Nodes
+	teamLabel := issueTeamName(team)
 	switch len(nodes) {
 	case 0:
-		return "", notFoundErr(fmt.Errorf("no workflow state matching %s in team %s; run 'linear-pp-cli workflow-states list --team %s' to see valid states", selector, team.Key, team.Key))
+		return "", notFoundErr(fmt.Errorf("no workflow state matching %s in team %s; run 'linear-pp-cli workflow-states list --team %s' to see valid states", selector, teamLabel, teamLabel))
 	case 1:
 		return nodes[0].ID, nil
 	default:
@@ -200,13 +201,16 @@ func resolveWorkflowState(c graphqlQueryer, team issueTeamInfo, name, stateType 
 		for _, n := range nodes {
 			candidates = append(candidates, fmt.Sprintf("%q (%s, %s)", n.Name, n.Type, n.ID))
 		}
-		return "", usageErr(fmt.Errorf("%s is ambiguous in team %s: matches %s; pass --state-name with the exact name or --state with the UUID", selector, team.Key, strings.Join(candidates, ", ")))
+		return "", usageErr(fmt.Errorf("%s is ambiguous in team %s: matches %s; pass --state-name with the exact name or --state with the UUID", selector, teamLabel, strings.Join(candidates, ", ")))
 	}
 }
 
 // fetchWorkflowStatesLive queries workflowStates via GraphQL, filtered by team
 // key or UUID when provided. Linear's workflowStates filter accepts a nested
-// TeamFilter, so team keys resolve server-side without a local sync.
+// TeamFilter, so team keys resolve server-side without a local sync. Results
+// are paginated via pageInfo.endCursor — a single capped page would silently
+// truncate the state list on workspaces with many teams, which is exactly the
+// failure mode this command exists to eliminate.
 func fetchWorkflowStatesLive(flags *rootFlags, team string) ([]json.RawMessage, error) {
 	c, err := flags.newClient()
 	if err != nil {
@@ -220,21 +224,38 @@ func fetchWorkflowStatesLive(flags *rootFlags, team string) ([]json.RawMessage, 
 			filter["team"] = map[string]any{"key": map[string]any{"eqIgnoreCase": team}}
 		}
 	}
-	const query = `query($filter: WorkflowStateFilter) {
-		workflowStates(first: 250, filter: $filter) {
+	const query = `query($filter: WorkflowStateFilter, $after: String) {
+		workflowStates(first: 250, filter: $filter, after: $after) {
 			nodes {
 				id name type color position
 				team { id name key }
 			}
+			pageInfo { hasNextPage endCursor }
 		}
 	}`
-	var resp struct {
-		WorkflowStates struct {
-			Nodes []json.RawMessage `json:"nodes"`
-		} `json:"workflowStates"`
+	var all []json.RawMessage
+	cursor := ""
+	for {
+		vars := map[string]any{"filter": filter}
+		if cursor != "" {
+			vars["after"] = cursor
+		}
+		var resp struct {
+			WorkflowStates struct {
+				Nodes    []json.RawMessage `json:"nodes"`
+				PageInfo struct {
+					HasNextPage bool   `json:"hasNextPage"`
+					EndCursor   string `json:"endCursor"`
+				} `json:"pageInfo"`
+			} `json:"workflowStates"`
+		}
+		if err := c.QueryInto(query, vars, &resp); err != nil {
+			return nil, err
+		}
+		all = append(all, resp.WorkflowStates.Nodes...)
+		if !resp.WorkflowStates.PageInfo.HasNextPage || resp.WorkflowStates.PageInfo.EndCursor == "" {
+			return all, nil
+		}
+		cursor = resp.WorkflowStates.PageInfo.EndCursor
 	}
-	if err := c.QueryInto(query, map[string]any{"filter": filter}, &resp); err != nil {
-		return nil, err
-	}
-	return resp.WorkflowStates.Nodes, nil
 }
