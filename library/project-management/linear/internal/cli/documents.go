@@ -175,7 +175,7 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
-				return classifyLiveReadError(fmt.Errorf("documentCreate failed: %w", err), flags)
+				return classifyMutationError("documentCreate", err, flags, uploaded)
 			}
 			doc, err := extractMutationObject(resp, "documentCreate", "document")
 			if err != nil {
@@ -291,7 +291,7 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"id": doc.ID, "input": input})
 			if err != nil {
-				return classifyLiveReadError(fmt.Errorf("documentUpdate failed: %w", err), flags)
+				return classifyMutationError("documentUpdate", err, flags, uploaded)
 			}
 			docRaw, err := extractMutationObject(resp, "documentUpdate", "document")
 			if err != nil {

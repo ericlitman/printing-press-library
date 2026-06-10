@@ -145,7 +145,7 @@ description is fetched live and the uploaded media links are appended.`,
 			}`
 			resp, err := c.Mutate(mutation, map[string]any{"id": issueID, "input": input})
 			if err != nil {
-				return classifyLiveReadError(fmt.Errorf("issueUpdate failed: %w", err), flags)
+				return classifyMutationError("issueUpdate", err, flags, uploaded)
 			}
 			var parsed struct {
 				IssueUpdate struct {
