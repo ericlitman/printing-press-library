@@ -273,6 +273,51 @@ func cliErrorType(code int) string {
 	}
 }
 
+// jsonErrorMode reports whether a failed invocation should emit a JSON error
+// envelope. The parsed flags are authoritative, but flag parsing itself can
+// fail before --agent/--json are bound (unknown flag, bad value), so the raw
+// args are scanned as a fallback. Agents that asked for JSON must never get
+// plain text on a typed failure.
+func jsonErrorMode(flags *rootFlags, args []string) bool {
+	if flags != nil && (flags.agent || flags.asJSON) {
+		return true
+	}
+	for _, a := range args {
+		if a == "--" {
+			break
+		}
+		if a == "--agent" || a == "--json" || a == "--agent=true" || a == "--json=true" {
+			return true
+		}
+	}
+	return false
+}
+
+// finalizeError gives every failure a consistent surface now that the root
+// command silences cobra's own error printing. In JSON/agent mode the error
+// is a machine-parseable envelope on stdout ({"error","code","type"}) so
+// agents piping stdout never JSON-decode plain text; otherwise the
+// conventional "Error: ..." line goes to stderr. Errors that already wrote
+// an envelope mid-command (writeAPIErrorEnvelope) are not double-emitted.
+func finalizeError(flags *rootFlags, args []string, stdout, stderr io.Writer, err error) {
+	if err == nil {
+		return
+	}
+	if jsonErrorMode(flags, args) {
+		if flags != nil && flags.errorWritten {
+			return
+		}
+		code := ExitCode(err)
+		_ = json.NewEncoder(stdout).Encode(map[string]any{
+			"error": err.Error(),
+			"code":  code,
+			"type":  cliErrorType(code),
+		})
+		return
+	}
+	fmt.Fprintf(stderr, "Error: %v\n", err)
+}
+
 // classifyAPIError maps API errors to structured exit codes with actionable hints.
 func classifyAPIError(err error, flags *rootFlags) error {
 	msg := err.Error()

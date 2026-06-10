@@ -174,17 +174,8 @@ Highlights (not in the official API docs):
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'linear-pp-cli doctor' to verify auth and connectivity.
 See README.md or the bundled SKILL.md for recipes.`,
-<<<<<<< HEAD
 		SilenceErrors: true,
 		SilenceUsage:  true,
-=======
-		SilenceUsage: true,
-		// Errors are printed by Execute's finalizeError so JSON/agent mode
-		// can emit a machine-parseable envelope instead of cobra's plain
-		// "Error: ..." line (which broke agents piping stdout to a JSON
-		// parser — see MOB-104).
-		SilenceErrors: true,
->>>>>>> 0f8714c01 (feat(linear): add workflow-states lookup and one-command state transitions)
 		Version:       version,
 	}
 	rootCmd.SetVersionTemplate("linear-pp-cli {{ .Version }}\n")
