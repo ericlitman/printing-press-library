@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/cliutil"
@@ -61,19 +60,27 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 				hintIfStale(cmd, db, "issues", flags.maxAge)
 			}
 
-			if jsonOut {
-				enc := json.NewEncoder(os.Stdout)
-				enc.SetIndent("", "  ")
-				return enc.Encode(results)
+			if jsonOut || flags.asJSON || !isTerminal(cmd.OutOrStdout()) {
+				data, err := json.Marshal(results)
+				if err != nil {
+					return err
+				}
+				if flags.selectFields != "" {
+					data = filterFields(data, flags.selectFields)
+				} else if flags.compact {
+					data = compactFields(data)
+				}
+				return printOutput(cmd.OutOrStdout(), data, true)
 			}
 
+			out := cmd.OutOrStdout()
 			if len(results) == 0 {
-				fmt.Printf("No issues matching %q\n", args[0])
+				fmt.Fprintf(out, "No issues matching %q\n", args[0])
 				return nil
 			}
 
-			fmt.Printf("%-12s %-15s %s\n", "ID", "STATE", "TITLE")
-			fmt.Println(strings.Repeat("-", 70))
+			fmt.Fprintf(out, "%-12s %-15s %s\n", "ID", "STATE", "TITLE")
+			fmt.Fprintln(out, strings.Repeat("-", 70))
 			for _, raw := range results {
 				var row struct {
 					Identifier string                `json:"identifier"`
@@ -85,9 +92,9 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 				if len(title) > 45 {
 					title = title[:42] + "..."
 				}
-				fmt.Printf("%-12s %-15s %s\n", row.Identifier, row.State.Name, title)
+				fmt.Fprintf(out, "%-12s %-15s %s\n", row.Identifier, row.State.Name, title)
 			}
-			fmt.Fprintf(os.Stderr, "\n%d results for %q\n", len(results), args[0])
+			fmt.Fprintf(cmd.ErrOrStderr(), "\n%d results for %q\n", len(results), args[0])
 			return nil
 		},
 	}

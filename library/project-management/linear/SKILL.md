@@ -16,7 +16,7 @@ metadata:
 
 ## Prerequisites: Install the CLI
 
-This skill drives the `linear-pp-cli` binary. **You must verify the CLI is installed before invoking any command from this skill.** If it is missing, install it first:
+This skill drives the `linear-pp-cli` binary. **Do not invoke a command named `linear` when this skill is active.** If `linear-pp-cli` is missing, install it first:
 
 1. Install via the Printing Press installer. It defaults binaries to `$HOME/.local/bin` on macOS/Linux and `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows:
    ```bash
@@ -32,6 +32,14 @@ go install github.com/mvanhorn/printing-press-library/library/project-management
 ```
 
 If `--version` reports "command not found" after install, the runtime cannot see the binary directory on `$PATH`. Do not proceed with skill commands until verification succeeds.
+
+## Agent Contract
+
+- Add `--agent` to commands unless a human-readable table is explicitly needed. It implies JSON, compact output, non-interactive mode, no color, and confirmation-safe scripting.
+- Use `--data-source live` for closeout/state/description checks where current truth matters. Use `--data-source local` or `similar` for duplicate search and analytics after `sync`.
+- A missing `description` in compact output does not mean an empty issue body. Request it explicitly: `linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.name,url`.
+- Before passing label UUIDs to `issues create` or `issues edit`, run `linear-pp-cli labels list --team ENG --agent --select id,name,global,team.key`. Use only global labels or labels owned by the target issue team; the CLI preflights label ownership and refuses cross-team labels before mutating.
+- Never pass multiline Markdown, shell snippets, GraphQL, logs, backticks, `$()` expansions, or media-rich content as inline shell arguments. Write the body to a file or stdin and use the `*-file` / `*-stdin` flags below.
 
 ## When to Use This CLI
 
@@ -139,6 +147,61 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
   ```
+- **Team-safe issue labels** — Discover labels that are valid for the target Linear team, including global labels, before creating or editing issues.
+
+  _Reach for this before passing label UUIDs to `issues create` or `issues edit`; Linear rejects labels owned by another team, and the CLI preflights label ownership before mutating._
+
+  ```bash
+  linear-pp-cli labels list --team ENG --agent --select id,name,global,team.key
+  linear-pp-cli issues create --title "Title" --team ENG --label <global-or-eng-label-id> --agent
+  ```
+- **Shell-safe Linear writes with media** — Create and update issue descriptions, comments, and Linear docs without putting Markdown bodies on the shell command line.
+
+  _Reach for this whenever a body contains newlines, quotes, backticks, `$()` expansions, shell commands, images, logs, or agent-generated Markdown._
+
+  ```bash
+  linear-pp-cli issues create --title "Title" --team ENG --description-file /tmp/body.md --media /tmp/screenshot.png --agent
+  linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --agent
+  linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png --agent
+  linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
+  linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md --agent
+  linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  linear-pp-cli documents edit <document-id-or-slug> --content-file /tmp/updated.md --agent
+  ```
+
+  `issues edit --media`, `comments edit --media`, and `documents edit --media` with no body/content flag fetch the existing Markdown live and append uploaded media links. Images become Markdown image embeds; non-images become Markdown links. Add `--media-public` only when the uploaded asset must be reachable outside the Linear workspace.
+- **Current issue reads and comments** — Read full issue bodies and discussion without falling back to stale local state. `comments list` takes the issue positionally (preferred) or via `--issue`.
+
+  ```bash
+  linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.id,state.name,url
+  linear-pp-cli comments list ENG-123 --agent
+  linear-pp-cli comments list --issue ENG-123 --agent --limit 100
+  ```
+- **State transitions** — Move an issue between workflow states without raw SQL, GraphQL, or `api` spelunking. The exact recipe:
+
+  1. List the states for the issue's team: `workflow-states list --team <key>` (alias: `states list`).
+  2. Pick the target by `name` or `type` and copy its `id` UUID.
+  3. Pass that UUID to `issues edit --state`.
+
+  ```bash
+  linear-pp-cli workflow-states list --team ENG --agent --select id,name,type
+  linear-pp-cli issues edit ENG-123 --state <state-uuid> --agent
+  ```
+
+  Or skip the lookup entirely with one-command transitions resolved against the issue's own team:
+
+  ```bash
+  linear-pp-cli issues edit ENG-123 --state-name "In Progress" --agent
+  linear-pp-cli issues edit ENG-123 --state-type started --agent   # usage error if the team has several 'started' states
+  ```
+
+  Do not use `linear-pp-cli api` or `linear-pp-cli sql` for workflow states — `api` only exposes generated REST-shaped interfaces (currently `integrations`), not Linear GraphQL objects.
+- **Linear document reads** — `documents <ref>` accepts every identifier form Linear surfaces: the document UUID, the bare `slugId` (`f7f48ab36080`), the full URL slug (`my-runbook-f7f48ab36080`), or the entire document URL. Copy whichever you have; no slug trimming or parsing shims needed.
+
+  ```bash
+  linear-pp-cli documents my-runbook-f7f48ab36080 --agent --select title,updatedAt,content
+  linear-pp-cli documents "https://linear.app/<org>/document/my-runbook-f7f48ab36080" --agent
+  ```
 
 ## Command Reference
 
@@ -186,6 +249,10 @@ These capabilities aren't available in any other tool for this API.
 **issue-priority-values** — Manage issue-priority-values
 
 - `linear-pp-cli issue-priority-values` — Get a single issuepriorityvalue
+
+**labels** — List Linear issue labels with team ownership
+
+- `linear-pp-cli labels list --team ENG` — List global labels plus labels owned by the target team
 
 **organizations** — Manage organizations
 
@@ -250,6 +317,10 @@ These capabilities aren't available in any other tool for this API.
 **users** — Manage users
 
 - `linear-pp-cli users` — Get a single user
+
+**workflow-states** — List Linear workflow states (alias: `states`)
+
+- `linear-pp-cli workflow-states list --team ENG --agent --select id,name,type` — List a team's states with the UUIDs `issues edit --state` needs
 
 
 ### Finding the right command
@@ -321,6 +392,7 @@ Commands fall into three categories with different data-source semantics. Use `-
 - Default (`--data-source auto`): hits Linear's API, writes the response through to the local store, falls back to the store only on **network error** (DNS/timeout/connection refused). 4xx and 5xx errors propagate — they don't silently use stale data.
 - `--data-source live`: always hit the API; no fallback. Use this when an agent must have current data and would rather fail loudly than serve stale.
 - `--data-source local`: never hit the API. Use this in tight agent loops to conserve Linear's complexity budget (~1500 points/hour on personal keys).
+- Promoted Linear GraphQL reads such as `teams` and `projects get` use POST `/graphql` internally. Do not recreate them as shell-level GET `/graphql` calls; Linear rejects that shape with CSRF/preflight errors.
 
 **Category 2: Snapshot-computational (local-only by necessity)**
 
@@ -331,8 +403,19 @@ Commands fall into three categories with different data-source semantics. Use `-
 
 **Category 3: Mutations**
 
-- `issues create`, `pp-cleanup`
+- `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup`
 - Always hit the API. On success, the HTTP response cache is invalidated AND the new/changed entity is written back to the local store, so a subsequent `issues list --data-source local` sees the mutation without requiring another sync.
+
+**Live-only collaboration reads**
+
+- `comments list`, `documents <id-or-slug>`, `documents list`
+- These read the current Linear API because comments and working-session docs are collaboration surfaces where stale local state is more misleading than helpful.
+
+**Label discovery**
+
+- `labels list --team ENG`
+- Default (`--data-source auto`) reads live and returns global labels plus labels owned by the named team. `--data-source local` reads the synced `issue_labels` table after `linear-pp-cli sync`.
+- Use the returned IDs for `issues create --label` or `issues edit --label`; cross-team label IDs are rejected before the issue mutation is sent.
 
 **The budget-conscious agent loop:**
 
@@ -362,7 +445,13 @@ Every `issues create` records the new ticket in a local `pp_created` table tagge
 
 Add `--agent` to any command. Expands to: `--json --compact --no-input --no-color --yes`.
 
-- **Pipeable** — JSON on stdout, errors on stderr
+- **Pipeable** — JSON on stdout. Failures are JSON too: in `--agent`/`--json` mode every typed error (usage, not-found, auth, API, rate-limit, config) is a one-line envelope on stdout, so piping stdout straight into a JSON parser is always safe:
+
+  ```json
+  {"error":"document \"missing-doc\" not found","code":3,"type":"not_found"}
+  ```
+
+  The process still exits with the typed code from the Exit Codes table; `type` is the machine-readable name for it (`usage`, `not_found`, `auth`, `api`, `partial_failure`, `rate_limit`, `config`). No `2>&1 | python json` defensive wrappers needed on read paths.
 - **Filterable** — `--select` keeps a subset of fields. Dotted paths descend into nested structures; arrays traverse element-wise. Critical for keeping context small on verbose APIs:
 
   ```bash

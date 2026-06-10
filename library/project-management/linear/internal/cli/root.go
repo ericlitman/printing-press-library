@@ -54,6 +54,11 @@ type rootFlags struct {
 	trustMode string
 	ppSession string
 
+	// envelopeEmitted records that a JSON error envelope already went to
+	// stdout mid-command (writeAPIErrorEnvelope), so finalizeError does not
+	// emit a second one for the same failure.
+	envelopeEmitted bool
+
 	// maxAge is the freshness threshold for local-store-backed reads. When
 	// a read returns data older than maxAge, the CLI emits a stderr hint
 	// suggesting `linear-pp-cli sync --incremental`. Default 30 minutes,
@@ -81,13 +86,9 @@ func Execute() error {
 		if idx := strings.Index(msg, "unknown flag: "); idx >= 0 {
 			flagStr := strings.TrimSpace(msg[idx+len("unknown flag: "):])
 			if suggestion := suggestFlag(flagStr, rootCmd); suggestion != "" {
-				// Cobra already printed `Error: unknown flag: --foob` before
-				// returning; the wrap below attaches the hint to err.Error()
-				// for downstream consumers and exit-code classification, but
-				// would never reach stderr now that main.go no longer prints
-				// err. Emit the hint explicitly so the suggestion still
-				// shows up under Cobra's error line.
-				fmt.Fprintf(os.Stderr, "hint: did you mean --%s?\n", suggestion)
+				// SilenceErrors is set, so finalizeError below is the single
+				// printer; wrapping puts the hint on both the human stderr
+				// line and the JSON envelope's "error" field.
 				err = fmt.Errorf("%w\nhint: did you mean --%s?", err, suggestion)
 			}
 		}
@@ -105,8 +106,9 @@ func Execute() error {
 		// runs. Without this wrap, ExitCode() falls through to the
 		// default and emits 1 — clobbering the conventional code-2 for
 		// usage errors that the helpers.go contract already promises.
-		return usageErr(err)
+		err = usageErr(err)
 	}
+	finalizeError(&flags, os.Args[1:], os.Stdout, os.Stderr, err)
 	return err
 }
 
@@ -176,7 +178,12 @@ Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'linear-pp-cli doctor' to verify auth and connectivity.
 See README.md or the bundled SKILL.md for recipes.`,
 		SilenceUsage: true,
-		Version:      version,
+		// Errors are printed by Execute's finalizeError so JSON/agent mode
+		// can emit a machine-parseable envelope instead of cobra's plain
+		// "Error: ..." line (which broke agents piping stdout to a JSON
+		// parser — see MOB-104).
+		SilenceErrors: true,
+		Version:       version,
 	}
 	rootCmd.SetVersionTemplate("linear-pp-cli {{ .Version }}\n")
 
@@ -306,6 +313,10 @@ See README.md or the bundled SKILL.md for recipes.`,
 
 	// v3-ported top-level commands
 	rootCmd.AddCommand(newIssuesCmd(flags))
+	rootCmd.AddCommand(newWorkflowStatesCmd(flags))
+	rootCmd.AddCommand(newCommentsCmd(flags))
+	rootCmd.AddCommand(newDocumentsCmd(flags))
+	rootCmd.AddCommand(newLabelsCmd(flags))
 	rootCmd.AddCommand(newMeCmd(flags))
 	rootCmd.AddCommand(newTodayCmd(flags))
 	rootCmd.AddCommand(newBottleneckCmd(flags))

@@ -81,6 +81,7 @@ Use 'issues list' for filtered listing against the local sqlite store.`,
 
 	cmd.AddCommand(newIssuesListCmd(flags, &dbPath))
 	cmd.AddCommand(newIssuesCreateCmd(flags))
+	cmd.AddCommand(newIssuesEditCmd(flags, &dbPath))
 	return cmd
 }
 
@@ -180,11 +181,15 @@ func runIssuesGet(cmd *cobra.Command, flags *rootFlags, dbPath, identifier strin
 	return classifyAPIError(liveErr, flags)
 }
 
-// fetchIssueLive fetches a single issue by identifier via the Linear GraphQL API.
-// Parses "ESP-1155" into team key "ESP" and number 1155, then filters. This avoids
-// relying on Linear accepting the identifier string in the top-level issue(id:) arg,
-// which behaves inconsistently across workspaces.
+// fetchIssueLive fetches a single issue by UUID or identifier via the Linear
+// GraphQL API. For identifiers it parses "ESP-1155" into team key "ESP" and
+// number 1155, then filters. This avoids relying on Linear accepting the
+// identifier string in the top-level issue(id:) arg, which behaves
+// inconsistently across workspaces.
 func fetchIssueLive(c *client.Client, identifier string) (json.RawMessage, error) {
+	if store.IsUUID(identifier) {
+		return fetchIssueByIDLive(c, identifier)
+	}
 	teamKey, number, ok := parseIssueIdentifier(identifier)
 	if !ok {
 		return nil, fmt.Errorf("invalid issue identifier %q (expected TEAM-NUMBER, e.g. ESP-1155)", identifier)
@@ -193,7 +198,7 @@ func fetchIssueLive(c *client.Client, identifier string) (json.RawMessage, error
 		issues(filter: { team: { key: { eq: $teamKey } }, number: { eq: $number } }, first: 1) {
 			nodes {
 				id identifier title description priority estimate dueDate url updatedAt createdAt
-				state { name type }
+				state { id name type }
 				team { id key name }
 				project { id name }
 				assignee { id name displayName email }
@@ -212,6 +217,57 @@ func fetchIssueLive(c *client.Client, identifier string) (json.RawMessage, error
 		return nil, notFoundErr(fmt.Errorf("issue %q not found", identifier))
 	}
 	return resp.Issues.Nodes[0], nil
+}
+
+func fetchIssueByIDLive(c *client.Client, id string) (json.RawMessage, error) {
+	query := `query($id: String!) {
+		issue(id: $id) {
+			id identifier title description priority estimate dueDate url updatedAt createdAt
+			state { id name type }
+			team { id key name }
+			project { id name }
+			assignee { id name displayName email }
+		}
+	}`
+	var resp struct {
+		Issue json.RawMessage `json:"issue"`
+	}
+	if err := c.QueryInto(query, map[string]any{"id": id}, &resp); err != nil {
+		return nil, err
+	}
+	if len(resp.Issue) == 0 || string(resp.Issue) == "null" {
+		return nil, notFoundErr(fmt.Errorf("issue %q not found", id))
+	}
+	return resp.Issue, nil
+}
+
+func resolveIssueID(c graphqlQueryer, identifier string) (string, error) {
+	if store.IsUUID(identifier) {
+		return identifier, nil
+	}
+	teamKey, number, ok := parseIssueIdentifier(identifier)
+	if !ok {
+		return "", fmt.Errorf("invalid issue identifier %q (expected TEAM-NUMBER, e.g. ESP-1155)", identifier)
+	}
+	query := `query($teamKey: String!, $number: Float!) {
+		issues(filter: { team: { key: { eq: $teamKey } }, number: { eq: $number } }, first: 1) {
+			nodes { id }
+		}
+	}`
+	var resp struct {
+		Issues struct {
+			Nodes []struct {
+				ID string `json:"id"`
+			} `json:"nodes"`
+		} `json:"issues"`
+	}
+	if err := c.QueryInto(query, map[string]any{"teamKey": teamKey, "number": number}, &resp); err != nil {
+		return "", err
+	}
+	if len(resp.Issues.Nodes) == 0 || resp.Issues.Nodes[0].ID == "" {
+		return "", notFoundErr(fmt.Errorf("issue %q not found", identifier))
+	}
+	return resp.Issues.Nodes[0].ID, nil
 }
 
 func parseIssueIdentifier(identifier string) (string, float64, bool) {
@@ -493,11 +549,10 @@ func resolveProjectFilter(db *store.Store, input string) (string, error) {
 func renderIssue(cmd *cobra.Command, flags *rootFlags, data json.RawMessage, prov DataProvenance) error {
 	printProvenance(cmd, 1, prov)
 	if flags.asJSON || !isTerminal(cmd.OutOrStdout()) {
-		if flags.compact {
-			data = compactFields(data)
-		}
 		if flags.selectFields != "" {
 			data = filterFields(data, flags.selectFields)
+		} else if flags.compact {
+			data = compactFields(data)
 		}
 		wrapped, err := wrapWithProvenance(data, prov)
 		if err != nil {
