@@ -74,18 +74,12 @@ func resolveLinearPromotedGraphQLRead(c *client.Client, resourceType string, par
 	case id != "":
 		return nil, fmt.Errorf("promoted Linear GraphQL read %q does not support lookup by id", resourceType)
 	case spec.Connection != "":
-		query := fmt.Sprintf(`query($first: Int!) { %s(first: $first) { nodes { %s } pageInfo { hasNextPage endCursor } } }`, spec.Connection, spec.Selection)
-		data, err := queryPromotedGraphQLField(c, query, map[string]any{"first": 100}, spec.Connection)
+		query := fmt.Sprintf(`query($first: Int!, $after: String) { %s(first: $first, after: $after) { nodes { %s } pageInfo { hasNextPage endCursor } } }`, spec.Connection, spec.Selection)
+		nodes, err := c.PaginatedQuery(query, nil, spec.Connection, 100)
 		if err != nil {
 			return nil, err
 		}
-		var conn struct {
-			Nodes []json.RawMessage `json:"nodes"`
-		}
-		if err := json.Unmarshal(data, &conn); err != nil {
-			return nil, fmt.Errorf("parsing %s connection: %w", spec.Connection, err)
-		}
-		return json.Marshal(conn.Nodes)
+		return json.Marshal(nodes)
 	case spec.List != "":
 		query := fmt.Sprintf(`query { %s { %s } }`, spec.List, spec.Selection)
 		return queryPromotedGraphQLField(c, query, nil, spec.List)
