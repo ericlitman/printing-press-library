@@ -181,6 +181,165 @@ func TestCommentsListKeepsBodiesInAgentMode(t *testing.T) {
 	}
 }
 
+func TestPromotedGraphQLReadsUsePost(t *testing.T) {
+	var seen []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = append(seen, r.Method+" "+r.URL.Path)
+		if r.Method != http.MethodPost {
+			http.Error(w, "GraphQL must use POST", http.StatusBadRequest)
+			return
+		}
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "teams(first"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-1","key":"SYMPH","name":"Symphony","description":"Team","createdAt":"2026-06-10T00:00:00Z","updatedAt":"2026-06-10T00:00:00Z"}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "project(id:"):
+			fmt.Fprint(w, `{"data":{"project":{"id":"project-1","name":"Pipeline","state":"backlog","description":"Reserved","teams":{"nodes":[{"id":"team-1","key":"SYMPH","name":"Symphony"}]}}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("teams", "--agent", "--data-source", "live", "--select", "id,key,name")
+	if err != nil {
+		t.Fatalf("teams failed: %v\n%s", err, out)
+	}
+	if !strings.Contains(out, "SYMPH") {
+		t.Fatalf("teams output missing result: %s", out)
+	}
+
+	out, err = executeRootForTest("projects", "get", "project-1", "--agent", "--data-source", "live", "--select", "id,name,state")
+	if err != nil {
+		t.Fatalf("projects get failed: %v\n%s", err, out)
+	}
+	if !strings.Contains(out, "Pipeline") {
+		t.Fatalf("projects output missing result: %s", out)
+	}
+	for _, methodPath := range seen {
+		if methodPath != "POST /graphql" {
+			t.Fatalf("saw %s, want only POST /graphql", methodPath)
+		}
+	}
+}
+
+func TestLabelsListFiltersTeamAndGlobal(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "issueLabels") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"global","name":"source:user-report","color":"#111","team":null},{"id":"symph","name":"pipeline-halt","color":"#222","team":{"id":"team-symph","key":"SYMPH","name":"Symphony"}},{"id":"hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("labels", "list", "--team", "SYMPH", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("labels list failed: %v\n%s", err, out)
+	}
+	if !strings.Contains(out, "pipeline-halt") || !strings.Contains(out, "source:user-report") {
+		t.Fatalf("labels list omitted safe labels: %s", out)
+	}
+	if strings.Contains(out, "area:protocols") {
+		t.Fatalf("labels list included another team's label: %s", out)
+	}
+}
+
+func TestLabelsListUsesLocalIssueLabelTable(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatalf("open store: %v", err)
+	}
+	if err := db.UpsertIssueLabel("global", json.RawMessage(`{"id":"global","name":"source:user-report","color":"#111","team":null}`)); err != nil {
+		t.Fatalf("upsert global label: %v", err)
+	}
+	if err := db.UpsertIssueLabel("symph", json.RawMessage(`{"id":"symph","name":"pipeline-halt","color":"#222","team":{"id":"team-symph","key":"SYMPH","name":"Symphony"}}`)); err != nil {
+		t.Fatalf("upsert symph label: %v", err)
+	}
+	if err := db.UpsertIssueLabel("hsui", json.RawMessage(`{"id":"hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}`)); err != nil {
+		t.Fatalf("upsert hsui label: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close store: %v", err)
+	}
+
+	out, err := executeRootForTest("labels", "list", "--team", "SYMPH", "--agent", "--data-source", "local", "--db", dbPath, "--select", "name,team.key")
+	if err != nil {
+		t.Fatalf("labels list local failed: %v\n%s", err, out)
+	}
+	if !strings.Contains(out, `"source:user-report"`) || !strings.Contains(out, `"pipeline-halt"`) {
+		t.Fatalf("local labels omitted safe labels: %s", out)
+	}
+	if strings.Contains(out, "area:protocols") {
+		t.Fatalf("local labels included another team's label: %s", out)
+	}
+	var envelope struct {
+		Meta struct {
+			Source string `json:"source"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("local labels output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Meta.Source != "local" {
+		t.Fatalf("local labels source = %q, want local: %s", envelope.Meta.Source, out)
+	}
+}
+
+func TestIssueCreateRejectsCrossTeamLabelBeforeMutation(t *testing.T) {
+	createCalled := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "issueLabel(id:"):
+			fmt.Fprint(w, `{"data":{"issueLabel":{"id":"label-hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}}}`)
+		case strings.Contains(req.Query, "issueCreate"):
+			createCalled = true
+			http.Error(w, "issueCreate should not be called", http.StatusInternalServerError)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--team", "SYMPH", "--title", "Bad label", "--label", "label-hsui", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("issues create succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	if createCalled {
+		t.Fatalf("issueCreate mutation was called despite cross-team label")
+	}
+}
+
 func TestLiveReadCommandsClassifyAPIErrors(t *testing.T) {
 	tests := []struct {
 		name       string

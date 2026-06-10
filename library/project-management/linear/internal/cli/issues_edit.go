@@ -34,6 +34,9 @@ description is fetched live and the uploaded media links are appended.`,
 				return err
 			}
 			input := map[string]any{}
+			var issueID string
+			var issueTeam issueTeamInfo
+			var issueMetaLoaded bool
 			if cmd.Flags().Changed("title") {
 				input["title"] = titleFlag
 			}
@@ -65,8 +68,7 @@ description is fetched live and the uploaded media links are appended.`,
 			if err != nil {
 				return err
 			}
-			var issueID string
-			if len(mediaFlag) > 0 && !descSet {
+			if (len(mediaFlag) > 0 && !descSet) || len(labelsFlag) > 0 {
 				existing, err := fetchIssueLive(c, args[0])
 				if err != nil {
 					return classifyLiveReadError(err, flags)
@@ -74,20 +76,36 @@ description is fetched live and the uploaded media links are appended.`,
 				var issue struct {
 					ID          string `json:"id"`
 					Description string `json:"description"`
+					Team        struct {
+						ID  string `json:"id"`
+						Key string `json:"key"`
+					} `json:"team"`
 				}
 				if err := json.Unmarshal(existing, &issue); err != nil {
-					return fmt.Errorf("parsing existing issue description: %w", err)
+					return fmt.Errorf("parsing existing issue: %w", err)
 				}
 				if issue.ID == "" {
 					return fmt.Errorf("issue %q did not include an id", args[0])
 				}
 				issueID = issue.ID
-				descBody = issue.Description
-				descSet = true
+				issueTeam = issueTeamInfo{ID: issue.Team.ID, Key: issue.Team.Key}
+				issueMetaLoaded = true
+				if len(mediaFlag) > 0 && !descSet {
+					descBody = issue.Description
+					descSet = true
+				}
 			} else {
 				var err error
 				issueID, err = resolveIssueID(c, args[0])
 				if err != nil {
+					return classifyLiveReadError(err, flags)
+				}
+			}
+			if len(labelsFlag) > 0 {
+				if !issueMetaLoaded {
+					return fmt.Errorf("internal error: label validation requires issue metadata")
+				}
+				if err := validateIssueLabelTeams(c, labelsFlag, issueTeam); err != nil {
 					return classifyLiveReadError(err, flags)
 				}
 			}

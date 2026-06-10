@@ -82,13 +82,25 @@ tickets in the workspace.`,
 
 			// Resolve team key/name to UUID via the local store if possible.
 			teamID := teamFlag
+			teamInfo := issueTeamInfo{}
+			if store.IsUUID(teamFlag) {
+				teamInfo.ID = teamFlag
+			} else {
+				teamInfo.Key = teamFlag
+			}
 			if dbPath == "" {
 				dbPath = defaultDBPath("linear-pp-cli")
 			}
 			if db, dbErr := store.Open(dbPath); dbErr == nil {
 				defer db.Close()
-				if resolved, ok := resolveTeamID(db, teamFlag); ok {
-					teamID = resolved
+				if resolved, ok := resolveTeam(db, teamFlag); ok {
+					teamID = resolved.ID
+					teamInfo = resolved
+				}
+			}
+			if len(labelsFlag) > 0 && !flags.dryRun {
+				if err := validateIssueLabelTeams(c, labelsFlag, teamInfo); err != nil {
+					return classifyLiveReadError(err, flags)
 				}
 			}
 
@@ -288,9 +300,14 @@ tickets in the workspace.`,
 // case the caller passes through the user's input unchanged (it may already
 // be a UUID).
 func resolveTeamID(db *store.Store, keyOrID string) (string, bool) {
+	team, ok := resolveTeam(db, keyOrID)
+	return team.ID, ok
+}
+
+func resolveTeam(db *store.Store, keyOrID string) (issueTeamInfo, bool) {
 	teams, err := db.ListTeams()
 	if err != nil {
-		return "", false
+		return issueTeamInfo{}, false
 	}
 	for _, raw := range teams {
 		var t struct {
@@ -301,8 +318,8 @@ func resolveTeamID(db *store.Store, keyOrID string) (string, bool) {
 			continue
 		}
 		if t.Key == keyOrID || t.ID == keyOrID {
-			return t.ID, true
+			return issueTeamInfo{ID: t.ID, Key: t.Key}, true
 		}
 	}
-	return "", false
+	return issueTeamInfo{}, false
 }
