@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -539,8 +540,15 @@ func TestMutationFailureAfterMediaUploadReportsAssetURL(t *testing.T) {
 	if got := ExitCode(err); got != 5 {
 		t.Fatalf("ExitCode() = %d, want 5; err=%v\n%s", got, err, out)
 	}
-	if !strings.Contains(err.Error(), assetURL) || !strings.Contains(out, assetURL) {
+	if !strings.Contains(err.Error(), assetURL) {
 		t.Fatalf("uploaded asset URL was not surfaced; err=%v\n%s", err, out)
+	}
+	// SilenceErrors moved error printing from cobra to finalizeError; assert
+	// the agent-mode envelope still carries the asset URL to the user.
+	var envelope bytes.Buffer
+	finalizeError(&rootFlags{agent: true, asJSON: true}, nil, &envelope, io.Discard, err)
+	if !strings.Contains(envelope.String(), assetURL) {
+		t.Fatalf("agent error envelope dropped the asset URL: %s", envelope.String())
 	}
 }
 
