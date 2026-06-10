@@ -152,14 +152,15 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			input = map[string]any{"title": title}
+			if err := applyDocumentParents(c, input, issue, project, team, initiative, cycle, release, folder); err != nil {
+				return classifyLiveReadError(err, flags)
+			}
 			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
 			if err != nil {
 				return mediaUploadFailure(err, uploaded)
 			}
-			input = map[string]any{"title": title, "content": body}
-			if err := applyDocumentParents(c, input, issue, project, team, initiative, cycle, release, folder); err != nil {
-				return classifyLiveReadError(err, flags)
-			}
+			input["content"] = body
 			const mutation = `mutation($input: DocumentCreateInput!) {
 				documentCreate(input: $input) {
 					success
@@ -259,19 +260,19 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 				body = doc.Content
 				bodySet = true
 			}
-			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
-			if err != nil {
-				return mediaUploadFailure(err, uploaded)
-			}
 			input = map[string]any{}
 			if cmd.Flags().Changed("title") {
 				input["title"] = title
 			}
-			if bodySet {
-				input["content"] = body
-			}
 			if err := applyDocumentParents(c, input, issue, project, team, initiative, cycle, release, folder); err != nil {
 				return classifyLiveReadError(err, flags)
+			}
+			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
+			if err != nil {
+				return mediaUploadFailure(err, uploaded)
+			}
+			if bodySet {
+				input["content"] = body
 			}
 			if len(input) == 0 {
 				return usageErr(fmt.Errorf("no document fields supplied; pass --title, --content-file, --content-stdin, --content, --media, or a parent flag"))
