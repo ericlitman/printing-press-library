@@ -183,6 +183,7 @@ func TestCommentsListKeepsBodiesInAgentMode(t *testing.T) {
 
 func TestPromotedGraphQLReadsUsePost(t *testing.T) {
 	var seen []string
+	var teamsAfter []string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seen = append(seen, r.Method+" "+r.URL.Path)
 		if r.Method != http.MethodPost {
@@ -197,7 +198,18 @@ func TestPromotedGraphQLReadsUsePost(t *testing.T) {
 		}
 		switch {
 		case strings.Contains(req.Query, "teams(first"):
-			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-1","key":"SYMPH","name":"Symphony","description":"Team","createdAt":"2026-06-10T00:00:00Z","updatedAt":"2026-06-10T00:00:00Z"}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+			after, _ := req.Variables["after"].(string)
+			teamsAfter = append(teamsAfter, after)
+			if after == "" {
+				fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-1","key":"SYMPH","name":"Symphony","description":"Team","createdAt":"2026-06-10T00:00:00Z","updatedAt":"2026-06-10T00:00:00Z"}],"pageInfo":{"hasNextPage":true,"endCursor":"cursor-1"}}}}`)
+				return
+			}
+			if after != "cursor-1" {
+				t.Errorf("teams after cursor = %q, want cursor-1", after)
+				http.Error(w, "unexpected cursor", http.StatusBadRequest)
+				return
+			}
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-2","key":"MOB","name":"Mobilyze","description":"Team","createdAt":"2026-06-10T00:00:00Z","updatedAt":"2026-06-10T00:00:00Z"}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
 		case strings.Contains(req.Query, "project(id:"):
 			fmt.Fprint(w, `{"data":{"project":{"id":"project-1","name":"Pipeline","state":"backlog","description":"Reserved","teams":{"nodes":[{"id":"team-1","key":"SYMPH","name":"Symphony"}]}}}}`)
 		default:
@@ -215,6 +227,12 @@ func TestPromotedGraphQLReadsUsePost(t *testing.T) {
 	}
 	if !strings.Contains(out, "SYMPH") {
 		t.Fatalf("teams output missing result: %s", out)
+	}
+	if !strings.Contains(out, "MOB") {
+		t.Fatalf("teams output missing paginated result: %s", out)
+	}
+	if strings.Join(teamsAfter, ",") != ",cursor-1" {
+		t.Fatalf("teams cursors = %q, want first page then cursor-1", teamsAfter)
 	}
 
 	out, err = executeRootForTest("projects", "get", "project-1", "--agent", "--data-source", "live", "--select", "id,name,state")
