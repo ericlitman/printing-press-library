@@ -24,13 +24,22 @@ func newCommentsListCmd(flags *rootFlags) *cobra.Command {
 	var issue string
 	var limit int
 	cmd := &cobra.Command{
-		Use:   "list",
+		Use:   "list [issue]",
 		Short: "List comments on an issue",
-		Example: `  linear-pp-cli comments list --issue ENG-123 --agent
+		Long: `List comments on an issue. The issue accepts an identifier (ENG-123) or UUID,
+positionally or via --issue; the positional form is the preferred agent shape.`,
+		Example: `  linear-pp-cli comments list ENG-123 --agent
   linear-pp-cli comments list --issue ENG-123 --limit 100 --select comments.id,comments.body`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 1 {
+				if issue != "" && issue != args[0] {
+					return usageErr(fmt.Errorf("conflicting issue references: positional %q vs --issue %q; pass just one", args[0], issue))
+				}
+				issue = args[0]
+			}
 			if issue == "" {
-				return usageErr(fmt.Errorf("--issue is required"))
+				return usageErr(fmt.Errorf("issue is required; pass it positionally (comments list ENG-123) or via --issue"))
 			}
 			c, err := flags.newClient()
 			if err != nil {

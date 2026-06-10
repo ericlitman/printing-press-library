@@ -3,6 +3,9 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"path"
+	"strings"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 
@@ -11,8 +14,17 @@ import (
 
 func newDocumentsCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:         "documents [document-id-or-slug]",
-		Short:       "View, list, create, and edit Linear documents",
+		Use:   "documents [document-ref]",
+		Short: "View, list, create, and edit Linear documents",
+		Long: `View a Linear document, or manage documents with the subcommands.
+
+The positional document reference accepts every form Linear surfaces:
+  - document UUID:  4a09c2e6-3a25-4cb8-ab63-9c9f6754b24e
+  - bare slugId:    f7f48ab36080
+  - full URL slug:  my-runbook-f7f48ab36080
+  - document URL:   https://linear.app/<org>/document/my-runbook-f7f48ab36080`,
+		Example: `  linear-pp-cli documents my-runbook-f7f48ab36080 --agent --select title,updatedAt,content
+  linear-pp-cli documents f7f48ab36080 --agent`,
 		Annotations: map[string]string{"pp:typed-exit-codes": "0,2,3,4,5,7"},
 		Args:        cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -356,7 +368,39 @@ func applyDocumentParentInputs(input map[string]any, issue, project, team, initi
 	}
 }
 
-func fetchDocumentLive(c graphqlQueryer, idOrSlug string) (json.RawMessage, error) {
+// normalizeDocumentRef maps the document references humans and Linear surface
+// to the identifier shapes the GraphQL lookup accepts. Accepted inputs:
+//
+//   - UUID document id (passed through)
+//   - bare slugId, e.g. "f7f48ab36080" (passed through)
+//   - full URL slug, e.g. "symphony-pipeline-restart-runbook-f7f48ab36080"
+//     (trailing slugId segment extracted)
+//   - full Linear document URL, e.g.
+//     "https://linear.app/<org>/document/<title-slug>-<slugId>"
+//     (path tail extracted, then the trailing slugId segment)
+//
+// Linear's documents(filter: {slugId: ...}) only matches the bare slugId, so
+// title-slug and URL forms must be reduced to the segment after the last "-".
+func normalizeDocumentRef(ref string) string {
+	ref = strings.TrimSpace(ref)
+	if store.IsUUID(ref) {
+		return ref
+	}
+	// Full URL: keep the last path segment, dropping any query/fragment.
+	if strings.HasPrefix(ref, "http://") || strings.HasPrefix(ref, "https://") {
+		if u, err := url.Parse(ref); err == nil {
+			ref = path.Base(u.Path)
+		}
+	}
+	// Title-slug + slugId: the slugId is the segment after the last hyphen.
+	if idx := strings.LastIndex(ref, "-"); idx >= 0 && idx < len(ref)-1 {
+		ref = ref[idx+1:]
+	}
+	return ref
+}
+
+func fetchDocumentLive(c graphqlQueryer, ref string) (json.RawMessage, error) {
+	idOrSlug := normalizeDocumentRef(ref)
 	if store.IsUUID(idOrSlug) {
 		const byID = `query($id: String!) {
 		document(id: $id) {
@@ -374,7 +418,7 @@ func fetchDocumentLive(c graphqlQueryer, idOrSlug string) (json.RawMessage, erro
 			return nil, err
 		}
 		if len(resp.Document) == 0 || string(resp.Document) == "null" {
-			return nil, notFoundErr(fmt.Errorf("document %q not found", idOrSlug))
+			return nil, notFoundErr(fmt.Errorf("document %q not found", ref))
 		}
 		return resp.Document, nil
 	}
@@ -398,7 +442,7 @@ func fetchDocumentLive(c graphqlQueryer, idOrSlug string) (json.RawMessage, erro
 		return nil, err
 	}
 	if len(slugResp.Documents.Nodes) == 0 {
-		return nil, notFoundErr(fmt.Errorf("document %q not found", idOrSlug))
+		return nil, notFoundErr(fmt.Errorf("document %q not found (looked up slugId %q); pass a document UUID, bare slugId, full URL slug, or the document URL", ref, idOrSlug))
 	}
 	return slugResp.Documents.Nodes[0], nil
 }
