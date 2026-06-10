@@ -82,13 +82,9 @@ func Execute() error {
 		if idx := strings.Index(msg, "unknown flag: "); idx >= 0 {
 			flagStr := strings.TrimSpace(msg[idx+len("unknown flag: "):])
 			if suggestion := suggestFlag(flagStr, rootCmd); suggestion != "" {
-				// Cobra already printed `Error: unknown flag: --foob` before
-				// returning; the wrap below attaches the hint to err.Error()
-				// for downstream consumers and exit-code classification, but
-				// would never reach stderr now that main.go no longer prints
-				// err. Emit the hint explicitly so the suggestion still
-				// shows up under Cobra's error line.
-				fmt.Fprintf(os.Stderr, "hint: did you mean --%s?\n", suggestion)
+				// SilenceErrors is set, so finalizeError below is the single
+				// printer; wrapping puts the hint on both the human stderr
+				// line and the JSON envelope's "error" field.
 				err = fmt.Errorf("%w\nhint: did you mean --%s?", err, suggestion)
 			}
 		}
@@ -108,13 +104,7 @@ func Execute() error {
 		// usage errors that the helpers.go contract already promises.
 		err = usageErr(err)
 	}
-	if err != nil {
-		if flags.asJSON && !flags.errorWritten {
-			writeCLIErrorEnvelope(&flags, err, ExitCode(err))
-		} else if !flags.asJSON {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		}
-	}
+	finalizeError(&flags, os.Args[1:], os.Stdout, os.Stderr, err)
 	return err
 }
 
@@ -184,8 +174,17 @@ Highlights (not in the official API docs):
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'linear-pp-cli doctor' to verify auth and connectivity.
 See README.md or the bundled SKILL.md for recipes.`,
+<<<<<<< HEAD
 		SilenceErrors: true,
 		SilenceUsage:  true,
+=======
+		SilenceUsage: true,
+		// Errors are printed by Execute's finalizeError so JSON/agent mode
+		// can emit a machine-parseable envelope instead of cobra's plain
+		// "Error: ..." line (which broke agents piping stdout to a JSON
+		// parser — see MOB-104).
+		SilenceErrors: true,
+>>>>>>> 0f8714c01 (feat(linear): add workflow-states lookup and one-command state transitions)
 		Version:       version,
 	}
 	rootCmd.SetVersionTemplate("linear-pp-cli {{ .Version }}\n")
@@ -316,6 +315,7 @@ See README.md or the bundled SKILL.md for recipes.`,
 
 	// v3-ported top-level commands
 	rootCmd.AddCommand(newIssuesCmd(flags))
+	rootCmd.AddCommand(newWorkflowStatesCmd(flags))
 	rootCmd.AddCommand(newCommentsCmd(flags))
 	rootCmd.AddCommand(newDocumentsCmd(flags))
 	rootCmd.AddCommand(newLabelsCmd(flags))

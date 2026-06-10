@@ -204,7 +204,7 @@ func fetchIssueLive(c *client.Client, identifier string) (json.RawMessage, error
 		issues(filter: { team: { key: { eq: $teamKey } }, number: { eq: $number } }, first: 1) {
 			nodes {
 				id identifier title description priority estimate dueDate url updatedAt createdAt
-				state { name type }
+				state { id name type }
 				team { id key name }
 				project { id name }
 				assignee { id name displayName email }
