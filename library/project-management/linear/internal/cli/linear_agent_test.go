@@ -480,6 +480,59 @@ func TestIssuesEditDryRunWithLabelsDoesNotCallAPI(t *testing.T) {
 	}
 }
 
+func TestIssuesCreateDryRunWithMediaDoesNotCallAPI(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		http.Error(w, "dry-run should not call API", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--title", "Dry run", "--team", "MOB", "--media", "/tmp/nonexistent-dry-run.png", "--dry-run", "--agent")
+	if err != nil {
+		t.Fatalf("issues create dry-run failed: %v\n%s", err, out)
+	}
+	if calls != 0 {
+		t.Fatalf("dry-run made %d API calls; output:\n%s", calls, out)
+	}
+	if !strings.Contains(out, "would_create_issue") || !strings.Contains(out, "/tmp/nonexistent-dry-run.png") {
+		t.Fatalf("dry-run output missing preview details: %s", out)
+	}
+}
+
+func TestIssuesCreateValidatesLabelsBeforeUploadingMedia(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "issueLabel") {
+			t.Errorf("unexpected query before media upload: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		fmt.Fprint(w, `{"data":{"issueLabel":{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--title", "Bad label", "--team", "MOB", "--label", "label-1", "--media", "/tmp/nonexistent-dry-run.png", "--agent")
+	if err == nil {
+		t.Fatalf("issues create succeeded unexpectedly:\n%s", out)
+	}
+	if !strings.Contains(err.Error(), "belongs to team HSUI") && !strings.Contains(out, "belongs to team HSUI") {
+		t.Fatalf("error did not come from label validation before media upload: err=%v\n%s", err, out)
+	}
+	if strings.Contains(err.Error(), "nonexistent-dry-run.png") || strings.Contains(out, "nonexistent-dry-run.png") {
+		t.Fatalf("media path was touched before label validation: err=%v\n%s", err, out)
+	}
+}
+
 func TestCommentsAndDocumentsDryRunDoNotCallAPI(t *testing.T) {
 	tests := []struct {
 		name      string

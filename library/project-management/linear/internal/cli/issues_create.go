@@ -56,10 +56,6 @@ tickets in the workspace.`,
 				}
 			}
 
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
 			descBody, descSet, err := readMarkdownBody(cmd, markdownBodySpec{
 				InlineFlag: "description",
 				Inline:     descFlag,
@@ -71,13 +67,6 @@ tickets in the workspace.`,
 			})
 			if err != nil {
 				return err
-			}
-			descBody, uploaded, err := uploadMediaAndAppend(c, descBody, mediaFlag, mediaPublic)
-			if err != nil {
-				return mediaUploadFailure(err, uploaded)
-			}
-			if len(mediaFlag) > 0 {
-				descSet = true
 			}
 
 			// Resolve team key/name to UUID via the local store if possible.
@@ -96,11 +85,6 @@ tickets in the workspace.`,
 				if resolved, ok := resolveTeam(db, teamFlag); ok {
 					teamID = resolved.ID
 					teamInfo = resolved
-				}
-			}
-			if len(labelsFlag) > 0 && !flags.dryRun {
-				if err := validateIssueLabelTeams(c, labelsFlag, teamInfo); err != nil {
-					return classifyLiveReadError(err, flags)
 				}
 			}
 
@@ -126,6 +110,31 @@ tickets in the workspace.`,
 			if len(labelsFlag) > 0 {
 				input["labelIds"] = labelsFlag
 			}
+			if flags.dryRun {
+				out := map[string]any{"input": input}
+				if len(mediaFlag) > 0 {
+					out["media"] = mediaFlag
+					out["media_public"] = mediaPublic
+				}
+				return renderMutationDryRun(cmd, flags, "would_create_issue", "issueCreate", out)
+			}
+
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			if len(labelsFlag) > 0 {
+				if err := validateIssueLabelTeams(c, labelsFlag, teamInfo); err != nil {
+					return classifyLiveReadError(err, flags)
+				}
+			}
+			descBody, uploaded, err := uploadMediaAndAppend(c, descBody, mediaFlag, mediaPublic)
+			if err != nil {
+				return mediaUploadFailure(err, uploaded)
+			}
+			if len(mediaFlag) > 0 {
+				input["description"] = descBody
+			}
 
 			const mutation = `mutation CreateIssue($input: IssueCreateInput!) {
 				issueCreate(input: $input) {
@@ -139,21 +148,6 @@ tickets in the workspace.`,
 					}
 				}
 			}`
-
-			if flags.dryRun {
-				out := map[string]any{
-					"event":    "would_create_issue",
-					"mutation": "issueCreate",
-					"input":    input,
-				}
-				if flags.asJSON {
-					enc := json.NewEncoder(os.Stdout)
-					enc.SetIndent("", "  ")
-					return enc.Encode(out)
-				}
-				fmt.Printf("Would create issue: title=%q team=%s\n", titleFlag, teamID)
-				return nil
-			}
 
 			resp, err := c.Mutate(mutation, map[string]any{"input": input})
 			if err != nil {
