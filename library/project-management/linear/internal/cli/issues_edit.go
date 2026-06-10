@@ -68,6 +68,31 @@ description is fetched live and the uploaded media links are appended.`,
 			if err != nil {
 				return err
 			}
+			if descSet {
+				input["description"] = descBody
+			}
+			if len(input) == 0 && len(mediaFlag) == 0 {
+				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --project, --assignee, --priority, or --label"))
+			}
+			if flags.dryRun {
+				out := map[string]any{
+					"event":    "would_update_issue",
+					"mutation": "issueUpdate",
+					"issue":    args[0],
+					"input":    input,
+				}
+				if len(mediaFlag) > 0 {
+					out["media"] = mediaFlag
+					out["media_public"] = mediaPublic
+				}
+				if flags.asJSON {
+					enc := json.NewEncoder(cmd.OutOrStdout())
+					enc.SetIndent("", "  ")
+					return enc.Encode(out)
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "Would update issue: issue=%s\n", args[0])
+				return nil
+			}
 			if (len(mediaFlag) > 0 && !descSet) || len(labelsFlag) > 0 {
 				existing, err := fetchIssueLive(c, args[0])
 				if err != nil {
@@ -115,9 +140,6 @@ description is fetched live and the uploaded media links are appended.`,
 			}
 			if descSet {
 				input["description"] = descBody
-			}
-			if len(input) == 0 {
-				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --project, --assignee, --priority, or --label"))
 			}
 
 			const mutation = `mutation($id: String!, $input: IssueUpdateInput!) {

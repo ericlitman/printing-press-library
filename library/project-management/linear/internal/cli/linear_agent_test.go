@@ -458,6 +458,28 @@ func TestWriteCommandsClassifyResolverAPIErrors(t *testing.T) {
 	}
 }
 
+func TestIssuesEditDryRunWithLabelsDoesNotCallAPI(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		http.Error(w, "dry-run should not call API", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "edit", "MOB-99", "--label", "label-1", "--dry-run", "--agent")
+	if err != nil {
+		t.Fatalf("issues edit dry-run failed: %v\n%s", err, out)
+	}
+	if calls != 0 {
+		t.Fatalf("dry-run made %d API calls; output:\n%s", calls, out)
+	}
+	if !strings.Contains(out, "would_update_issue") || !strings.Contains(out, "label-1") {
+		t.Fatalf("dry-run output missing preview details: %s", out)
+	}
+}
+
 func TestIssuesEditPriorityZeroIsSent(t *testing.T) {
 	var seenInput map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
