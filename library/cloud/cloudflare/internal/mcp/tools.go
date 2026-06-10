@@ -839,7 +839,7 @@ func toolResultJSON(v any) (*mcplib.CallToolResult, error) {
 func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 	ctx := map[string]any{
 		"api":         "cloudflare",
-		"description": "Welcome to Cloudflare's API documentation site.",
+		"description": "Cloudflare operations across accounts, zones, DNS, Workers, Pages, R2, tunnels, Zero Trust, and agent infrastructure.",
 		"archetype":   "content",
 		"tool_count":  3106,
 		// tool_surface tells agents which surface a capability lives on.

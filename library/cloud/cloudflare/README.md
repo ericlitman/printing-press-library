@@ -1,19 +1,10 @@
 # Cloudflare CLI
 
-Welcome to Cloudflare's API documentation site. We are experimenting with an updated version of our API documentation - check out [developers.cloudflare.com/api-next/](https://developers.cloudflare.com/api-next/) to test out the new experience.
+`cloudflare-pp-cli` is an agent-ready command-line interface for the Cloudflare v4 API. It turns Cloudflare's large API surface into scriptable, discoverable commands for accounts, zones, DNS, Workers, Pages, R2, Email Routing, tunnels, Zero Trust, Radar, and billing-adjacent operations.
 
-To get started using Cloudflare's products and services via the API, refer to [how to interact with Cloudflare](https://developers.cloudflare.com/fundamentals/basic-tasks/interact-with-cloudflare/), which covers using tools like [Terraform](https://developers.cloudflare.com/terraform/#cloudflare-terraform) and the [official SDKs](https://developers.cloudflare.com/fundamentals/api/reference/sdks/) to maintain your Cloudflare resources.
+Use it when an agent or operator needs to inspect or change Cloudflare resources without dashboard spelunking: diagnose a zone, verify token permissions, connect a domain, deploy or roll back a Pages/Workers project, manage Worker secrets, or bootstrap agent infrastructure with R2, D1, KV, Queues, Vectorize, and AI Gateway.
 
-Using the Cloudflare API requires authentication so that Cloudflare knows who is making requests and what permissions you have. Create an API token to grant access to the API to perform actions. You can also authenticate with [API keys](https://developers.cloudflare.com/fundamentals/api/get-started/keys/), but these keys have [several limitations](https://developers.cloudflare.com/fundamentals/api/get-started/keys/#limitations) that make them less secure than API tokens. Whenever possible, use API tokens to interact with the Cloudflare API.
-
-To create an API token, from the Cloudflare dashboard, go to My Profile > API Tokens and select Create Token. For more information on how to create and troubleshoot API tokens, refer to
-our [API fundamentals](https://developers.cloudflare.com/fundamentals/api/).
-
-For information regarding rate limits, refer to our [API Rate Limits](https://developers.cloudflare.com/cloudflare-for-platforms/workers-for-platforms/platform/limits/#api-rate-limits).
-
-Totally new to Cloudflare? [Start here](https://developers.cloudflare.com/fundamentals/get-started/).
-
-Learn more at [Cloudflare](https://developers.cloudflare.com/radar/).
+Authentication is token-first. Create a scoped API token from the [Cloudflare dashboard](https://dash.cloudflare.com/profile/api-tokens) and expose it as `CLOUDFLARE_API_TOKEN`, or store it with `cloudflare-pp-cli auth set-token`. Prefer narrow tokens for day-to-day workflows; use the built-in token recipe and doctor commands to work out which permissions a workflow actually needs.
 
 ## Install
 

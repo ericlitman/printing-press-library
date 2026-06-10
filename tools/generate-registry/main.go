@@ -504,6 +504,7 @@ func isStaleRegistryDescription(prior string) bool {
 	}
 	return strings.HasPrefix(trimmed, "<") ||
 		strings.HasPrefix(trimmed, "Printing Press CLI for ") ||
+		(strings.HasPrefix(trimmed, "Welcome to ") && strings.Contains(trimmed, "API documentation site")) ||
 		strings.HasSuffix(trimmed, "...") ||
 		len(trimmed) > 240
 }

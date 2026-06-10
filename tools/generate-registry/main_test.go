@@ -130,6 +130,13 @@ func TestRegistryDescription(t *testing.T) {
 			want:          "Fetch WHOOP recovery, strain, sleep, workout, cycle, profile, and body-measurement data with OAuth-backed API access.",
 		},
 		{
+			name:          "vendor docs welcome prior falls through to goreleaser",
+			prior:         "Welcome to Cloudflare's API documentation site.",
+			goreleaser:    "Agent-ready CLI for Cloudflare accounts, zones, DNS, Workers, Pages, R2, tunnels, Zero Trust, and infrastructure operations.",
+			ppDescription: "Cloudflare API for accounts, zones, DNS, Workers, Pages, R2, Email Routing, tunnels, and Zero Trust operations",
+			want:          "Agent-ready CLI for Cloudflare accounts, zones, DNS, Workers, Pages, R2, tunnels, Zero Trust, and infrastructure operations.",
+		},
+		{
 			name:          "raw-html prior falls through to goreleaser",
 			prior:         "<p>",
 			goreleaser:    "Search setlist.fm artists, setlists, venues, cities, and concert histories through the setlist.fm API.",

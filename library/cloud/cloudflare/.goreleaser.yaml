@@ -45,7 +45,7 @@ brews:
       owner: 
       name: homebrew-tap
     homepage: "https://github.com//cloudflare-pp-cli"
-    description: "Welcome to Cloudflare's API documentation site."
+    description: "Agent-ready CLI for Cloudflare accounts, zones, DNS, Workers, Pages, R2, tunnels, Zero Trust, and infrastructure operations."
     install: |
       bin.install "cloudflare-pp-cli"
       bin.install "cloudflare-pp-mcp"
