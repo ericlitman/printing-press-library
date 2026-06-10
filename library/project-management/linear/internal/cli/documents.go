@@ -123,10 +123,6 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			if title == "" {
 				return usageErr(fmt.Errorf("--title is required"))
 			}
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
 			body, bodySet, err := readMarkdownBody(cmd, markdownBodySpec{
 				InlineFlag: "content",
 				Inline:     contentFlag,
@@ -139,14 +135,28 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
-			if err != nil {
-				return mediaUploadFailure(err, uploaded)
-			}
 			if !bodySet && len(mediaFlag) == 0 {
 				return usageErr(fmt.Errorf("document content is required; pass --content-file, --content-stdin, --content, or --media"))
 			}
 			input := map[string]any{"title": title, "content": body}
+			applyDocumentParentInputs(input, issue, project, team, initiative, cycle, release, folder)
+			if flags.dryRun {
+				out := map[string]any{"input": input}
+				if len(mediaFlag) > 0 {
+					out["media"] = mediaFlag
+					out["media_public"] = mediaPublic
+				}
+				return renderMutationDryRun(cmd, flags, "would_create_document", "documentCreate", out)
+			}
+			c, err := flags.newClient()
+			if err != nil {
+				return err
+			}
+			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
+			if err != nil {
+				return mediaUploadFailure(err, uploaded)
+			}
+			input = map[string]any{"title": title, "content": body}
 			if err := applyDocumentParents(c, input, issue, project, team, initiative, cycle, release, folder); err != nil {
 				return classifyLiveReadError(err, flags)
 			}
@@ -196,10 +206,6 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
   linear-pp-cli documents edit <document-id> --media /tmp/screenshot.png --agent`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
 			input := map[string]any{}
 			if cmd.Flags().Changed("title") {
 				input["title"] = title
@@ -213,6 +219,25 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 				Stdin:      contentStdin,
 				Label:      "content",
 			})
+			if err != nil {
+				return err
+			}
+			if bodySet {
+				input["content"] = body
+			}
+			applyDocumentParentInputs(input, issue, project, team, initiative, cycle, release, folder)
+			if len(input) == 0 && len(mediaFlag) == 0 {
+				return usageErr(fmt.Errorf("no document fields supplied; pass --title, --content-file, --content-stdin, --content, --media, or a parent flag"))
+			}
+			if flags.dryRun {
+				out := map[string]any{"document": args[0], "input": input}
+				if len(mediaFlag) > 0 {
+					out["media"] = mediaFlag
+					out["media_public"] = mediaPublic
+				}
+				return renderMutationDryRun(cmd, flags, "would_update_document", "documentUpdate", out)
+			}
+			c, err := flags.newClient()
 			if err != nil {
 				return err
 			}
@@ -237,6 +262,10 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			body, uploaded, err := uploadMediaAndAppend(c, body, mediaFlag, mediaPublic)
 			if err != nil {
 				return mediaUploadFailure(err, uploaded)
+			}
+			input = map[string]any{}
+			if cmd.Flags().Changed("title") {
+				input["title"] = title
 			}
 			if bodySet {
 				input["content"] = body
@@ -291,12 +320,20 @@ func bindDocumentParentFlags(cmd *cobra.Command, issue, project, team, initiativ
 }
 
 func applyDocumentParents(c graphqlQueryer, input map[string]any, issue, project, team, initiative, cycle, release, folder string) error {
+	applyDocumentParentInputs(input, issue, project, team, initiative, cycle, release, folder)
 	if issue != "" {
 		issueID, err := resolveIssueID(c, issue)
 		if err != nil {
 			return err
 		}
 		input["issueId"] = issueID
+	}
+	return nil
+}
+
+func applyDocumentParentInputs(input map[string]any, issue, project, team, initiative, cycle, release, folder string) {
+	if issue != "" {
+		input["issueId"] = issue
 	}
 	if project != "" {
 		input["projectId"] = project
@@ -316,7 +353,6 @@ func applyDocumentParents(c graphqlQueryer, input map[string]any, issue, project
 	if folder != "" {
 		input["resourceFolderId"] = folder
 	}
-	return nil
 }
 
 func fetchDocumentLive(c graphqlQueryer, idOrSlug string) (json.RawMessage, error) {
