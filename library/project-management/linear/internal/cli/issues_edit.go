@@ -29,10 +29,6 @@ description is fetched live and the uploaded media links are appended.`,
   linear-pp-cli issues edit ENG-123 --state <state-uuid> --project <project-uuid> --agent`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := flags.newClient()
-			if err != nil {
-				return err
-			}
 			input := map[string]any{}
 			var issueID string
 			var issueTeam issueTeamInfo
@@ -81,6 +77,10 @@ description is fetched live and the uploaded media links are appended.`,
 					out["media_public"] = mediaPublic
 				}
 				return renderMutationDryRun(cmd, flags, "would_update_issue", "issueUpdate", out)
+			}
+			c, err := flags.newClient()
+			if err != nil {
+				return err
 			}
 			if (len(mediaFlag) > 0 && !descSet) || len(labelsFlag) > 0 {
 				existing, err := fetchIssueLive(c, args[0])
