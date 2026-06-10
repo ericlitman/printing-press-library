@@ -96,7 +96,20 @@ type workflowStatePayload struct {
 	Position float64     `json:"position"`
 }
 
-type issueLabelPayload struct{ Name, Color string }
+type labelTeam struct {
+	ID   string `json:"id"`
+	Key  string `json:"key"`
+	Name string `json:"name"`
+}
+
+type issueLabelPayload struct {
+	Name     string    `json:"name"`
+	Color    string    `json:"color"`
+	TeamID   string    `json:"teamId"`
+	TeamKey  string    `json:"teamKey"`
+	TeamName string    `json:"teamName"`
+	Team     labelTeam `json:"team"`
+}
 
 func Open(dbPath string) (*Store, error) {
 	return OpenWithContext(context.Background(), dbPath)
@@ -183,6 +196,9 @@ func (s *Store) migrate() error {
 			data JSON NOT NULL,
 			name TEXT,
 			color TEXT,
+			team_id TEXT,
+			team_key TEXT,
+			team_name TEXT,
 			synced_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
 		`CREATE TABLE IF NOT EXISTS teams (
@@ -279,7 +295,7 @@ func (s *Store) migrate() error {
 		"teams":           {"name": "TEXT", "key": "TEXT"},
 		"users":           {"name": "TEXT", "email": "TEXT", "display_name": "TEXT", "active": "INTEGER DEFAULT 1"},
 		"workflow_states": {"name": "TEXT", "type": "TEXT", "color": "TEXT", "team_id": "TEXT", "position": "REAL"},
-		"issue_labels":    {"name": "TEXT", "color": "TEXT"},
+		"issue_labels":    {"name": "TEXT", "color": "TEXT", "team_id": "TEXT", "team_key": "TEXT", "team_name": "TEXT"},
 	} {
 		if err := s.ensureColumns(table, cols); err != nil {
 			return err
@@ -530,7 +546,18 @@ func (s *Store) UpsertIssueLabel(id string, data json.RawMessage) error {
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return fmt.Errorf("upsert issue_label: %w", err)
 	}
-	return s.upsertEntity("issue_labels", []string{"id", "data", "name", "color"}, id, string(data), payload.Name, payload.Color)
+	if payload.TeamID == "" {
+		payload.TeamID = payload.Team.ID
+	}
+	if payload.TeamKey == "" {
+		payload.TeamKey = payload.Team.Key
+	}
+	if payload.TeamName == "" {
+		payload.TeamName = payload.Team.Name
+	}
+	return s.upsertEntity("issue_labels", []string{"id", "data", "name", "color", "team_id", "team_key", "team_name"},
+		id, string(data), payload.Name, payload.Color, payload.TeamID, payload.TeamKey, payload.TeamName,
+	)
 }
 
 func (s *Store) upsertEntity(table string, columns []string, values ...any) error {
@@ -617,6 +644,13 @@ func (s *Store) ListTeams() ([]json.RawMessage, error) {
 
 func (s *Store) ListUsers() ([]json.RawMessage, error) {
 	return s.queryJSON(`SELECT data FROM users ORDER BY active DESC, display_name, name, email`)
+}
+
+func (s *Store) ListIssueLabels(limit int) ([]json.RawMessage, error) {
+	if limit <= 0 {
+		limit = 200
+	}
+	return s.queryJSON(`SELECT data FROM issue_labels ORDER BY COALESCE(team_key, ''), name LIMIT ?`, limit)
 }
 
 func (s *Store) GetByID(table string, id string) (json.RawMessage, error) {
