@@ -644,6 +644,16 @@ func (s *Store) ListTeams() ([]json.RawMessage, error) {
 	return s.queryJSON(`SELECT data FROM teams ORDER BY name, key`)
 }
 
+// ListWorkflowStates returns synced workflow states, optionally filtered by
+// team UUID. Ordered by position so board order is stable for agents picking
+// a target state.
+func (s *Store) ListWorkflowStates(teamID string) ([]json.RawMessage, error) {
+	if teamID != "" {
+		return s.queryJSON(`SELECT data FROM workflow_states WHERE team_id = ? ORDER BY position`, teamID)
+	}
+	return s.queryJSON(`SELECT data FROM workflow_states ORDER BY team_id, position`)
+}
+
 func (s *Store) ListUsers() ([]json.RawMessage, error) {
 	return s.queryJSON(`SELECT data FROM users ORDER BY active DESC, display_name, name, email`)
 }
