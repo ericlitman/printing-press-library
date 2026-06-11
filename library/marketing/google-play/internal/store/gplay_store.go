@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS chart_snapshots (
 	app_id      TEXT NOT NULL,
 	title       TEXT,
 	score       REAL,
-	data        TEXT
+	data        TEXT,
+	UNIQUE(collection, category, country, captured_at, app_id) ON CONFLICT REPLACE
 );
 CREATE INDEX IF NOT EXISTS idx_chart_key ON chart_snapshots(collection, category, country, captured_at);
 CREATE INDEX IF NOT EXISTS idx_chart_app ON chart_snapshots(app_id, collection, category, country, captured_at);
@@ -84,7 +85,7 @@ func (s *Store) InsertChartSnapshot(ctx context.Context, collection, category, c
 		return err
 	}
 	defer tx.Rollback()
-	stmt, err := tx.PrepareContext(ctx, `INSERT INTO chart_snapshots(collection,category,country,captured_at,rank,app_id,title,score) VALUES(?,?,?,?,?,?,?,?)`)
+	stmt, err := tx.PrepareContext(ctx, `INSERT OR REPLACE INTO chart_snapshots(collection,category,country,captured_at,rank,app_id,title,score) VALUES(?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		return err
 	}

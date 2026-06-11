@@ -75,8 +75,15 @@ func newNovelKeywordRankCmd(flags *rootFlags) *cobra.Command {
 				view.Note = fmt.Sprintf("app not found within the top %d results; raise --scan to widen", len(results))
 			}
 			// Persist the observation (rank 0 means "scanned, not found").
-			if s, serr := openStoreFor(cmd.Context(), resolveDBFlag(cmd)); serr == nil {
-				_ = s.InsertKeywordRank(cmd.Context(), term, country, app, view.Captured, view.Rank, view.Scanned)
+			// Persistence is the whole point of keyword-rank, so a write failure
+			// is surfaced on stderr rather than silently dropped — keyword-history
+			// would otherwise be missing this point with no indication why.
+			if s, serr := openStoreFor(cmd.Context(), resolveDBFlag(cmd)); serr != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warning: keyword rank fetched but could not open the local store to record it (keyword-history will miss this point): %v\n", serr)
+			} else {
+				if ierr := s.InsertKeywordRank(cmd.Context(), term, country, app, view.Captured, view.Rank, view.Scanned); ierr != nil {
+					fmt.Fprintf(cmd.ErrOrStderr(), "warning: keyword rank fetched but not persisted (keyword-history will miss this point): %v\n", ierr)
+				}
 				_ = s.Close()
 			}
 			return emit(cmd, flags, view)

@@ -17,7 +17,12 @@ import (
 // every store open can safely re-run them.
 func (s *Store) migrateExtras(ctx context.Context, conn *sql.Conn) error {
 	migrations := []string{
-		// Add CREATE TABLE IF NOT EXISTS statements here.
+		// Google Play snapshot tables. Defined once in gplaySchema
+		// (gplay_store.go) and applied here, inside the migration lock, so
+		// there is a single authoritative schema definition. EnsureGplaySchema
+		// re-runs the same idempotent statements as a lazy belt-and-suspenders
+		// before each gplay store access.
+		gplaySchema,
 	}
 	for _, m := range migrations {
 		if _, err := conn.ExecContext(ctx, m); err != nil {
