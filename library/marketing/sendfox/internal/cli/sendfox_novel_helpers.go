@@ -117,12 +117,16 @@ func sendfoxFetchAll(c *client.Client, ctx context.Context, path string, params 
 		if len(items) == 0 {
 			break
 		}
-		// Most SendFox accounts are small; if no obvious pagination links are
-		// present, avoid speculative extra pages after a short page.
+		// Advance until explicit pagination says to stop, an empty page is
+		// returned, or maxPages is reached. SendFox's default page size can be
+		// well below 100, so a short page alone is not a reliable completion signal.
 		var obj map[string]any
 		if json.Unmarshal(raw, &obj) == nil {
-			if _, hasNext := obj["next_page_url"]; hasNext {
+			if v, hasNext := obj["next_page_url"]; hasNext && v != nil && v != "" {
 				continue
+			}
+			if v, hasNext := obj["next_page_url"]; hasNext && (v == nil || v == "") {
+				break
 			}
 			if meta, ok := obj["meta"].(map[string]any); ok {
 				if cur, cok := meta["current_page"].(float64); cok {
@@ -136,9 +140,6 @@ func sendfoxFetchAll(c *client.Client, ctx context.Context, path string, params 
 					break
 				}
 			}
-		}
-		if len(items) < 100 {
-			break
 		}
 	}
 	return out, nil
@@ -187,13 +188,13 @@ func readContactsCSV(path string) ([]csvContact, error) {
 	if !ok {
 		return nil, usageErr(fmt.Errorf("CSV must include an email header"))
 	}
-	firstIdx := head["first_name"]
-	if _, ok := head["first_name"]; !ok {
-		firstIdx = head["first"]
+	firstIdx, hasFirst := head["first_name"]
+	if !hasFirst {
+		firstIdx, hasFirst = head["first"]
 	}
-	lastIdx := head["last_name"]
-	if _, ok := head["last_name"]; !ok {
-		lastIdx = head["last"]
+	lastIdx, hasLast := head["last_name"]
+	if !hasLast {
+		lastIdx, hasLast = head["last"]
 	}
 	var out []csvContact
 	for _, rec := range recs[1:] {
@@ -201,10 +202,10 @@ func readContactsCSV(path string) ([]csvContact, error) {
 			continue
 		}
 		c := csvContact{Email: strings.TrimSpace(rec[emailIdx])}
-		if firstIdx < len(rec) {
+		if hasFirst && firstIdx < len(rec) {
 			c.FirstName = strings.TrimSpace(rec[firstIdx])
 		}
-		if lastIdx < len(rec) {
+		if hasLast && lastIdx < len(rec) {
 			c.LastName = strings.TrimSpace(rec[lastIdx])
 		}
 		out = append(out, c)

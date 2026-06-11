@@ -35,6 +35,24 @@ func TestReadContactsCSVSupportsFirstLastAliases(t *testing.T) {
 	}
 }
 
+func TestReadContactsCSVEmailOnlyDoesNotUseEmailAsName(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "contacts.csv")
+	if err := os.WriteFile(path, []byte("email\nreader@example.com\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	contacts, err := readContactsCSV(path)
+	if err != nil {
+		t.Fatalf("readContactsCSV: %v", err)
+	}
+	if len(contacts) != 1 {
+		t.Fatalf("contacts = %#v, want one", contacts)
+	}
+	if contacts[0].Email != "reader@example.com" || contacts[0].FirstName != "" || contacts[0].LastName != "" {
+		t.Fatalf("email-only CSV should not populate names from email column: %#v", contacts[0])
+	}
+}
+
 func TestAudienceMapCountsObservedMembership(t *testing.T) {
 	lists := []map[string]any{{"id": float64(1), "name": "A"}, {"id": float64(2), "name": "B"}}
 	contacts := []map[string]any{{"lists": []any{float64(2), float64(1)}}, {"lists": []any{float64(2)}}}
