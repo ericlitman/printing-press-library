@@ -143,39 +143,33 @@ Run 'sync --full' before audit to make sure the local store is current.`,
 				_ = srows.Err()
 			}
 
-			// Orgs with zero resources (resources table joined by COUNT)
-			// PATCH(audit-org-empty-filter): apply orgFilter to both the COUNT query
-			// and the fallback org-listing query so --org=foo only flags foo as empty
-			// when foo specifically has no resources, not when any other org does.
-			var resourceCount int
-			countQuery := `SELECT COUNT(*) FROM resources WHERE resource_type IN ('resources', 'resource')`
-			countArgs := []any{}
+			// Orgs with zero resources: per-org NOT EXISTS join so orgs in other
+			// orgs having resources don't mask an empty org in the same install.
+			emptyOrgQuery := `SELECT id, COALESCE(json_extract(data, '$.name'), id)
+				 FROM resources o WHERE o.resource_type = 'orgs'
+				 AND NOT EXISTS (
+				     SELECT 1 FROM resources r
+				     WHERE r.resource_type IN ('resources', 'resource')
+				     AND json_extract(r.data, '$.orgId') = o.id
+				 )`
+			emptyOrgArgs := []any{}
 			if orgFilter != "" {
-				countQuery += ` AND (json_extract(data, '$.orgId') = ? OR json_extract(data, '$.orgName') = ?)`
-				countArgs = append(countArgs, orgFilter, orgFilter)
+				emptyOrgQuery += ` AND (o.id = ? OR json_extract(o.data, '$.name') = ?)`
+				emptyOrgArgs = append(emptyOrgArgs, orgFilter, orgFilter)
 			}
-			_ = db.DB().QueryRowContext(cmd.Context(), countQuery, countArgs...).Scan(&resourceCount)
-			if resourceCount == 0 {
-				orgListQuery := `SELECT id, COALESCE(json_extract(data, '$.name'), id) FROM resources WHERE resource_type = 'orgs'`
-				orgListArgs := []any{}
-				if orgFilter != "" {
-					orgListQuery += ` AND (json_extract(data, '$.orgId') = ? OR id = ?)`
-					orgListArgs = append(orgListArgs, orgFilter, orgFilter)
-				}
-				orgRows, oerr := db.DB().QueryContext(cmd.Context(), orgListQuery, orgListArgs...)
-				if oerr == nil {
-					defer orgRows.Close()
-					for orgRows.Next() {
-						var id, name sql.NullString
-						if orgRows.Scan(&id, &name) == nil {
-							report.Issues = append(report.Issues, auditIssue{
-								Severity: "info",
-								Kind:     "org_empty",
-								Subject:  name.String,
-								Detail:   "org has no resources in local store (sync may be incomplete)",
-								Context:  map[string]any{"orgId": id.String},
-							})
-						}
+			orgRows, oerr := db.DB().QueryContext(cmd.Context(), emptyOrgQuery, emptyOrgArgs...)
+			if oerr == nil {
+				defer orgRows.Close()
+				for orgRows.Next() {
+					var id, name sql.NullString
+					if orgRows.Scan(&id, &name) == nil {
+						report.Issues = append(report.Issues, auditIssue{
+							Severity: "info",
+							Kind:     "org_empty",
+							Subject:  name.String,
+							Detail:   "org has no resources in local store (sync may be incomplete)",
+							Context:  map[string]any{"orgId": id.String},
+						})
 					}
 				}
 			}
