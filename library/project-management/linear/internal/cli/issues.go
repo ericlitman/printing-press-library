@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+var errTeamFilterNotFound = errors.New("team not found")
 
 // issueRow is the shared projection used by `issues list` and table rendering.
 // It mirrors the shape the sync writes to the `data` JSON column.
@@ -518,7 +521,7 @@ func resolveTeamFilter(db *store.Store, input string) (string, error) {
 			return t.ID, nil
 		}
 	}
-	return "", fmt.Errorf("no team matching %q in local store", input)
+	return "", fmt.Errorf("%w: no team matching %q in local store", errTeamFilterNotFound, input)
 }
 
 // resolveProjectFilter maps --project input to a project UUID. Accepts name or UUID.
