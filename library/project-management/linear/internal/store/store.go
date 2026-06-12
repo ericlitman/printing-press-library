@@ -574,9 +574,24 @@ func (s *Store) upsertEntity(table string, columns []string, values ...any) erro
 }
 
 func (s *Store) SearchIssues(query string) ([]json.RawMessage, error) {
+	return s.SearchIssuesByTeam(query, "")
+}
+
+func (s *Store) SearchIssuesByTeam(query string, teamID string) ([]json.RawMessage, error) {
 	match := IssueSearchFTSQuery(query)
 	if match == "" {
 		return nil, nil
+	}
+	if teamID != "" {
+		return s.queryJSON(
+			`SELECT i.data
+			 FROM issues i
+			 JOIN issues_fts f ON i.rowid = f.rowid
+			 WHERE issues_fts MATCH ? AND i.team_id = ?
+			 ORDER BY rank
+			 LIMIT 50`,
+			match, teamID,
+		)
 	}
 	return s.queryJSON(
 		`SELECT i.data

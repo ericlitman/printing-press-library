@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 
@@ -137,6 +138,9 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			}
 			if !bodySet && len(mediaFlag) == 0 {
 				return usageErr(fmt.Errorf("document content is required; pass --content-file, --content-stdin, --content, or --media"))
+			}
+			if err := validateDocumentCreateParents(issue, project, team, initiative, cycle, release, folder); err != nil {
+				return err
 			}
 			input := map[string]any{"title": title, "content": body}
 			applyDocumentParentInputs(input, issue, project, team, initiative, cycle, release, folder)
@@ -313,11 +317,24 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 func bindDocumentParentFlags(cmd *cobra.Command, issue, project, team, initiative, cycle, release, folder *string) {
 	cmd.Flags().StringVar(issue, "issue", "", "Attach document to issue identifier or UUID")
 	cmd.Flags().StringVar(project, "project", "", "Attach document to project UUID")
-	cmd.Flags().StringVar(team, "team", "", "Attach document to team UUID")
+	cmd.Flags().StringVar(team, "team", "", "Attach document to team key or UUID")
 	cmd.Flags().StringVar(initiative, "initiative", "", "Attach document to initiative UUID")
 	cmd.Flags().StringVar(cycle, "cycle", "", "Attach document to cycle UUID")
 	cmd.Flags().StringVar(release, "release", "", "Attach document to release UUID")
 	cmd.Flags().StringVar(folder, "folder", "", "Attach document to resource folder UUID")
+}
+
+func validateDocumentCreateParents(issue, project, team, initiative, cycle, release, folder string) error {
+	count := 0
+	for _, value := range []string{issue, project, team, initiative, cycle, release, folder} {
+		if value != "" {
+			count++
+		}
+	}
+	if count != 1 {
+		return usageErr(fmt.Errorf("document create requires exactly one parent; pass one of --issue, --project, --team, --initiative, --cycle, --release, or --folder"))
+	}
+	return nil
 }
 
 func applyDocumentParents(c graphqlQueryer, input map[string]any, issue, project, team, initiative, cycle, release, folder string) error {
@@ -328,6 +345,13 @@ func applyDocumentParents(c graphqlQueryer, input map[string]any, issue, project
 			return err
 		}
 		input["issueId"] = issueID
+	}
+	if team != "" && !store.IsUUID(team) {
+		teamID, err := resolveTeamIDLive(c, team)
+		if err != nil {
+			return err
+		}
+		input["teamId"] = teamID
 	}
 	return nil
 }
@@ -354,6 +378,57 @@ func applyDocumentParentInputs(input map[string]any, issue, project, team, initi
 	if folder != "" {
 		input["resourceFolderId"] = folder
 	}
+}
+
+func resolveTeamIDLive(c graphqlQueryer, keyOrName string) (string, error) {
+	if id, err := resolveTeamIDByKeyLive(c, keyOrName); err != nil {
+		return "", err
+	} else if id != "" {
+		return id, nil
+	}
+	if id, err := resolveTeamIDByNameLive(c, keyOrName); err != nil {
+		return "", err
+	} else if id != "" {
+		return id, nil
+	}
+	return "", notFoundErr(fmt.Errorf("team %q not found", keyOrName))
+}
+
+func resolveTeamIDByKeyLive(c graphqlQueryer, key string) (string, error) {
+	const query = `query($key: String!) {
+		teams(filter: { key: { eq: $key } }, first: 1) {
+			nodes { id key name }
+		}
+	}`
+	return resolveTeamIDFromQuery(c, query, map[string]any{"key": strings.ToUpper(key)})
+}
+
+func resolveTeamIDByNameLive(c graphqlQueryer, name string) (string, error) {
+	const query = `query($name: String!) {
+		teams(filter: { name: { eq: $name } }, first: 1) {
+			nodes { id key name }
+		}
+	}`
+	return resolveTeamIDFromQuery(c, query, map[string]any{"name": name})
+}
+
+func resolveTeamIDFromQuery(c graphqlQueryer, query string, variables map[string]any) (string, error) {
+	var resp struct {
+		Teams struct {
+			Nodes []struct {
+				ID   string `json:"id"`
+				Key  string `json:"key"`
+				Name string `json:"name"`
+			} `json:"nodes"`
+		} `json:"teams"`
+	}
+	if err := c.QueryInto(query, variables, &resp); err != nil {
+		return "", err
+	}
+	if len(resp.Teams.Nodes) == 0 || resp.Teams.Nodes[0].ID == "" {
+		return "", nil
+	}
+	return resp.Teams.Nodes[0].ID, nil
 }
 
 func fetchDocumentLive(c graphqlQueryer, idOrSlug string) (json.RawMessage, error) {
