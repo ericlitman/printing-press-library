@@ -77,7 +77,10 @@ These capabilities aren't available in any other tool for this API.
 
   ```bash
   linear-pp-cli similar "login redirect bug" --limit 5 --json
+  linear-pp-cli similar "pipeline follow-up" --team SYMPH --limit 10 --agent
   ```
+
+  Add `--team <key-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
 
 ### Cross-entity rollups
 - **`projects burndown`** — Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.
@@ -166,10 +169,11 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
   linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md --agent
   linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  linear-pp-cli documents create --title "Team runbook" --team ENG --content-file /tmp/runbook.md --agent
   linear-pp-cli documents edit <document-id-or-slug> --content-file /tmp/updated.md --agent
   ```
 
-  `issues edit --media`, `comments edit --media`, and `documents edit --media` with no body/content flag fetch the existing Markdown live and append uploaded media links. Images become Markdown image embeds; non-images become Markdown links. Add `--media-public` only when the uploaded asset must be reachable outside the Linear workspace.
+  `documents create` requires exactly one parent (`--issue`, `--project`, `--team`, `--initiative`, `--cycle`, `--release`, or `--folder`); `--team` accepts a key such as `ENG` or a UUID. `issues edit --media`, `comments edit --media`, and `documents edit --media` with no body/content flag fetch the existing Markdown live and append uploaded media links. Images become Markdown image embeds; non-images become Markdown links. Add `--media-public` only when the uploaded asset must be reachable outside the Linear workspace.
 - **Current issue reads and comments** — Read full issue bodies and discussion without falling back to stale local state.
 
   ```bash

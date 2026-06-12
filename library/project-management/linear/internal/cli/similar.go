@@ -15,12 +15,14 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 	var dbPath string
 	var jsonOut bool
 	var limit int
+	var team string
 	cmd := &cobra.Command{
 		Use:         "similar [query]",
 		Annotations: map[string]string{"mcp:read-only": "true"},
 		Short:       "Find potentially duplicate issues using fuzzy text search",
 		Long:        "Search locally synced issues using FTS5 full-text search to find potential duplicates. Works offline.",
 		Example: `  linear-pp-cli similar "login bug"
+  linear-pp-cli similar "pipeline follow-up" --team SYMPH --agent
   linear-pp-cli similar "payment failed" --limit 20
   linear-pp-cli similar "onboarding" --json`,
 		Args: cobra.MaximumNArgs(1),
@@ -45,7 +47,15 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 			if strings.TrimSpace(args[0]) == "" {
 				return fmt.Errorf("search query cannot be empty")
 			}
-			results, err := db.SearchIssues(args[0])
+			teamID := ""
+			if team != "" {
+				resolved, err := resolveTeamFilter(db, team)
+				if err != nil {
+					return notFoundErr(fmt.Errorf("%w. Run 'linear-pp-cli sync' if the team was added recently", err))
+				}
+				teamID = resolved
+			}
+			results, err := db.SearchIssuesByTeam(args[0], teamID)
 			if err != nil {
 				return fmt.Errorf("searching: %w", err)
 			}
@@ -101,5 +111,6 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().IntVar(&limit, "limit", 50, "Maximum results to return")
 	cmd.Flags().BoolVar(&jsonOut, "json", false, "Output as JSON")
 	cmd.Flags().StringVar(&dbPath, "db", "", "Database path")
+	cmd.Flags().StringVar(&team, "team", "", "Filter by team key, name, or UUID")
 	return cmd
 }

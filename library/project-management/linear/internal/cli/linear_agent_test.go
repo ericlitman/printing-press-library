@@ -150,6 +150,99 @@ func TestSimilarAgentOutputsJSON(t *testing.T) {
 	}
 }
 
+func TestSimilarTeamFilterUsesLocalTeamKey(t *testing.T) {
+	t.Parallel()
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	if err := db.UpsertTeam("team-symph", json.RawMessage(`{"id":"team-symph","key":"SYMPH","name":"Symphony"}`)); err != nil {
+		t.Fatalf("UpsertTeam symph: %v", err)
+	}
+	if err := db.UpsertTeam("team-mob", json.RawMessage(`{"id":"team-mob","key":"MOB","name":"Mobilyze"}`)); err != nil {
+		t.Fatalf("UpsertTeam mob: %v", err)
+	}
+	if err := db.UpsertIssue("issue-symph", "SYMPH-309", "Pipeline follow-up", json.RawMessage(`{"id":"issue-symph","identifier":"SYMPH-309","title":"Pipeline follow-up","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph"}`)); err != nil {
+		t.Fatalf("UpsertIssue symph: %v", err)
+	}
+	if err := db.UpsertIssue("issue-mob", "MOB-118", "Pipeline follow-up", json.RawMessage(`{"id":"issue-mob","identifier":"MOB-118","title":"Pipeline follow-up","team":{"id":"team-mob","key":"MOB"},"teamId":"team-mob"}`)); err != nil {
+		t.Fatalf("UpsertIssue mob: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close store: %v", err)
+	}
+
+	out, err := executeRootForTest("similar", "pipeline follow-up", "--team", "SYMPH", "--db", dbPath, "--agent")
+	if err != nil {
+		t.Fatalf("similar --team failed: %v\n%s", err, out)
+	}
+	var results []map[string]any
+	if err := json.Unmarshal([]byte(out), &results); err != nil {
+		t.Fatalf("similar --team output is not JSON: %v\n%s", err, out)
+	}
+	if len(results) != 1 || results[0]["identifier"] != "SYMPH-309" {
+		t.Fatalf("unexpected similar --team results: %s", out)
+	}
+}
+
+func TestDocumentsCreateRequiresExactlyOneParentBeforeMutation(t *testing.T) {
+	out, err := executeRootForTest("documents", "create", "--title", "Runbook", "--content", "body", "--agent")
+	if err == nil {
+		t.Fatalf("documents create without parent succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+
+	out, err = executeRootForTest("documents", "create", "--title", "Runbook", "--content", "body", "--team", "SYMPH", "--project", "project-1", "--agent")
+	if err == nil {
+		t.Fatalf("documents create with multiple parents succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+}
+
+func TestDocumentsCreateResolvesTeamKeyBeforeMutation(t *testing.T) {
+	var sawTeamLookup bool
+	var seenTeamID string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "teams(filter"):
+			sawTeamLookup = true
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
+		case strings.Contains(req.Query, "documentCreate"):
+			input, _ := req.Variables["input"].(map[string]any)
+			seenTeamID, _ = input["teamId"].(string)
+			fmt.Fprint(w, `{"data":{"documentCreate":{"success":true,"document":{"id":"doc-1","title":"Runbook","slugId":"runbook-f7f48ab36080","url":"https://linear.app/acme/document/runbook-f7f48ab36080","content":"body","createdAt":"2026-06-12T00:00:00Z","updatedAt":"2026-06-12T00:00:00Z","documentContentId":"content-1","team":{"id":"team-symph","key":"SYMPH","name":"Symphony"}}}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("documents", "create", "--title", "Runbook", "--team", "SYMPH", "--content", "body", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("documents create failed: %v\n%s", err, out)
+	}
+	if !sawTeamLookup {
+		t.Fatalf("team key lookup was not performed")
+	}
+	if seenTeamID != "team-symph" {
+		t.Fatalf("documentCreate teamId = %q, want team-symph", seenTeamID)
+	}
+}
+
 func TestCommentsListKeepsBodiesInAgentMode(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req client.GraphQLRequest
