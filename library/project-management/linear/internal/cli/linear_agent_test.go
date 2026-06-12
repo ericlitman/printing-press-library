@@ -125,6 +125,26 @@ func TestCommentsAddReadsBodyStdinLiterally(t *testing.T) {
 	}
 }
 
+func TestCommentsAddRejectsEmptyBodyStdin(t *testing.T) {
+	out, err := executeRootForTestWithInputAndRenderedError("", "comments", "add", "--issue", "MOB-99", "--body-stdin", "--agent")
+	if err == nil {
+		t.Fatalf("comments add with empty stdin succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Code int    `json:"code"`
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("empty stdin error output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Code != 2 || envelope.Type != "usage" {
+		t.Fatalf("empty stdin envelope = %+v, want code=2 type=usage; output=%s", envelope, out)
+	}
+}
+
 func TestSimilarAgentOutputsJSON(t *testing.T) {
 	t.Parallel()
 	dbPath := filepath.Join(t.TempDir(), "linear.db")
@@ -419,6 +439,14 @@ func TestLabelsListFiltersTeamAndGlobal(t *testing.T) {
 	}
 	if strings.Contains(out, "area:protocols") {
 		t.Fatalf("labels list included another team's label: %s", out)
+	}
+
+	out, err = executeRootForTest("labels", "list", "--team", "Symphony", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("labels list by team name failed: %v\n%s", err, out)
+	}
+	if !strings.Contains(out, "pipeline-halt") || strings.Contains(out, "area:protocols") {
+		t.Fatalf("labels list by team name returned wrong labels: %s", out)
 	}
 }
 

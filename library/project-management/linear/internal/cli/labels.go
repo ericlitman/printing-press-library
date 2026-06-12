@@ -94,7 +94,7 @@ func newLabelsListCmd(flags *rootFlags) *cobra.Command {
 			return renderPayloadWithProvenance(cmd, flags, out, prov, true)
 		},
 	}
-	cmd.Flags().StringVar(&team, "team", "", "Target team key or UUID; returns global labels plus labels owned by this team")
+	cmd.Flags().StringVar(&team, "team", "", "Target team key, name, or UUID; returns global labels plus labels owned by this team")
 	cmd.Flags().BoolVar(&includeGlobal, "global", true, "Include global labels when --team is set")
 	cmd.Flags().BoolVar(&noGlobal, "no-global", false, "Exclude global labels when --team is set")
 	cmd.Flags().IntVar(&limit, "limit", 100, "Maximum labels per live API page")
@@ -131,13 +131,13 @@ func filterIssueLabelsForTeam(raw []json.RawMessage, team string, includeGlobal 
 			out = append(out, label)
 			continue
 		}
-		if label.Team == nil || (label.Team.ID == "" && label.Team.Key == "") {
+		if label.Team == nil || (label.Team.ID == "" && label.Team.Key == "" && label.Team.Name == "") {
 			if includeGlobal {
 				out = append(out, label)
 			}
 			continue
 		}
-		if strings.ToLower(label.Team.ID) == target || strings.ToLower(label.Team.Key) == target {
+		if strings.ToLower(label.Team.ID) == target || strings.ToLower(label.Team.Key) == target || strings.ToLower(label.Team.Name) == target {
 			out = append(out, label)
 		}
 	}
@@ -145,7 +145,7 @@ func filterIssueLabelsForTeam(raw []json.RawMessage, team string, includeGlobal 
 }
 
 func (label *issueLabelInfo) normalizeTeam() {
-	if label.Team != nil {
+	if label.Team != nil && (label.Team.ID != "" || label.Team.Key != "" || label.Team.Name != "") {
 		label.Global = false
 		return
 	}

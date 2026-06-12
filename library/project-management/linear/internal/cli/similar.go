@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -51,6 +52,9 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 			if team != "" {
 				resolved, err := resolveTeamFilter(db, team)
 				if err != nil {
+					if !errors.Is(err, errTeamFilterNotFound) {
+						return err
+					}
 					return notFoundErr(fmt.Errorf("%w. Run 'linear-pp-cli sync' if the team was added recently", err))
 				}
 				teamID = resolved
