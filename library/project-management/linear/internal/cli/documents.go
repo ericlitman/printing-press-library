@@ -246,22 +246,28 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			existing, err := fetchDocumentLive(c, args[0])
-			if err != nil {
-				return classifyLiveReadError(err, flags)
-			}
-			var doc struct {
-				ID      string `json:"id"`
-				Content string `json:"content"`
-			}
-			if err := json.Unmarshal(existing, &doc); err != nil {
-				return fmt.Errorf("parsing existing document: %w", err)
-			}
-			if doc.ID == "" {
-				return fmt.Errorf("document %q did not include an id", args[0])
+			docID := args[0]
+			var existingContent string
+			if !store.IsUUID(args[0]) || (len(mediaFlag) > 0 && !bodySet) {
+				existing, err := fetchDocumentLive(c, args[0])
+				if err != nil {
+					return classifyLiveReadError(err, flags)
+				}
+				var doc struct {
+					ID      string `json:"id"`
+					Content string `json:"content"`
+				}
+				if err := json.Unmarshal(existing, &doc); err != nil {
+					return fmt.Errorf("parsing existing document: %w", err)
+				}
+				if doc.ID == "" {
+					return fmt.Errorf("document %q did not include an id", args[0])
+				}
+				docID = doc.ID
+				existingContent = doc.Content
 			}
 			if len(mediaFlag) > 0 && !bodySet {
-				body = doc.Content
+				body = existingContent
 				bodySet = true
 			}
 			input = map[string]any{}
@@ -293,7 +299,7 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 					}
 				}
 			}`
-			resp, err := c.Mutate(mutation, map[string]any{"id": doc.ID, "input": input})
+			resp, err := c.Mutate(mutation, map[string]any{"id": docID, "input": input})
 			if err != nil {
 				return classifyMutationError("documentUpdate", err, flags, uploaded)
 			}

@@ -183,7 +183,7 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli similar "pipeline follow-up" --team SYMPH --limit 10 --agent
   ```
 
-  Add `--team <key-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
+  Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
 
 ### Cross-entity rollups
 - **`projects burndown`** — Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.

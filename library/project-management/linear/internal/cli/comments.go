@@ -408,8 +408,7 @@ func extractMutationObject(resp json.RawMessage, mutationKey, objectKey string) 
 		return nil, fmt.Errorf("%s response missing %q", mutationKey, mutationKey)
 	}
 	var payload struct {
-		Success bool                       `json:"success"`
-		Objects map[string]json.RawMessage `json:"-"`
+		Success bool `json:"success"`
 	}
 	var payloadMap map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &payloadMap); err != nil {

@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 
@@ -188,11 +187,8 @@ func writeIssueBack(dbPath string, raw json.RawMessage) {
 	}
 	db, err := store.Open(dbPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "warning: cannot open ledger at %s: %v\n", dbPath, err)
 		return
 	}
 	defer db.Close()
-	if err := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); err != nil {
-		fmt.Fprintf(os.Stderr, "warning: local store write-back failed: %v\n", err)
-	}
+	_ = db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw)
 }

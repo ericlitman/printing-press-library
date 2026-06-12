@@ -254,6 +254,44 @@ func TestDocumentsCreateResolvesTeamKeyBeforeMutation(t *testing.T) {
 	}
 }
 
+func TestDocumentsEditUUIDTitleDoesNotFetchExistingDocument(t *testing.T) {
+	const documentID = "00000000-0000-0000-0000-000000000123"
+	var sawUpdate bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "documentUpdate"):
+			sawUpdate = true
+			if got, _ := req.Variables["id"].(string); got != documentID {
+				t.Errorf("documentUpdate id = %q, want %q", got, documentID)
+			}
+			fmt.Fprint(w, `{"data":{"documentUpdate":{"success":true,"document":{"id":"00000000-0000-0000-0000-000000000123","title":"Updated","slugId":"updated-f7f48ab36080","url":"https://linear.app/acme/document/updated-f7f48ab36080","content":"body","createdAt":"2026-06-12T00:00:00Z","updatedAt":"2026-06-12T00:00:00Z","documentContentId":"content-1"}}}}`)
+		case strings.Contains(req.Query, "document(id:") || strings.Contains(req.Query, "documents(filter"):
+			t.Errorf("documents edit fetched existing document despite UUID title-only edit: %s", req.Query)
+			http.Error(w, "unexpected fetch", http.StatusInternalServerError)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("documents", "edit", documentID, "--title", "Updated", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("documents edit failed: %v\n%s", err, out)
+	}
+	if !sawUpdate {
+		t.Fatalf("documentUpdate was not called")
+	}
+}
+
 func TestCommentsListKeepsBodiesInAgentMode(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req client.GraphQLRequest
