@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -187,15 +188,25 @@ func TestSimilarTeamFilterUsesLocalTeamKey(t *testing.T) {
 }
 
 func TestDocumentsCreateRequiresExactlyOneParentBeforeMutation(t *testing.T) {
-	out, err := executeRootForTest("documents", "create", "--title", "Runbook", "--content", "body", "--agent")
+	out, err := executeRootForTestWithRenderedError("documents", "create", "--title", "Runbook", "--content", "body", "--agent")
 	if err == nil {
 		t.Fatalf("documents create without parent succeeded unexpectedly:\n%s", out)
 	}
 	if got := ExitCode(err); got != 2 {
 		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
 	}
+	var envelope struct {
+		Code int    `json:"code"`
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("usage error output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Code != 2 || envelope.Type != "usage" {
+		t.Fatalf("usage error envelope = %+v, want code=2 type=usage; output=%s", envelope, out)
+	}
 
-	out, err = executeRootForTest("documents", "create", "--title", "Runbook", "--content", "body", "--team", "SYMPH", "--project", "project-1", "--agent")
+	out, err = executeRootForTestWithRenderedError("documents", "create", "--title", "Runbook", "--content", "body", "--team", "SYMPH", "--project", "project-1", "--agent")
 	if err == nil {
 		t.Fatalf("documents create with multiple parents succeeded unexpectedly:\n%s", out)
 	}
@@ -625,7 +636,7 @@ func TestMutationFailureAfterMediaUploadReportsAssetURL(t *testing.T) {
 	t.Setenv("LINEAR_BASE_URL", srv.URL)
 	t.Setenv("LINEAR_API_KEY", "test-token")
 
-	out, err := executeRootForTest("comments", "add", "--project", "project-1", "--body", "body", "--media", mediaPath, "--agent", "--data-source", "live")
+	out, err := executeRootForTestWithRenderedError("comments", "add", "--project", "project-1", "--body", "body", "--media", mediaPath, "--agent", "--data-source", "live")
 	if err == nil {
 		t.Fatalf("comments add succeeded unexpectedly:\n%s", out)
 	}
@@ -807,6 +818,10 @@ func executeRootForTest(args ...string) (string, error) {
 	return executeRootForTestWithInput("", args...)
 }
 
+func executeRootForTestWithRenderedError(args ...string) (string, error) {
+	return executeRootForTestWithInputAndRenderedError("", args...)
+}
+
 func executeRootForTestWithInput(input string, args ...string) (string, error) {
 	var flags rootFlags
 	cmd := newRootCmd(&flags)
@@ -819,4 +834,39 @@ func executeRootForTestWithInput(input string, args ...string) (string, error) {
 	cmd.SetArgs(args)
 	err := cmd.Execute()
 	return out.String(), err
+}
+
+func executeRootForTestWithInputAndRenderedError(input string, args ...string) (string, error) {
+	var flags rootFlags
+	cmd := newRootCmd(&flags)
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+	cmd.SetErr(&out)
+	if input != "" {
+		cmd.SetIn(strings.NewReader(input))
+	}
+	cmd.SetArgs(args)
+	stdout := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", err
+	}
+	os.Stdout = w
+	cmdErr := cmd.Execute()
+	if cmdErr != nil {
+		if isCobraUsageError(cmdErr) {
+			cmdErr = usageErr(cmdErr)
+		}
+		if flags.asJSON && !flags.errorWritten {
+			writeCLIErrorEnvelope(&flags, cmdErr, ExitCode(cmdErr))
+		}
+	}
+	_ = w.Close()
+	os.Stdout = stdout
+	rendered, readErr := io.ReadAll(r)
+	_ = r.Close()
+	if readErr != nil {
+		return out.String(), readErr
+	}
+	return out.String() + string(rendered), cmdErr
 }

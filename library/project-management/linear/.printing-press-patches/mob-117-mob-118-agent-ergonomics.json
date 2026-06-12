@@ -11,6 +11,8 @@
     "internal/store/search_test.go",
     "internal/cli/similar.go",
     "internal/cli/documents.go",
+    "internal/cli/root.go",
+    "internal/cli/helpers.go",
     "internal/cli/linear_agent_test.go",
     "SKILL.md",
     "README.md"

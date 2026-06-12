@@ -237,13 +237,40 @@ func writeNoop(flags *rootFlags, reason, prose string) error {
 }
 
 func writeAPIErrorEnvelope(flags *rootFlags, err error, code int) {
+	writeCLIErrorEnvelope(flags, err, code)
+}
+
+func writeCLIErrorEnvelope(flags *rootFlags, err error, code int) {
 	if flags == nil || !flags.asJSON {
 		return
 	}
+	flags.errorWritten = true
 	_ = json.NewEncoder(os.Stdout).Encode(map[string]any{
 		"error": err.Error(),
 		"code":  code,
+		"type":  cliErrorType(code),
 	})
+}
+
+func cliErrorType(code int) string {
+	switch code {
+	case 2:
+		return "usage"
+	case 3:
+		return "not_found"
+	case 4:
+		return "auth"
+	case 5:
+		return "api"
+	case 6:
+		return "partial_failure"
+	case 7:
+		return "rate_limit"
+	case 10:
+		return "config"
+	default:
+		return "error"
+	}
 }
 
 // classifyAPIError maps API errors to structured exit codes with actionable hints.
