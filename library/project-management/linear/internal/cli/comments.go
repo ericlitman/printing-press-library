@@ -418,7 +418,7 @@ func extractMutationObject(resp json.RawMessage, mutationKey, objectKey string) 
 		return nil, fmt.Errorf("parsing %s success: %w", mutationKey, err)
 	}
 	if !payload.Success {
-		return nil, fmt.Errorf("Linear reported %s success=false", mutationKey)
+		return nil, apiErr(fmt.Errorf("Linear reported %s success=false", mutationKey))
 	}
 	obj, ok := payloadMap[objectKey]
 	if !ok || len(obj) == 0 || string(obj) == "null" {

@@ -156,7 +156,7 @@ description is fetched live and the uploaded media links are appended.`,
 				return fmt.Errorf("parsing issueUpdate response: %w", err)
 			}
 			if !parsed.IssueUpdate.Success {
-				return fmt.Errorf("Linear reported issueUpdate success=false")
+				return apiErr(fmt.Errorf("Linear reported issueUpdate success=false"))
 			}
 			writeIssueBack(resolveDBPath(*dbPath), parsed.IssueUpdate.Issue)
 			return renderLiveObject(cmd, flags, parsed.IssueUpdate.Issue, "issues")

@@ -22,5 +22,5 @@
     "SKILL.md",
     "README.md"
   ],
-  "validated_outcome": "Focused regression tests cover team-scoped FTS ranking, `similar --team`, document-create parent preflight, and team-key resolution before `documentCreate`."
+  "validated_outcome": "Focused regression tests cover team-scoped FTS ranking, `similar --team`, document-create parent preflight, team-key resolution before `documentCreate`, and typed API exit codes for Linear `success=false` mutation responses."
 }

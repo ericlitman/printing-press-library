@@ -190,7 +190,7 @@ tickets in the workspace.`,
 				return fmt.Errorf("parsing issueCreate response: %w", err)
 			}
 			if !parsed.IssueCreate.Success {
-				return fmt.Errorf("Linear reported issueCreate success=false")
+				return apiErr(fmt.Errorf("Linear reported issueCreate success=false"))
 			}
 
 			sess := resolvePPSession(flags, session)

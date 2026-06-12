@@ -656,6 +656,45 @@ func TestIssueCreateClassifiesMutationAPIErrors(t *testing.T) {
 	}
 }
 
+func TestMutationSuccessFalseUsesTypedAPIExitCode(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "issueUpdate") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		fmt.Fprint(w, `{"data":{"issueUpdate":{"success":false,"issue":null}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "edit", "00000000-0000-0000-0000-000000000000", "--title", "Rejected", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("issues edit succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 5 {
+		t.Fatalf("ExitCode() = %d, want 5; err=%v\n%s", got, err, out)
+	}
+	if !strings.Contains(out, `"code":5`) || !strings.Contains(out, `"type":"api"`) {
+		t.Fatalf("agent error envelope did not classify success=false as API error:\n%s", out)
+	}
+
+	_, err = extractMutationObject(json.RawMessage(`{"commentCreate":{"success":false,"comment":null}}`), "commentCreate", "comment")
+	if err == nil {
+		t.Fatal("extractMutationObject succeeded unexpectedly")
+	}
+	if got := ExitCode(err); got != 5 {
+		t.Fatalf("ExitCode() = %d, want 5; err=%v", got, err)
+	}
+}
+
 func TestMutationFailureAfterMediaUploadReportsAssetURL(t *testing.T) {
 	mediaPath := filepath.Join(t.TempDir(), "screenshot.png")
 	if err := os.WriteFile(mediaPath, []byte("image bytes"), 0o600); err != nil {
