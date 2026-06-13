@@ -61,6 +61,10 @@ func TestWorkflowStatesListLiveIncludesIDs(t *testing.T) {
 	if team == nil {
 		t.Fatalf("team filter was not sent to GraphQL: %v", seenFilter)
 	}
+	keyFilter, _ := team["key"].(map[string]any)
+	if keyFilter == nil || keyFilter["eqIgnoreCase"] != "SYMPH" {
+		t.Fatalf("team key filter = %v, want eqIgnoreCase SYMPH", keyFilter)
+	}
 }
 
 func TestStatesListAlias(t *testing.T) {
@@ -528,14 +532,15 @@ func TestFinalizeErrorSkipsDoubleEnvelope(t *testing.T) {
 // exclusive.
 func TestIssuesCreateStateFlagValidation(t *testing.T) {
 	t.Parallel()
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
 	_, err := executeRootForTest("issues", "create", "--title", "x", "--team", "ENG",
-		"--state", "In Progress", "--agent", "--dry-run")
+		"--state", "In Progress", "--agent", "--dry-run", "--db", dbPath)
 	if err == nil || ExitCode(err) != 2 {
 		t.Fatalf("create --state with a non-UUID should be a code-2 usage error, got %v", err)
 	}
 
 	_, err = executeRootForTest("issues", "create", "--title", "x", "--team", "ENG",
-		"--state", "11111111-2222-3333-4444-555555555555", "--state-name", "Done", "--agent", "--dry-run")
+		"--state", "11111111-2222-3333-4444-555555555555", "--state-name", "Done", "--agent", "--dry-run", "--db", dbPath)
 	if err == nil || ExitCode(err) != 2 {
 		t.Fatalf("create --state plus --state-name should be a code-2 usage error, got %v", err)
 	}
