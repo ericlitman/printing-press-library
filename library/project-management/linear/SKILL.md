@@ -201,6 +201,12 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli issues edit ENG-123 --state-type started --agent   # usage error if the team has several 'started' states
   ```
 
+  `issues create` takes the same trio, resolved against `--team`, so an issue can open directly in the right state. `--state` requires a UUID (a non-UUID value is a usage error pointing at `--state-name`):
+
+  ```bash
+  linear-pp-cli issues create --title "..." --team ENG --state-name "In Progress" --agent
+  ```
+
   Do not use `linear-pp-cli api` or `linear-pp-cli sql` for workflow states — `api` only exposes generated REST-shaped interfaces (currently `integrations`), not Linear GraphQL objects.
 - **Linear document reads** — `documents <ref>` accepts every identifier form Linear surfaces: the document UUID, the bare `slugId` (`f7f48ab36080`), the full URL slug (`my-runbook-f7f48ab36080`), or the entire document URL. Copy whichever you have; no slug trimming or parsing shims needed.
 

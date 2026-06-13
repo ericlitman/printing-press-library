@@ -520,3 +520,63 @@ func TestFinalizeErrorSkipsDoubleEnvelope(t *testing.T) {
 		t.Fatalf("already-emitted envelope should not be duplicated: stdout=%s stderr=%s", stdout.String(), stderr.String())
 	}
 }
+
+// TestIssuesCreateStateFlagValidation mirrors the issues-edit guard: --state on
+// create now rejects a non-UUID before any network call (MOB-104 follow-up:
+// the original gap let "In Progress" pass straight through as stateId and fail
+// with an opaque Linear API error), and the three state selectors are mutually
+// exclusive.
+func TestIssuesCreateStateFlagValidation(t *testing.T) {
+	t.Parallel()
+	_, err := executeRootForTest("issues", "create", "--title", "x", "--team", "ENG",
+		"--state", "In Progress", "--agent", "--dry-run")
+	if err == nil || ExitCode(err) != 2 {
+		t.Fatalf("create --state with a non-UUID should be a code-2 usage error, got %v", err)
+	}
+
+	_, err = executeRootForTest("issues", "create", "--title", "x", "--team", "ENG",
+		"--state", "11111111-2222-3333-4444-555555555555", "--state-name", "Done", "--agent", "--dry-run")
+	if err == nil || ExitCode(err) != 2 {
+		t.Fatalf("create --state plus --state-name should be a code-2 usage error, got %v", err)
+	}
+}
+
+// TestIssuesCreateStateNameResolvesUUID verifies create resolves --state-name to
+// the team's workflow-state UUID and sends the resolved UUID as stateId, the
+// same first-class surface issues edit gained in this PR.
+func TestIssuesCreateStateNameResolvesUUID(t *testing.T) {
+	const teamUUID = "11111111-1111-1111-1111-111111111111"
+	var seenStateID string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "workflowStates("):
+			fmt.Fprint(w, `{"data":{"workflowStates":{"nodes":[{"id":"state-progress","name":"In Progress","type":"started"}]}}}`)
+		case strings.Contains(req.Query, "issueCreate"):
+			input, _ := req.Variables["input"].(map[string]any)
+			seenStateID, _ = input["stateId"].(string)
+			fmt.Fprint(w, `{"data":{"issueCreate":{"success":true,"issue":{"id":"issue-new","identifier":"ENG-1","title":"Issue","team":{"id":"`+teamUUID+`","key":"ENG"},"state":{"id":"state-progress","name":"In Progress","type":"started"}}}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--title", "Issue", "--team", teamUUID,
+		"--state-name", "In Progress",
+		"--db", filepath.Join(t.TempDir(), "linear.db"), "--agent")
+	if err != nil {
+		t.Fatalf("issues create --state-name failed: %v\n%s", err, out)
+	}
+	if seenStateID != "state-progress" {
+		t.Fatalf("stateId sent to issueCreate = %q, want resolved %q", seenStateID, "state-progress")
+	}
+}
