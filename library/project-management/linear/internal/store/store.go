@@ -696,8 +696,13 @@ func (s *Store) ListIssueLabelsForTeam(limit int, team string, includeGlobal boo
 				AND COALESCE(team_id, '') = ''
 				AND COALESCE(team_key, '') = ''
 				AND COALESCE(team_name, '') = '')
-		ORDER BY COALESCE(team_key, ''), name
-		LIMIT ?`, team, team, team, includeGlobalValue, limit)
+		ORDER BY CASE
+				WHEN lower(COALESCE(team_id, '')) = lower(?)
+					OR lower(COALESCE(team_key, '')) = lower(?)
+					OR lower(COALESCE(team_name, '')) = lower(?)
+				THEN 0 ELSE 1 END,
+			COALESCE(team_key, ''), name
+		LIMIT ?`, team, team, team, includeGlobalValue, team, team, team, limit)
 }
 
 func (s *Store) GetByID(table string, id string) (json.RawMessage, error) {
