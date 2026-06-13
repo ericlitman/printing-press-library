@@ -514,7 +514,7 @@ func TestFinalizeErrorPlainModeWritesStderr(t *testing.T) {
 func TestFinalizeErrorSkipsDoubleEnvelope(t *testing.T) {
 	t.Parallel()
 	var stdout, stderr bytes.Buffer
-	flags := &rootFlags{agent: true, asJSON: true, envelopeEmitted: true}
+	flags := &rootFlags{agent: true, asJSON: true, errorWritten: true}
 	finalizeError(flags, nil, &stdout, &stderr, apiErr(fmt.Errorf("HTTP 409 conflict")))
 	if stdout.Len() != 0 || stderr.Len() != 0 {
 		t.Fatalf("already-emitted envelope should not be duplicated: stdout=%s stderr=%s", stdout.String(), stderr.String())
@@ -575,6 +575,64 @@ func TestIssuesCreateStateNameResolvesUUID(t *testing.T) {
 		"--db", filepath.Join(t.TempDir(), "linear.db"), "--agent")
 	if err != nil {
 		t.Fatalf("issues create --state-name failed: %v\n%s", err, out)
+	}
+	if seenStateID != "state-progress" {
+		t.Fatalf("stateId sent to issueCreate = %q, want resolved %q", seenStateID, "state-progress")
+	}
+}
+
+func TestIssuesCreateStateNameResolvesTeamKeyWithoutLocalStore(t *testing.T) {
+	const teamUUID = "11111111-1111-1111-1111-111111111111"
+	var sawTeamLookup, sawStateLookup bool
+	var seenTeamID, seenStateID string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "teams("):
+			sawTeamLookup = true
+			if key, _ := req.Variables["key"].(string); key != "MOB" {
+				t.Errorf("team lookup key = %q, want MOB", key)
+			}
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"`+teamUUID+`","key":"MOB","name":"Mobilyze"}]}}}`)
+		case strings.Contains(req.Query, "workflowStates("):
+			sawStateLookup = true
+			filter, _ := req.Variables["filter"].(map[string]any)
+			teamFilter, _ := filter["team"].(map[string]any)
+			idFilter, _ := teamFilter["id"].(map[string]any)
+			if got, _ := idFilter["eq"].(string); got != teamUUID {
+				t.Errorf("workflow-state team id filter = %q, want %q", got, teamUUID)
+			}
+			fmt.Fprint(w, `{"data":{"workflowStates":{"nodes":[{"id":"state-progress","name":"In Progress","type":"started"}]}}}`)
+		case strings.Contains(req.Query, "issueCreate"):
+			input, _ := req.Variables["input"].(map[string]any)
+			seenTeamID, _ = input["teamId"].(string)
+			seenStateID, _ = input["stateId"].(string)
+			fmt.Fprint(w, `{"data":{"issueCreate":{"success":true,"issue":{"id":"issue-new","identifier":"MOB-1","title":"Issue","team":{"id":"`+teamUUID+`","key":"MOB"},"state":{"id":"state-progress","name":"In Progress","type":"started"}}}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--title", "Issue", "--team", "MOB",
+		"--state-name", "In Progress",
+		"--db", filepath.Join(t.TempDir(), "linear.db"), "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues create --state-name with fresh team key failed: %v\n%s", err, out)
+	}
+	if !sawTeamLookup || !sawStateLookup {
+		t.Fatalf("expected live team and workflow-state lookups; sawTeamLookup=%t sawStateLookup=%t", sawTeamLookup, sawStateLookup)
+	}
+	if seenTeamID != teamUUID {
+		t.Fatalf("teamId sent to issueCreate = %q, want resolved UUID %q", seenTeamID, teamUUID)
 	}
 	if seenStateID != "state-progress" {
 		t.Fatalf("stateId sent to issueCreate = %q, want resolved %q", seenStateID, "state-progress")

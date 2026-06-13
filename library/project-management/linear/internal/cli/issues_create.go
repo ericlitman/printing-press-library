@@ -146,10 +146,16 @@ tickets in the workspace.`,
 			if err != nil {
 				return err
 			}
-			if stateNameFlag != "" || stateTypeFlag != "" {
-				if teamInfo.ID == "" {
-					return usageErr(fmt.Errorf("--state-name/--state-type resolve against the team UUID, but team %q is not in the local store; pass --team <uuid>, run 'linear-pp-cli sync' first, or use --state <uuid>", teamFlag))
+			if teamInfo.ID == "" && teamInfo.Key != "" {
+				resolvedTeamID, err := resolveTeamIDLive(c, teamInfo.Key)
+				if err != nil {
+					return classifyLiveReadError(err, flags)
 				}
+				teamID = resolvedTeamID
+				teamInfo.ID = resolvedTeamID
+				input["teamId"] = teamID
+			}
+			if stateNameFlag != "" || stateTypeFlag != "" {
 				stateID, err := resolveWorkflowState(c, teamInfo, stateNameFlag, stateTypeFlag)
 				if err != nil {
 					return classifyLiveReadError(err, flags)
