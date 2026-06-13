@@ -22,6 +22,7 @@ func newCommentsCmd(flags *rootFlags) *cobra.Command {
 
 func newCommentsListCmd(flags *rootFlags) *cobra.Command {
 	var issue string
+	var after string
 	var limit int
 	cmd := &cobra.Command{
 		Use:   "list [issue]",
@@ -52,10 +53,10 @@ positionally or via --issue; the positional form is the preferred agent shape.`,
 			if limit <= 0 {
 				limit = 50
 			}
-			const query = `query($issueId: String!, $first: Int!) {
+			const query = `query($issueId: String!, $first: Int!, $after: String) {
 				issue(id: $issueId) {
 					id identifier title
-					comments(first: $first) {
+					comments(first: $first, after: $after) {
 						nodes {
 							id body createdAt updatedAt url quotedText
 							user { id name displayName email }
@@ -79,7 +80,11 @@ positionally or via --issue; the positional form is the preferred agent shape.`,
 					} `json:"comments"`
 				} `json:"issue"`
 			}
-			if err := c.QueryInto(query, map[string]any{"issueId": issueID, "first": limit}, &resp); err != nil {
+			vars := map[string]any{"issueId": issueID, "first": limit, "after": nil}
+			if after != "" {
+				vars["after"] = after
+			}
+			if err := c.QueryInto(query, vars, &resp); err != nil {
 				return classifyAPIError(err, flags)
 			}
 			out, err := json.Marshal(map[string]any{
@@ -100,6 +105,7 @@ positionally or via --issue; the positional form is the preferred agent shape.`,
 		},
 	}
 	cmd.Flags().StringVar(&issue, "issue", "", "Issue identifier or UUID")
+	cmd.Flags().StringVar(&after, "after", "", "Cursor from pageInfo.endCursor for the next page")
 	cmd.Flags().IntVar(&limit, "limit", 50, "Maximum comments to return")
 	return cmd
 }
@@ -189,7 +195,7 @@ for Markdown so shell snippets, backticks, and GraphQL variables stay literal.`,
 			}
 			comment, err := extractMutationObject(resp, "commentCreate", "comment")
 			if err != nil {
-				return err
+				return mediaUploadFailure(err, uploaded)
 			}
 			return renderLiveObject(cmd, flags, comment, "comments")
 		},
@@ -299,7 +305,7 @@ func newCommentsEditCmd(flags *rootFlags) *cobra.Command {
 			}
 			comment, err := extractMutationObject(resp, "commentUpdate", "comment")
 			if err != nil {
-				return err
+				return mediaUploadFailure(err, uploaded)
 			}
 			return renderLiveObject(cmd, flags, comment, "comments")
 		},

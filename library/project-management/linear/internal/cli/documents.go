@@ -50,6 +50,7 @@ The positional document reference accepts every form Linear surfaces:
 
 func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
 	var issue, project, team string
+	var after string
 	var limit int
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -78,8 +79,8 @@ func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
 			if limit <= 0 {
 				limit = 50
 			}
-			const query = `query($first: Int!, $filter: DocumentFilter) {
-				documents(first: $first, filter: $filter) {
+			const query = `query($first: Int!, $filter: DocumentFilter, $after: String) {
+				documents(first: $first, filter: $filter, after: $after) {
 					nodes {
 						id title slugId url createdAt updatedAt summary
 						creator { id name displayName email }
@@ -100,7 +101,11 @@ func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
 					} `json:"pageInfo"`
 				} `json:"documents"`
 			}
-			if err := c.QueryInto(query, map[string]any{"first": limit, "filter": filter}, &resp); err != nil {
+			vars := map[string]any{"first": limit, "filter": filter, "after": nil}
+			if after != "" {
+				vars["after"] = after
+			}
+			if err := c.QueryInto(query, vars, &resp); err != nil {
 				return classifyAPIError(err, flags)
 			}
 			out, err := json.Marshal(map[string]any{
@@ -116,6 +121,7 @@ func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&issue, "issue", "", "Filter by issue identifier or UUID")
 	cmd.Flags().StringVar(&project, "project", "", "Filter by project UUID")
 	cmd.Flags().StringVar(&team, "team", "", "Filter by team UUID")
+	cmd.Flags().StringVar(&after, "after", "", "Cursor from pageInfo.endCursor for the next page")
 	cmd.Flags().IntVar(&limit, "limit", 50, "Maximum documents to return")
 	return cmd
 }
@@ -194,7 +200,7 @@ func newDocumentsCreateCmd(flags *rootFlags) *cobra.Command {
 			}
 			doc, err := extractMutationObject(resp, "documentCreate", "document")
 			if err != nil {
-				return err
+				return mediaUploadFailure(err, uploaded)
 			}
 			return renderLiveObject(cmd, flags, doc, "documents")
 		},
@@ -316,7 +322,7 @@ func newDocumentsEditCmd(flags *rootFlags) *cobra.Command {
 			}
 			docRaw, err := extractMutationObject(resp, "documentUpdate", "document")
 			if err != nil {
-				return err
+				return mediaUploadFailure(err, uploaded)
 			}
 			return renderLiveObject(cmd, flags, docRaw, "documents")
 		},

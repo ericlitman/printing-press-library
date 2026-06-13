@@ -58,21 +58,32 @@ func newLabelsListCmd(flags *rootFlags) *cobra.Command {
 			if limit <= 0 {
 				limit = 100
 			}
+			includeGlobals := includeGlobal && !noGlobal
 			var labels []json.RawMessage
 			prov := DataProvenance{ResourceType: "issue_labels"}
-			switch flags.dataSource {
-			case "local":
+			fetchLocal := func(reason string) ([]json.RawMessage, DataProvenance, error) {
 				db, err := store.Open(resolveDBPath(dbPath))
 				if err != nil {
-					return fmt.Errorf("opening local database: %w", err)
+					return nil, DataProvenance{}, fmt.Errorf("opening local database: %w", err)
 				}
 				defer db.Close()
-				labels, err = db.ListIssueLabels(limit)
-				if err != nil {
-					return fmt.Errorf("listing issue labels: %w", err)
+				if team != "" {
+					labels, err = db.ListIssueLabelsForTeam(limit, team, includeGlobals)
+				} else {
+					labels, err = db.ListIssueLabels(limit)
 				}
-				prov.Source = "local"
-				prov.Reason = "user_requested"
+				if err != nil {
+					return nil, DataProvenance{}, fmt.Errorf("listing issue labels: %w", err)
+				}
+				return labels, DataProvenance{Source: "local", ResourceType: "issue_labels", Reason: reason}, nil
+			}
+			switch flags.dataSource {
+			case "local":
+				var err error
+				labels, prov, err = fetchLocal("user_requested")
+				if err != nil {
+					return err
+				}
 			default:
 				c, err := flags.newClient()
 				if err != nil {
@@ -80,13 +91,21 @@ func newLabelsListCmd(flags *rootFlags) *cobra.Command {
 				}
 				nodes, err := c.PaginatedQueryMax(client.IssueLabelsQuery, map[string]any{"first": limit}, "issueLabels", limit, 10)
 				if err != nil {
-					return classifyAPIError(err, flags)
+					if flags.dataSource == "live" || !isNetworkError(err) {
+						return classifyAPIError(err, flags)
+					}
+					var fallbackErr error
+					labels, prov, fallbackErr = fetchLocal("api_unreachable")
+					if fallbackErr != nil {
+						return fmt.Errorf("API unreachable and no local issue labels. Run 'linear-pp-cli sync' to enable offline access.\n\nOriginal error: %w", err)
+					}
+					break
 				}
 				labels = nodes
 				prov.Source = "live"
 				prov.Reason = "user_requested"
 			}
-			filtered := filterIssueLabelsForTeam(labels, team, includeGlobal && !noGlobal)
+			filtered := filterIssueLabelsForTeam(labels, team, includeGlobals)
 			out, err := json.Marshal(filtered)
 			if err != nil {
 				return err
