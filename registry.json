@@ -5892,6 +5892,54 @@
       }
     },
     {
+      "name": "judge-me",
+      "category": "marketing",
+      "api": "Judge Me",
+      "description": "Our REST API lets you access to resources and perform actions on behalf of a store.",
+      "search_terms": [
+        "judge-me",
+        "Judge Me",
+        "judge-me-pp-cli",
+        "Our REST API lets you access to resources and perform actions on behalf of a store.",
+        "Reputation summary",
+        "One read-only dashboard for store-level review count, rating, shop metadata, settings, and local review stats.",
+        "Product reputation hotspots",
+        "reputation products",
+        "Ranks synced products by low-rating rate, average rating, verified rate, and newest review recency.",
+        "Moderation attention queue",
+        "reputation moderation-queue",
+        "Surfaces low-rated, hidden, spam-marked, or not-yet-curated synced reviews for human attention.",
+        "Trust settings audit",
+        "reputation settings-audit",
+        "Audits Judge.me settings that affect trust presentation, including autopublish, picture reviews, star color, and admin email presence when returned.",
+        "Product evidence view",
+        "reputation product",
+        "Fetches product-level count/histogram evidence when product ID is known and widget availability/byte evidence for handles or external IDs."
+      ],
+      "path": "library/marketing/judge-me",
+      "printer": "cathrynlavery",
+      "printer_name": "Cathryn Lavery",
+      "creator": {
+        "handle": "cathrynlavery",
+        "name": "Cathryn Lavery"
+      },
+      "mcp": {
+        "binary": "judge-me-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 34,
+        "public_tool_count": 1,
+        "auth_type": "api_key",
+        "env_vars": [
+          "JUDGE_ME_API_TOKEN",
+          "JUDGE_ME_PRIVATE_APIKEY",
+          "JUDGE_ME_SHOP_DOMAIN"
+        ],
+        "mcp_ready": "full"
+      }
+    },
+    {
       "name": "kalshi",
       "category": "payments",
       "api": "Kalshi Trade Manual",
