@@ -6088,6 +6088,59 @@
       }
     },
     {
+      "name": "kdpnichefinder",
+      "category": "marketing",
+      "api": "KDP Niche Finder",
+      "description": "Every KDP Niche Finder bucket as a local research database — rank niches across buckets, track whether revenue is rising or fading, and export shortlists, none of which the web tool does.",
+      "search_terms": [
+        "kdpnichefinder",
+        "KDP Niche Finder",
+        "kdpnichefinder-pp-cli",
+        "Every KDP Niche Finder bucket as a local research database — rank niches across buckets, track whether revenue is rising or fading, and export shortlists, none of which the web tool does.",
+        "Opportunity rank",
+        "rank",
+        "Rank niches across all four buckets at once by a composite of estimated revenue, sales, and price.",
+        "Revenue drift",
+        "drift",
+        "Show which synced niches are rising or fading in estimated revenue versus an earlier snapshot.",
+        "Cross-bucket dedup",
+        "dupes",
+        "Find books that appear in more than one niche bucket (same ASIN) and show which buckets.",
+        "Publisher saturation",
+        "saturation",
+        "Per bucket, show how concentrated estimated revenue is among publishers (whale vs fragmented).",
+        "Competitor inspect",
+        "competitors",
+        "For a focus book, list same-publisher and same-price-band competitors using the extracted ASIN.",
+        "KDP keyword CSV export",
+        "export",
+        "Export title, ASIN, price, estimated sales, and revenue as CSV for KDP backend keyword and cover work.",
+        "Title keyword frequency",
+        "keywords",
+        "Tokenize synced book titles and count keyword frequency to surface hot terms for a niche."
+      ],
+      "path": "library/marketing/kdpnichefinder",
+      "printer": "vcolombo",
+      "printer_name": "Vincent Colombo",
+      "creator": {
+        "handle": "vcolombo",
+        "name": "Vincent Colombo"
+      },
+      "mcp": {
+        "binary": "kdpnichefinder-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 7,
+        "public_tool_count": 0,
+        "auth_type": "cookie",
+        "env_vars": [],
+        "mcp_ready": "partial",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "kit",
       "category": "marketing",
       "api": "Kit",
