@@ -1,0 +1,20 @@
+{
+  "schema_version": 2,
+  "id": "mob-123-issues-search-discoverability",
+  "applied_at": "2026-06-17",
+  "base_run_id": "20260518-232543",
+  "base_printing_press_version": "4.9.0",
+  "summary": "Expose issue duplicate search through the intuitive `issues search` command path, route natural-language command discovery to it, and treat empty search text as a usage error.",
+  "reason": "Agents repeatedly guessed unsupported `issues search` or search flags before falling back to `similar`, wasting tool calls during duplicate checks and ticket creation.",
+  "files": [
+    "internal/cli/similar.go",
+    "internal/cli/issues.go",
+    "internal/cli/which.go",
+    "internal/cli/root.go",
+    "internal/cli/linear_agent_test.go",
+    "internal/cli/which_test.go",
+    "SKILL.md",
+    "README.md"
+  ],
+  "validated_outcome": "Regression coverage confirms `issues search` uses the same team-scoped FTS search engine as `similar`, accepts unquoted multi-word queries, returns agent JSON with `--select`, emits a JSON usage envelope for missing queries, ranks `issues search` first for issue-search discovery queries, and preserves the corrected usage-code contract for empty `similar` queries."
+}

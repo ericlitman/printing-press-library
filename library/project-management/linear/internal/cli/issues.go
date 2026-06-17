@@ -61,12 +61,14 @@ Single-issue get resolution order (with --data-source auto, the default):
   2. live Linear GraphQL query
   3. on live failure with a fresh store, return the store miss as not found
 
-Use 'issues list' for filtered listing against the local sqlite store.`,
+Use 'issues list' for filtered listing against the local sqlite store.
+Use 'issues search' for duplicate checks and free-text search across synced issues.`,
 		Example: `  linear-pp-cli issues ESP-1155
   linear-pp-cli issues list
   linear-pp-cli issues list --assignee me
   linear-pp-cli issues list --assignee me --state started
-  linear-pp-cli issues list --team ESP --state started --json`,
+  linear-pp-cli issues list --team ESP --state started --json
+  linear-pp-cli issues search "login redirect bug" --team ESP --agent`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -83,6 +85,7 @@ Use 'issues list' for filtered listing against the local sqlite store.`,
 	cmd.PersistentFlags().StringVar(&dbPath, "db", "", "Database path")
 
 	cmd.AddCommand(newIssuesListCmd(flags, &dbPath))
+	cmd.AddCommand(newIssuesSearchCmd(flags, &dbPath))
 	cmd.AddCommand(newIssuesCreateCmd(flags))
 	cmd.AddCommand(newIssuesEditCmd(flags, &dbPath))
 	return cmd

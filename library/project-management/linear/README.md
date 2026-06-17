@@ -174,16 +174,18 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli stale --days 30 --team ENG --json
   ```
-- **`similar`** — Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
+- **`issues search` / `similar`** — Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
 
   _Reach for this during triage when you suspect an incoming bug duplicates an existing issue._
 
   ```bash
+  linear-pp-cli issues search "login redirect bug" --limit 5 --agent
+  linear-pp-cli issues search "pipeline follow-up" --team SYMPH --limit 10 --agent
   linear-pp-cli similar "login redirect bug" --limit 5 --json
   linear-pp-cli similar "pipeline follow-up" --team SYMPH --limit 10 --agent
   ```
 
-  Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
+  Prefer `issues search` when checking for existing tickets before creating or updating follow-up work. Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
 
 ### Cross-entity rollups
 - **`projects burndown`** — Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.
@@ -528,7 +530,7 @@ Read commands fall into three categories with different data-source semantics. T
 | Category | Commands | Default | Override |
 | --- | --- | --- | --- |
 | **Live-first with local fallback** | `attachments`, `projects get`, `teams`, `initiatives get`, `issues`, `issues list` (the v4 refactor) | `--data-source auto`: live API → write-through → fall back to local on network error | `--data-source live` (no fallback), `--data-source local` (no API) |
-| **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
+| **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `issues search`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
 | **Label discovery** | `labels list --team ENG` | `--data-source auto`: reads live by default; `--data-source local` reads the synced `issue_labels` table | `--data-source live`, `--data-source local` |
 | **Live collaboration reads** | `comments list`, `documents`, `documents list` | Always live; comments and working-session docs are collaboration surfaces where stale local state is misleading | n/a |
 | **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND issue mutations are written back to the local store | n/a |

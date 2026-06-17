@@ -71,16 +71,18 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli stale --days 30 --team ENG --json
   ```
-- **`similar`** — Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
+- **`issues search` / `similar`** — Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
 
   _Reach for this during triage when you suspect an incoming bug duplicates an existing issue._
 
   ```bash
+  linear-pp-cli issues search "login redirect bug" --limit 5 --agent
+  linear-pp-cli issues search "pipeline follow-up" --team SYMPH --limit 10 --agent
   linear-pp-cli similar "login redirect bug" --limit 5 --json
   linear-pp-cli similar "pipeline follow-up" --team SYMPH --limit 10 --agent
   ```
 
-  Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
+  Prefer `issues search` when checking for existing tickets before creating or updating follow-up work; it is the supported issue-search spelling agents tend to reach for. Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue. Multi-word `issues search` queries may be quoted or passed as separate words; both forms are joined into one FTS query.
 
 ### Cross-entity rollups
 - **`projects burndown`** — Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.
@@ -306,6 +308,8 @@ linear-pp-cli which "<capability in your own words>"
 ```
 
 `which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query.
+
+For duplicate checks, `linear-pp-cli which "search issues by text" --agent` should point to `issues search`; use that instead of inventing `issues search --help` fallbacks or raw SQL.
 
 ## Recipes
 

@@ -207,6 +207,78 @@ func TestSimilarTeamFilterUsesLocalTeamKey(t *testing.T) {
 	}
 }
 
+func TestSimilarEmptyQueryReturnsUsageEnvelope(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("similar", "", "--db", "/dev/null/linear.db", "--agent")
+	if err == nil {
+		t.Fatalf("similar with empty query succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Code  int    `json:"code"`
+		Error string `json:"error"`
+		Type  string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("usage error output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Code != 2 || envelope.Type != "usage" || !strings.Contains(envelope.Error, "search query cannot be empty") {
+		t.Fatalf("usage error envelope = %+v, want code=2 type=usage with empty-query message; output=%s", envelope, out)
+	}
+}
+
+func TestIssuesSearchAliasUsesSimilarSearchEngine(t *testing.T) {
+	t.Parallel()
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	if err := db.UpsertTeam("team-symph", json.RawMessage(`{"id":"team-symph","key":"SYMPH","name":"Symphony"}`)); err != nil {
+		t.Fatalf("UpsertTeam: %v", err)
+	}
+	if err := db.UpsertIssue("issue-symph", "SYMPH-689", "Kimi replay temp directories cleanup", json.RawMessage(`{"id":"issue-symph","identifier":"SYMPH-689","title":"Kimi replay temp directories cleanup","description":"artifactContract exit code 2","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph"}`)); err != nil {
+		t.Fatalf("UpsertIssue: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close store: %v", err)
+	}
+
+	out, err := executeRootForTest("issues", "search", "Kimi", "replay", "temp", "directories", "cleanup", "--team", "SYMPH", "--limit", "10", "--db", dbPath, "--agent", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search failed: %v\n%s", err, out)
+	}
+	var results []map[string]any
+	if err := json.Unmarshal([]byte(out), &results); err != nil {
+		t.Fatalf("issues search output is not JSON: %v\n%s", err, out)
+	}
+	if len(results) != 1 || results[0]["identifier"] != "SYMPH-689" || results[0]["title"] != "Kimi replay temp directories cleanup" {
+		t.Fatalf("unexpected issues search results: %s", out)
+	}
+}
+
+func TestIssuesSearchMissingQueryReturnsAgentUsageEnvelope(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("issues", "search", "--agent")
+	if err == nil {
+		t.Fatalf("issues search without query succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Code  int    `json:"code"`
+		Error string `json:"error"`
+		Type  string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("usage error output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Code != 2 || envelope.Type != "usage" || !strings.Contains(envelope.Error, "linear-pp-cli similar") {
+		t.Fatalf("usage error envelope = %+v, want code=2 type=usage with similar hint; output=%s", envelope, out)
+	}
+}
+
 func TestDocumentsCreateRequiresExactlyOneParentBeforeMutation(t *testing.T) {
 	out, err := executeRootForTestWithRenderedError("documents", "create", "--title", "Runbook", "--content", "body", "--agent")
 	if err == nil {

@@ -173,6 +173,7 @@ Highlights (not in the official API docs):
   • stale   Find issues that haven't been touched in N days, grouped by team and project.
   • slipped   Show what carried over from last cycle into this cycle, grouped by team and reason heuristic.
   • blocking   Show issues you are blocking — sorted by downstream impact (downstream count × downstream priority).
+  • issues search   Search synced Linear issues by text before creating a new ticket; team-scoped alias for similar duplicate checks.
   • similar   Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
   • velocity   Track sprint completion rates over the last N cycles to spot productivity trends.
   • initiatives health   Rolled-up portfolio view per initiative: child project progress, milestone target-vs-projected dates, slippage flags.
