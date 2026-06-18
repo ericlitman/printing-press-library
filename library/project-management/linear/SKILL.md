@@ -152,6 +152,15 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli issues create --title "Test ticket" --team ENG --trust-mode strict
   ```
+- **Parent and sub-issue linking** — Create child issues and set, change, or clear parent links without leaving the CLI for raw GraphQL.
+
+  _Reach for this when an agent is creating issue trees, epics, or follow-up hierarchies and needs parentage wired safely._
+
+  ```bash
+  linear-pp-cli issues create --title "Child task" --team ENG --parent ENG-123 --description-file /tmp/body.md --agent
+  linear-pp-cli issues edit ENG-124 --parent ENG-123 --agent
+  linear-pp-cli issues edit ENG-124 --no-parent --agent
+  ```
 - **Team-safe issue labels** — Discover labels that are valid for the target Linear team, including global labels, before creating or editing issues.
 
   _Reach for this before passing label UUIDs to `issues create` or `issues edit`; Linear rejects labels owned by another team, and the CLI preflights label ownership before mutating._
@@ -310,6 +319,7 @@ linear-pp-cli which "<capability in your own words>"
 `which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query.
 
 For duplicate checks, `linear-pp-cli which "search issues by text" --agent` should point to `issues search`; use that instead of inventing `issues search --help` fallbacks or raw SQL. If the local issue cache is stale, `issues search` refreshes it or fails with a typed freshness error; agents should not jump to raw GraphQL just because the cache was stale.
+For parent/sub-issue linking, `linear-pp-cli which "set issue parent" --agent` should point to `issues edit --parent`.
 
 ## Recipes
 
