@@ -285,7 +285,7 @@ sub-issue under an existing parent.`,
 			if flags.asJSON {
 				enc := json.NewEncoder(os.Stdout)
 				enc.SetIndent("", "  ")
-				return enc.Encode(map[string]any{
+				event := map[string]any{
 					"event":      "issue_created",
 					"identifier": parsed.IssueCreate.Issue.Identifier,
 					"id":         parsed.IssueCreate.Issue.ID,
@@ -294,7 +294,16 @@ sub-issue under an existing parent.`,
 					"state":      parsed.IssueCreate.Issue.State.Name,
 					"url":        parsed.IssueCreate.Issue.URL,
 					"session":    sess,
-				})
+				}
+				if parsed.IssueCreate.Issue.Parent != nil {
+					event["parent"] = map[string]any{
+						"id":         parsed.IssueCreate.Issue.Parent.ID,
+						"identifier": parsed.IssueCreate.Issue.Parent.Identifier,
+						"title":      parsed.IssueCreate.Issue.Parent.Title,
+					}
+					event["parentId"] = parsed.IssueCreate.Issue.Parent.ID
+				}
+				return enc.Encode(event)
 			}
 			fmt.Printf("Created %s — %s\n", parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title)
 			fmt.Printf("  URL: %s\n", parsed.IssueCreate.Issue.URL)
