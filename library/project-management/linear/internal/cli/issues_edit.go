@@ -11,9 +11,10 @@ import (
 )
 
 func newIssuesEditCmd(flags *rootFlags, dbPath *string) *cobra.Command {
-	var titleFlag, descFlag, descFile, assigneeFlag, projectFlag, stateFlag string
+	var titleFlag, descFlag, descFile, assigneeFlag, projectFlag, stateFlag, parentFlag string
 	var stateNameFlag, stateTypeFlag string
 	var descStdin bool
+	var noParentFlag bool
 	var priorityFlag int
 	var labelsFlag []string
 	var mediaFlag []string
@@ -24,12 +25,17 @@ func newIssuesEditCmd(flags *rootFlags, dbPath *string) *cobra.Command {
 		Long: `Edit a Linear issue via issueUpdate. Use file/stdin flags for Markdown
 descriptions so shell commands, backticks, and GraphQL snippets are preserved
 literally. If --media is supplied without a description source, the existing
-description is fetched live and the uploaded media links are appended.`,
+description is fetched live and the uploaded media links are appended.
+
+Use --parent with an issue identifier or UUID to set/change parentage. Use
+--no-parent to clear parentage.`,
 		Example: `  linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --agent
   linear-pp-cli issues edit ENG-123 --media /tmp/screenshot.png --agent
   linear-pp-cli issues edit ENG-123 --state <state-uuid> --project <project-uuid> --agent
   linear-pp-cli issues edit ENG-123 --state-name "In Progress" --agent
-  linear-pp-cli issues edit ENG-123 --state-type started --agent`,
+  linear-pp-cli issues edit ENG-123 --state-type started --agent
+  linear-pp-cli issues edit ENG-123 --parent ENG-100 --agent
+  linear-pp-cli issues edit ENG-123 --no-parent --agent`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := map[string]any{}
@@ -63,6 +69,15 @@ description is fetched live and the uploaded media links are appended.`,
 				}
 				input["stateId"] = stateFlag
 			}
+			if parentFlag != "" && noParentFlag {
+				return usageErr(fmt.Errorf("pass either --parent or --no-parent, not both"))
+			}
+			if parentFlag != "" {
+				input["parentId"] = parentFlag
+			}
+			if noParentFlag {
+				input["parentId"] = nil
+			}
 			if len(labelsFlag) > 0 {
 				input["labelIds"] = labelsFlag
 			}
@@ -82,8 +97,8 @@ description is fetched live and the uploaded media links are appended.`,
 			if descSet {
 				input["description"] = descBody
 			}
-			if len(input) == 0 && len(mediaFlag) == 0 && stateNameFlag == "" && stateTypeFlag == "" {
-				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --state-name, --state-type, --project, --assignee, --priority, or --label"))
+			if len(input) == 0 && len(mediaFlag) == 0 {
+				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --state-name, --state-type, --project, --assignee, --priority, --label, --parent, or --no-parent"))
 			}
 			if flags.dryRun {
 				out := map[string]any{"issue": args[0], "input": input}
@@ -136,6 +151,13 @@ description is fetched live and the uploaded media links are appended.`,
 					return classifyLiveReadError(err, flags)
 				}
 			}
+			if parentFlag != "" {
+				parentID, err := resolveParentIssueID(c, parentFlag)
+				if err != nil {
+					return classifyLiveReadError(err, flags)
+				}
+				input["parentId"] = parentID
+			}
 			if len(labelsFlag) > 0 {
 				if !issueMetaLoaded {
 					return fmt.Errorf("internal error: label validation requires issue metadata")
@@ -171,6 +193,8 @@ description is fetched live and the uploaded media links are appended.`,
 						team { id key name }
 						project { id name }
 						assignee { id name displayName email }
+						parent { id identifier title }
+						children { nodes { id identifier title } }
 					}
 				}
 			}`
@@ -204,6 +228,8 @@ description is fetched live and the uploaded media links are appended.`,
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID (see 'workflow-states list --team <key>')")
 	cmd.Flags().StringVar(&stateNameFlag, "state-name", "", "Workflow state name (e.g. \"In Progress\"); resolved against the issue's team")
 	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled); resolved against the issue's team")
+	cmd.Flags().StringVar(&parentFlag, "parent", "", "Parent issue identifier or UUID")
+	cmd.Flags().BoolVar(&noParentFlag, "no-parent", false, "Clear issue parentage")
 	cmd.Flags().StringSliceVar(&labelsFlag, "label", nil, "Replacement label UUIDs (repeatable)")
 	cmd.Flags().StringSliceVar(&mediaFlag, "media", nil, "Upload file and append it to the description markdown (repeatable)")
 	cmd.Flags().BoolVar(&mediaPublic, "media-public", false, "Request public Linear asset URLs for uploaded media")

@@ -173,6 +173,7 @@ Highlights (not in the official API docs):
   • milestones at-risk   List portfolio milestones whose projected landing date has slipped past their target, ranked by slip magnitude.
   • pp-test list   List Linear issues this CLI created in the current or named session, then archive them with pp-cleanup.
   • issues create --trust-mode strict   Refuse mutations on Linear issues not in the local pp_created ledger when --trust-mode strict is set; works on create and any future mutation surface.
+  • issues create/edit --parent   Create, set, change, or clear Linear parent/sub-issue links without raw GraphQL.
 
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'linear-pp-cli doctor' to verify auth and connectivity.
