@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/medium-reader/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/medium-reader/internal/source"
 	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/medium-reader/internal/store"
 	"github.com/spf13/cobra"
 )
@@ -90,13 +92,23 @@ result's author_id field.`, "\n"),
 					return usageErr(fmt.Errorf("author-archive %q: could not resolve handle to a user id (pass the 12-hex user id, e.g. bcab753a4d4e, or check the @handle): %w", handle, rerr))
 				}
 				userID = resolvedID
+			} else {
+				// A raw hex id may be copied with uppercase digits; Medium ids are
+				// canonically lowercase, so normalize before the GraphQL call.
+				userID = strings.ToLower(userID)
 			}
 
 			resolver := flags.newResolver()
+			// Optional outbound pacing. NewAdaptiveLimiter(0) returns nil and every
+			// method is nil-safe, so --rate-limit 0 (the default) is a true no-op;
+			// a positive value caps requests/sec across the many article fetches
+			// below so a large archive does not trip Medium/Cloudflare throttling.
+			limiter := cliutil.NewAdaptiveLimiter(flags.rateLimit)
 
 			// 1. List the writer's article summaries (ids + metadata) via the
 			//    GraphQL author-archive surface. A surface outage degrades to the
 			//    typed ErrSurfaceUnavailable rather than crashing.
+			limiter.Wait()
 			summaries, err := resolver.AuthorArchive(ctx, userID, maxArticles)
 			if err != nil {
 				return apiErr(fmt.Errorf("author-archive %q: %w", userID, err))
@@ -125,38 +137,20 @@ result's author_id field.`, "\n"),
 					authorName = s.Author
 				}
 
-				// Build the stored record from the summary metadata, enriching
-				// with the full Markdown body via the read surface (best-effort:
-				// a missing body still archives the metadata).
-				obj := map[string]any{
-					"id":              s.ID,
-					"title":           s.Title,
-					"url":             s.URL,
-					"author_name":     s.Author,
-					"author_id":       s.AuthorID,
-					"username":        s.Username,
-					"archived_author": userID,
-				}
-				if !s.PublishedAt.IsZero() {
-					obj["first_published_at"] = s.PublishedAt.UTC().Format("2006-01-02T15:04:05Z07:00")
+				// Enrich the summary with the full Markdown body via the read
+				// surface (best-effort: a missing body still archives the
+				// metadata). Pace each fetch through the optional rate limiter.
+				limiter.Wait()
+				art, rerr := resolver.ReadArticle(ctx, s.ID)
+				if rerr != nil {
+					fmt.Fprintf(cmd.ErrOrStderr(), "warn: article %s: body unavailable: %v\n", s.ID, rerr)
+					art = nil
 				}
 
-				art, rerr := resolver.ReadArticle(ctx, s.ID)
-				if rerr == nil && art != nil {
-					if art.Markdown != "" {
-						obj["markdown"] = art.Markdown
-					}
-					if art.Subtitle != "" {
-						obj["subtitle"] = art.Subtitle
-					}
-					obj["is_locked"] = art.IsLocked
-					obj["is_preview_only"] = art.IsPreviewOnly
-					if art.WordCount > 0 {
-						obj["word_count"] = art.WordCount
-					}
-				} else if rerr != nil {
-					fmt.Fprintf(cmd.ErrOrStderr(), "warn: article %s: body unavailable: %v\n", s.ID, rerr)
-				}
+				// Project into the canonical store record. The keys here MUST
+				// match what digest/corpus/author-compare read back — see
+				// buildArchiveRecord and its test.
+				obj := buildArchiveRecord(s, art, userID)
 
 				merged, merr := json.Marshal(obj)
 				if merr != nil {
@@ -184,11 +178,51 @@ result's author_id field.`, "\n"),
 	return cmd
 }
 
+// buildArchiveRecord projects a fetched summary (plus the optional full-article
+// body) into the JSON record author-archive stores. The keys here are the
+// store's canonical schema — author, published_at, archived_author — and MUST
+// match what digest, corpus, and author-compare read back. An earlier bug wrote
+// author_name/first_published_at instead, which silently emptied digest (every
+// row failed its IsZero date filter) and blanked corpus's author/date columns;
+// this projection is unit-tested against those readers' expectations to keep the
+// writer and readers from drifting again. published_at is RFC3339 so digest's
+// parsePublishedAt (via cliutil.ParseStoredTime) parses it back.
+func buildArchiveRecord(s source.PostSummary, art *source.Article, archivedFor string) map[string]any {
+	obj := map[string]any{
+		"id":              s.ID,
+		"title":           s.Title,
+		"url":             s.URL,
+		"author":          s.Author,
+		"author_id":       s.AuthorID,
+		"username":        s.Username,
+		"archived_author": archivedFor,
+	}
+	if !s.PublishedAt.IsZero() {
+		obj["published_at"] = s.PublishedAt.UTC().Format(time.RFC3339)
+	}
+	if art != nil {
+		if art.Markdown != "" {
+			obj["markdown"] = art.Markdown
+		}
+		if art.Subtitle != "" {
+			obj["subtitle"] = art.Subtitle
+		}
+		obj["is_locked"] = art.IsLocked
+		obj["is_preview_only"] = art.IsPreviewOnly
+		if art.WordCount > 0 {
+			obj["word_count"] = art.WordCount
+		}
+	}
+	return obj
+}
+
 // looksLikeUserID reports whether arg is already a Medium user id rather than a
-// handle/username that needs resolving. Medium user ids are lowercase-hex runs
-// (the canonical form is 12 chars, e.g. bcab753a4d4e); we accept a 10-16-char
-// all-hex token to stay robust to id-length drift. A leading "@" is always a
-// handle, never an id, so it short-circuits to false.
+// handle/username that needs resolving. Medium user ids are hex runs (the
+// canonical form is 12 lowercase chars, e.g. bcab753a4d4e); we accept a
+// 10-16-char all-hex token, case-insensitively, to stay robust to id-length
+// drift and to ids copied with uppercase hex digits (the caller lowercases a
+// matched id before use). A leading "@" is always a handle, never an id, so it
+// short-circuits to false.
 func looksLikeUserID(arg string) bool {
 	s := strings.TrimSpace(arg)
 	if s == "" || strings.HasPrefix(s, "@") {
@@ -198,7 +232,7 @@ func looksLikeUserID(arg string) bool {
 		return false
 	}
 	for _, r := range s {
-		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')) {
+		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')) {
 			return false
 		}
 	}
