@@ -1347,7 +1347,7 @@ func TestIssuesCreateDryRunWithParentDoesNotCallAPI(t *testing.T) {
 	t.Setenv("LINEAR_BASE_URL", srv.URL)
 	t.Setenv("LINEAR_API_KEY", "test-token")
 
-	out, err := executeRootForTest("issues", "create",
+	out, err := executeRootForTestWithStdout("issues", "create",
 		"--title", "Child",
 		"--team", "MOB",
 		"--parent", "MOB-123",
@@ -1402,7 +1402,7 @@ func TestIssuesCreateWithParentResolvesIdentifierBeforeMutation(t *testing.T) {
 	t.Setenv("LINEAR_BASE_URL", srv.URL)
 	t.Setenv("LINEAR_API_KEY", "test-token")
 
-	out, err := executeRootForTest("issues", "create",
+	out, err := executeRootForTestWithStdout("issues", "create",
 		"--title", "Child",
 		"--team", teamID,
 		"--parent", "MOB-123",
@@ -1417,6 +1417,21 @@ func TestIssuesCreateWithParentResolvesIdentifierBeforeMutation(t *testing.T) {
 	}
 	if seenParentID != "parent-uuid" {
 		t.Fatalf("issueCreate parentId = %q, want parent-uuid", seenParentID)
+	}
+	var created struct {
+		Event    string `json:"event"`
+		ParentID string `json:"parentId"`
+		Parent   *struct {
+			ID         string `json:"id"`
+			Identifier string `json:"identifier"`
+			Title      string `json:"title"`
+		} `json:"parent"`
+	}
+	if err := json.Unmarshal([]byte(out), &created); err != nil {
+		t.Fatalf("issue_created output is not JSON: %v\n%s", err, out)
+	}
+	if created.Event != "issue_created" || created.ParentID != "parent-uuid" || created.Parent == nil || created.Parent.Identifier != "MOB-123" {
+		t.Fatalf("issue_created output missing parent details: %+v\n%s", created, out)
 	}
 }
 
@@ -1471,7 +1486,7 @@ func TestIssuesEditParentAndNoParent(t *testing.T) {
 
 	t.Run("clear parent", func(t *testing.T) {
 		const childID = "00000000-0000-0000-0000-000000000124"
-		parentIDSeen := true
+		parentIDSeen := false
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var req client.GraphQLRequest
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -1699,6 +1714,30 @@ func executeRootForTestWithInput(input string, args ...string) (string, error) {
 	cmd.SetArgs(args)
 	err := cmd.Execute()
 	return out.String(), err
+}
+
+func executeRootForTestWithStdout(args ...string) (string, error) {
+	var flags rootFlags
+	cmd := newRootCmd(&flags)
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+	cmd.SetErr(&out)
+	cmd.SetArgs(args)
+	stdout := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", err
+	}
+	os.Stdout = w
+	cmdErr := cmd.Execute()
+	_ = w.Close()
+	os.Stdout = stdout
+	rendered, readErr := io.ReadAll(r)
+	_ = r.Close()
+	if readErr != nil {
+		return out.String(), readErr
+	}
+	return out.String() + string(rendered), cmdErr
 }
 
 func executeRootForTestWithInputAndRenderedError(input string, args ...string) (string, error) {
