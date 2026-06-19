@@ -214,9 +214,12 @@ func parentNoSubcommandRunE(flags *rootFlags) func(*cobra.Command, []string) err
 			}
 			sort.Strings(subs)
 			_ = json.NewEncoder(cmd.OutOrStdout()).Encode(map[string]any{
+				"code":              2,
 				"error":             "subcommand required",
+				"type":              "usage",
 				"valid_subcommands": subs,
 			})
+			flags.errorWritten = true
 			return usageErr(fmt.Errorf("subcommand required for %q", cmd.CommandPath()))
 		}
 		return cmd.Help()
@@ -237,20 +240,22 @@ func writeNoop(flags *rootFlags, reason, prose string) error {
 }
 
 func writeAPIErrorEnvelope(flags *rootFlags, err error, code int) {
+	writeCLIErrorEnvelope(flags, err, code)
+}
+
+func writeCLIErrorEnvelope(flags *rootFlags, err error, code int) {
 	if flags == nil || !flags.asJSON {
 		return
 	}
-	flags.envelopeEmitted = true
+	flags.errorWritten = true
 	_ = json.NewEncoder(os.Stdout).Encode(map[string]any{
 		"error": err.Error(),
 		"code":  code,
-		"type":  errorTypeForCode(code),
+		"type":  cliErrorType(code),
 	})
 }
 
-// errorTypeForCode maps cliError exit codes to stable machine-readable type
-// strings for JSON error envelopes. Keep in sync with the constructors above.
-func errorTypeForCode(code int) string {
+func cliErrorType(code int) string {
 	switch code {
 	case 2:
 		return "usage"
@@ -302,14 +307,14 @@ func finalizeError(flags *rootFlags, args []string, stdout, stderr io.Writer, er
 		return
 	}
 	if jsonErrorMode(flags, args) {
-		if flags != nil && flags.envelopeEmitted {
+		if flags != nil && flags.errorWritten {
 			return
 		}
 		code := ExitCode(err)
 		_ = json.NewEncoder(stdout).Encode(map[string]any{
 			"error": err.Error(),
 			"code":  code,
-			"type":  errorTypeForCode(code),
+			"type":  cliErrorType(code),
 		})
 		return
 	}

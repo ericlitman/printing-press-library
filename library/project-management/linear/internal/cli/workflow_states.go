@@ -27,6 +27,26 @@ type workflowStateRow struct {
 	} `json:"team"`
 }
 
+var validLinearWorkflowStateTypes = map[string]struct{}{
+	"triage":    {},
+	"backlog":   {},
+	"unstarted": {},
+	"started":   {},
+	"completed": {},
+	"canceled":  {},
+	"duplicate": {},
+}
+
+const validLinearWorkflowStateTypeList = "triage, backlog, unstarted, started, completed, canceled, duplicate"
+
+func normalizeWorkflowStateType(stateType string) (string, error) {
+	normalizedType := strings.ToLower(strings.TrimSpace(stateType))
+	if _, ok := validLinearWorkflowStateTypes[normalizedType]; !ok {
+		return "", usageErr(fmt.Errorf("--state-type %q is not a valid Linear workflow state type; valid types: %s", stateType, validLinearWorkflowStateTypeList))
+	}
+	return normalizedType, nil
+}
+
 func newWorkflowStatesCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "workflow-states",
@@ -157,18 +177,28 @@ func runWorkflowStatesList(cmd *cobra.Command, flags *rootFlags, dbPath, team st
 // type) is a usage error listing the candidates so the agent can retry with
 // --state-name or --state.
 func resolveWorkflowState(c graphqlQueryer, team issueTeamInfo, name, stateType string) (string, error) {
-	if team.ID == "" {
-		return "", fmt.Errorf("cannot resolve workflow state: issue team id is empty")
+	teamFilter := map[string]any{}
+	switch {
+	case team.ID != "":
+		teamFilter["id"] = map[string]any{"eq": team.ID}
+	case team.Key != "":
+		teamFilter["key"] = map[string]any{"eqIgnoreCase": team.Key}
+	default:
+		return "", fmt.Errorf("cannot resolve workflow state: issue team is empty")
 	}
-	filter := map[string]any{"team": map[string]any{"id": map[string]any{"eq": team.ID}}}
+	filter := map[string]any{"team": teamFilter}
 	selector := ""
 	switch {
 	case name != "":
 		filter["name"] = map[string]any{"eqIgnoreCase": name}
 		selector = fmt.Sprintf("--state-name %q", name)
 	case stateType != "":
-		filter["type"] = map[string]any{"eq": stateType}
-		selector = fmt.Sprintf("--state-type %q", stateType)
+		normalizedType, err := normalizeWorkflowStateType(stateType)
+		if err != nil {
+			return "", err
+		}
+		filter["type"] = map[string]any{"eq": normalizedType}
+		selector = fmt.Sprintf("--state-type %q", normalizedType)
 	default:
 		return "", fmt.Errorf("cannot resolve workflow state: no name or type given")
 	}

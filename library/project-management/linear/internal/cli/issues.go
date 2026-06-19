@@ -16,6 +16,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var errTeamFilterNotFound = errors.New("team not found")
+
 // issueRow is the shared projection used by `issues list` and table rendering.
 // It mirrors the shape the sync writes to the `data` JSON column.
 type issueRow struct {
@@ -46,8 +48,6 @@ type issueRow struct {
 	UpdatedAt string `json:"updatedAt"`
 	URL       string `json:"url,omitempty"`
 }
-
-var errTeamFilterNotFound = errors.New("team not found")
 
 func newIssuesCmd(flags *rootFlags) *cobra.Command {
 	var dbPath string

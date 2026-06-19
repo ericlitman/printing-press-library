@@ -225,14 +225,72 @@
       }
     },
     {
+      "name": "agent-desktop",
+      "category": "developer-tools",
+      "api": "Agent Desktop",
+      "description": "Printing Press bridge for the Rust agent-desktop desktop automation CLI.",
+      "search_terms": [
+        "agent-desktop",
+        "Agent Desktop",
+        "agent-desktop-pp-cli",
+        "Printing Press bridge for the Rust agent-desktop desktop automation CLI. Installs or delegates to the real remote package instead of reimplementing desktop automation.",
+        "Remote release bootstrap",
+        "install",
+        "Installs the real agent-desktop package from the public npm/GitHub release channel, with explicit version pinning or latest resolution.",
+        "Agent-safe installation diagnosis",
+        "doctor",
+        "Reports whether the real agent-desktop binary is on PATH without mutating the host.",
+        "Exit-code preserving delegation",
+        "run",
+        "Delegates arguments to the real agent-desktop binary and preserves its exit code for agent retry logic.",
+        "Distribution context",
+        "info",
+        "Explains that this catalog entry is a bridge to the existing Rust CLI, npm package, and GitHub release assets."
+      ],
+      "path": "library/developer-tools/agent-desktop",
+      "printer": "lahfir",
+      "printer_name": "Lahfir",
+      "creator": {
+        "handle": "lahfir",
+        "name": "Lahfir"
+      }
+    },
+    {
+      "name": "agentpool",
+      "category": "developer-tools",
+      "api": "AgentPool",
+      "description": "AgentPool control-plane companion with setup checks, capacity guidance, and official CLI delegation.",
+      "search_terms": [
+        "agentpool",
+        "agentpool-pp-cli",
+        "AgentPool control-plane companion: inspect coding-agent subscription headroom, run privacy-safe diagnostics, and delegate explicit handoffs through the official agentpool CLI.",
+        "Official CLI Delegation",
+        "exec",
+        "Passes arbitrary arguments through to the official agentpool binary so advanced and newly shipped AgentPool commands remain reachable without wrapper drift.",
+        "AgentPool Onboarding",
+        "install",
+        "Shows the official uv/pipx installation and upgrade path for the Python agentpool-cli package from a catalog-native entrypoint.",
+        "Agent Guidance Bridge",
+        "skill",
+        "Prints the version-matched AgentPool skill guidance from the official AgentPool CLI instead of copying guidance into this wrapper."
+      ],
+      "path": "library/developer-tools/agentpool",
+      "printer": "sidduHERE",
+      "printer_name": "sidduHERE",
+      "creator": {
+        "handle": "sidduHERE",
+        "name": "sidduHERE"
+      }
+    },
+    {
       "name": "ahrefs",
       "category": "marketing",
       "api": "Ahrefs",
-      "description": "Query Ahrefs backlinks, keyword, rank tracking, site audit, and SERP data from the terminal.",
+      "description": "Explore Ahrefs SEO data from the terminal: backlinks, keywords, rank tracking, site audits, SERPs, usage limits, and crawler IP ranges.",
       "search_terms": [
         "ahrefs",
         "ahrefs-pp-cli",
-        "Query Ahrefs backlinks, keyword, rank tracking, site audit, and SERP data from the terminal.",
+        "Explore Ahrefs SEO data from the terminal: backlinks, keywords, rank tracking, site audits, SERPs, usage limits, and crawler IP ranges.",
         "Crawler IP allowlist lookup",
         "public crawler-ips",
         "Return Ahrefs crawler IP addresses without requiring an Ahrefs API key.",
@@ -334,6 +392,97 @@
         "env_vars": [],
         "mcp_ready": "partial",
         "spec_format": "internal"
+      }
+    },
+    {
+      "name": "airbyte-admin",
+      "category": "cloud",
+      "api": "Airbyte Admin",
+      "description": "Read-only Airbyte administration CLI for inspecting workspaces, sources, destinations, connections, sync jobs, connector definitions, users, organizations, permissions, and tags from Airbyte Cloud or self-managed Airbyte.",
+      "search_terms": [
+        "airbyte-admin",
+        "Airbyte Admin",
+        "airbyte-admin-pp-cli",
+        "Read-only Airbyte administration CLI for inspecting workspaces, sources, destinations, connections, sync jobs, connector definitions, users, organizations, permissions, and tags from Airbyte Cloud or self-managed Airbyte.",
+        "Source and destination inventory",
+        "public list-sources",
+        "Lists Airbyte sources, with sibling destination and connection-detail commands for inspecting configured data movement.",
+        "Sync job visibility",
+        "public list-jobs",
+        "Lists sync jobs with connection filters and pagination for troubleshooting recent ELT activity.",
+        "Connector catalog lookup",
+        "public list-connector-definitions",
+        "Shows available source or destination connector definitions for a workspace or organization.",
+        "Workspace and access audit",
+        "public list-workspaces",
+        "Surfaces workspaces, users, organizations, permissions, and tags for Airbyte operational review.",
+        "Agent-ready local archive",
+        "sync",
+        "Caches Airbyte read endpoints locally for offline search, export, and repeatable agent analysis."
+      ],
+      "path": "library/cloud/airbyte-admin",
+      "printer": "sdhilip200",
+      "printer_name": "Dhilip Subramanian",
+      "mcp": {
+        "binary": "airbyte-admin-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 19,
+        "public_tool_count": 19,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "AIRBYTE_ADMIN_TOKEN",
+          "AIRBYTE_ADMIN_AUTH_HEADER",
+          "AIRBYTE_ADMIN_BASE_URL"
+        ],
+        "mcp_ready": "full"
+      }
+    },
+    {
+      "name": "airflow-admin",
+      "category": "developer-tools",
+      "api": "Apache Airflow Admin",
+      "description": "Read-first Apache Airflow operations CLI for DAG inventory, DAG run history, task instance inspection, pool capacity, metadata sync, search, and runtime health checks.",
+      "search_terms": [
+        "airflow-admin",
+        "Apache Airflow Admin",
+        "airflow-admin-pp-cli",
+        "Read-first Apache Airflow operations CLI for DAG inventory, DAG run history, task instance inspection, pool capacity, metadata sync, search, and runtime health checks.",
+        "Airflow health readout",
+        "monitor",
+        "Checks Airflow's health endpoint so an engineer can verify the webserver, scheduler, and supporting services before drilling into DAG failures.",
+        "DAG inventory",
+        "dags list",
+        "Lists DAG metadata such as active and paused state, giving teams a compact view of what Airflow is currently managing.",
+        "DAG run triage",
+        "dags dag-runs list",
+        "Filters DAG run history by state and time window to help identify failed or delayed pipeline runs.",
+        "Task instance inspection",
+        "dags dag-runs list-task-instances",
+        "Shows task-level state, retries, and timing inside a DAG run so engineers can find the failing step.",
+        "Local Airflow metadata search",
+        "sync",
+        "Syncs Airflow metadata into a local SQLite store for fast offline search and lightweight analysis."
+      ],
+      "path": "library/developer-tools/airflow-admin",
+      "printer": "sdhilip200",
+      "printer_name": "Dhilip Subramanian",
+      "mcp": {
+        "binary": "airflow-admin-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 16,
+        "public_tool_count": 16,
+        "auth_type": "airflow-jwt",
+        "env_vars": [
+          "AIRFLOW_ADMIN_BASE_URL",
+          "AIRFLOW_ADMIN_BEARER_AUTH"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
       }
     },
     {
@@ -518,12 +667,12 @@
       "name": "amazon-ads",
       "category": "commerce",
       "api": "Amazon Ads",
-      "description": "Amazon Ads CLI for reports, analytics, keyword optimization, and guarded automation",
+      "description": "Plan, measure, and tune Amazon Ads campaigns with OAuth profiles, reports, profitability math, keyword recommendations, and guarded automation.",
       "search_terms": [
         "amazon-ads",
         "Amazon Ads",
         "amazon-ads-pp-cli",
-        "Amazon Ads CLI for OAuth profile setup, reports, profitability analytics, keyword optimization, and guarded campaign automation.",
+        "Plan, measure, and tune Amazon Ads campaigns with OAuth profiles, reports, profitability math, keyword recommendations, and guarded automation.",
         "Profitability analytics",
         "acos-vs-tacos, true-profit, break-even-acos",
         "Estimate ad profitability from Amazon Ads reports, COGS, fees, and optional amazon-seller store revenue.",
@@ -587,7 +736,7 @@
         "Amazon Orders",
         "amazon-orders-pp-cli",
         "Sync your Amazon order history into a local SQLite store, then ask cross-cutting questions offline: which deliveries are slipping, what did I spend last quarter, when did I order that thing, where is my stuff right now.",
-        "Amazon does not publish a buyer-side API for order history. This CLI imports\ncookies from your logged-in Chrome / Firefox / Safari / Brave browser session,\nthen makes authenticated HTTPS GETs to the same HTML pages you see on\namazon.com. Log in to amazon.com in your browser, then run:\n\n  amazon-orders-pp-cli auth login --chrome\n\nCookies live under the .amazon.com domain. The CLI persists them locally and\nrefreshes the session-id cookie automatically when amazon.com rotates it.",
+        "Amazon does not publish a buyer-side API for order history. This CLI imports cookies from your logged-in Chrome / Firefox / Safari / Brave browser session, then makes authenticated HTTPS GETs to the same HTML pages you see on your configured Amazon marketplace. Log in to that marketplace in your browser, then run:\n\n  amazon-orders-pp-cli auth login --chrome\n\nFor India or another non-US marketplace, pass the domain, e.g.:\n\n  amazon-orders-pp-cli auth login --chrome --domain amazon.in\n\nThe CLI persists cookies locally and refreshes the session-id cookie automatically when Amazon rotates it.",
         "Where Is My Stuff",
         "where-is-my-stuff",
         "All in-flight Amazon shipments with their current status and ETA in one view.",
@@ -645,12 +794,12 @@
       "name": "amazon-seller",
       "category": "commerce",
       "api": "Amazon Seller",
-      "description": "Read FBA inventory, orders, sales reports, listings, and catalog data for an Amazon seller account.",
+      "description": "Run Amazon seller workflows from the terminal: FBA inventory, orders, sales reports, listings, catalog lookup, and account operations.",
       "search_terms": [
         "amazon-seller",
         "Amazon Seller",
         "amazon-seller-pp-cli",
-        "Operate an Amazon seller account from the terminal: inventory, orders, reports, listings, and catalog."
+        "Run Amazon seller workflows from the terminal: FBA inventory, orders, sales reports, listings, catalog lookup, and account operations."
       ],
       "path": "library/commerce/amazon-seller",
       "printer": "cathrynlavery",
@@ -1172,6 +1321,12 @@
         "handle": "hnshah",
         "name": "Hiten Shah"
       },
+      "contributors": [
+        {
+          "handle": "sdhilip200",
+          "name": "Dhilip Subramanian"
+        }
+      ],
       "mcp": {
         "binary": "arxiv-pp-mcp",
         "transports": [
@@ -1184,6 +1339,202 @@
         "mcp_ready": "full",
         "spec_format": "openapi3"
       }
+    },
+    {
+      "name": "atlas-obscura",
+      "category": "travel",
+      "api": "Atlas Obscura",
+      "description": "Every Atlas Obscura search, plus a local database, road-trip corridor routing, and saved trips no other Atlas Obscura tool has.",
+      "search_terms": [
+        "atlas-obscura",
+        "Atlas Obscura",
+        "atlas-obscura-pp-cli",
+        "Every Atlas Obscura search, plus a local database, road-trip corridor routing, and saved trips no other Atlas Obscura tool has.",
+        "Road-trip corridor",
+        "route",
+        "Find Atlas Obscura wonders along the driving corridor between two cities, not just in one place.",
+        "Saved trips",
+        "trip",
+        "Accumulate places into named itineraries that persist across sessions.",
+        "Visited tracking",
+        "visited",
+        "Record which wonders you've seen, with optional date and note.",
+        "Unvisited gaps",
+        "gaps",
+        "Show good wonders near a point that you haven't visited yet, ranked by interestingness.",
+        "Walkable clusters",
+        "cluster",
+        "Group nearby wonders into spatially tight clusters that make a walkable half-day.",
+        "Daily surprise",
+        "surprise",
+        "Pick one high-interest wonder you haven't visited, seeded by date so it's stable per day.",
+        "Export trip",
+        "export",
+        "Serialize a saved trip to GPX, GeoJSON, or a markdown itinerary, fully offline."
+      ],
+      "path": "library/travel/atlas-obscura",
+      "printer": "dbryson",
+      "printer_name": "David Bryson",
+      "creator": {
+        "handle": "dbryson",
+        "name": "David Bryson"
+      },
+      "mcp": {
+        "binary": "atlas-obscura-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 3,
+        "public_tool_count": 3,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "autotempest",
+      "category": "commerce",
+      "api": "AutoTempest",
+      "description": "Every AutoTempest car-search source in your terminal, with a local store, cross-source VIN dedupe",
+      "search_terms": [
+        "autotempest",
+        "autotempest-pp-cli",
+        "Every AutoTempest car-search source in your terminal, with a local store, cross-source VIN dedupe, and price-drop tracking no AutoTempest tool has.",
+        "Price-drop watch",
+        "drops",
+        "Surface listings whose price fell since a prior find or watch run, biggest drop first.",
+        "Cross-source VIN dedupe",
+        "dedupe",
+        "Collapse the same physical VIN listed on multiple marketplaces into one row with every source and price, cheapest first.",
+        "Deal-vs-market score",
+        "deal",
+        "Rank listings by mechanical price delta from the median of comparable cars (same model, year, mileage band) in your local store.",
+        "Cross-source price spread",
+        "spread",
+        "Report min, median, and max price per marketplace for a model so you see which sources run cheap or expensive.",
+        "Saved-search registry and replay",
+        "watch",
+        "Register named searches with their filters, then replay them through run so drops and diff have snapshots to compare.",
+        "Live auction slice",
+        "auctions",
+        "Filter to eBay auction listings with live current bid and bid count, sortable by bid."
+      ],
+      "path": "library/commerce/autotempest",
+      "printer": "richardadonnell",
+      "printer_name": "richardadonnell",
+      "creator": {
+        "handle": "richardadonnell",
+        "name": "richardadonnell"
+      },
+      "mcp": {
+        "binary": "autotempest-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 2,
+        "public_tool_count": 2,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "azure-cost-admin",
+      "category": "cloud",
+      "api": "Azure Cost Admin",
+      "description": "Read-only Azure FinOps CLI for actual spend summaries, service and resource-group cost breakdowns, tag hygiene, simple anomaly checks, and retail price lookup support.",
+      "search_terms": [
+        "azure-cost-admin",
+        "Azure Cost Admin",
+        "azure-cost-admin-pp-cli",
+        "Read-only Azure FinOps CLI for actual spend summaries, service and resource-group cost breakdowns, tag hygiene, simple anomaly checks, and retail price lookup support.",
+        "Actual spend summary",
+        "spend summary",
+        "Queries Azure Cost Management for actual billed spend over a selected timeframe.",
+        "Spend ownership breakdowns",
+        "spend by-service",
+        "Groups actual Azure spend by service, with sibling commands for resource groups and tag keys.",
+        "Tag hygiene check",
+        "tags untagged",
+        "Uses Azure Resource Graph to find resources missing a requested owner, environment, or cost-center tag.",
+        "Explainable cost anomaly scan",
+        "anomalies",
+        "Compares recent service spend against a prior window and reports large changes without modifying Azure.",
+        "Retail price estimate helper",
+        "price search",
+        "Searches public Azure Retail Prices separately from actual billed spend so estimates do not get confused with invoice data."
+      ],
+      "path": "library/cloud/azure-cost-admin",
+      "printer": "sdhilip200",
+      "printer_name": "Dhilip Subramanian"
+    },
+    {
+      "name": "azure-devops",
+      "category": "developer-tools",
+      "api": "azure-devops",
+      "description": "The fastest Azure DevOps CLI — offline-first, agent-native",
+      "search_terms": [
+        "azure-devops",
+        "azure-devops-pp-cli",
+        "Daily Standup Digest",
+        "standup",
+        "See your PRs awaiting review, in-progress work items, and newly failed builds in one command — ready before the standup meeting.",
+        "PR Review Readiness Queue",
+        "pr review-queue",
+        "See only the PRs where you are a required reviewer, the build is passing, and no other required reviewer has voted yet — ordered by readiness.",
+        "Sprint Velocity Trend",
+        "velocity",
+        "See sprint-over-sprint velocity with trend line for the current team — points completed vs committed, across the last N sprints.",
+        "Sprint Scope Creep Detector",
+        "work sprint-creep",
+        "See which work items were added to the current sprint after it started, with total story points of scope added mid-sprint.",
+        "Sprint Rollover Counter",
+        "work rollover",
+        "Find work items that have been moved to a new sprint more than once — the chronic blockers that keep slipping through sprint planning.",
+        "Cross-Pipeline Pending Approvals",
+        "release gate-queue",
+        "See all release gates and YAML pipeline stages currently waiting for your approval across every pipeline, with how long each has been waiting.",
+        "Work Item Revision Diff",
+        "work diff",
+        "Show exactly which fields changed between two revisions of a work item — a git-style diff for specification and acceptance criteria.",
+        "Pipeline Flakiness Score",
+        "pipeline flaky",
+        "Identify build stages with the highest intermittent failure rate over the last N runs — the stages that fail and then pass without code changes.",
+        "Work Item Cycle Time",
+        "wit cycle-time",
+        "Measure average time from Active to Done per work item type over a date range — the team's true delivery throughput.",
+        "Commit-to-Build Traceability",
+        "git commit-builds",
+        "Given a commit SHA, see every build and pipeline run that included that commit and whether it passed or failed.",
+        "Cross-Repo Branch Health",
+        "git branch-health",
+        "See a health dashboard for every repo in the project: default branch build status, last commit age, and open PR count — in one table.",
+        "Area Path Work Item Load",
+        "work area-load",
+        "See open work item counts and total story points grouped by area path — to spot overloaded teams or abandoned backlogs.",
+        "PR Aging Report",
+        "pr aging",
+        "Find pull requests with no reviewer activity for N or more days, grouped by author — to surface forgotten PRs before they go stale.",
+        "Branch Stale Cleanup Plan",
+        "branches stale",
+        "List branches that are safe to delete: already merged into default, no open PRs, and no commits in the last N days.",
+        "Build Cost Trend",
+        "builds cost",
+        "See agent minutes consumed per pipeline per week over the last N weeks — to find pipelines that are growing in CI cost."
+      ],
+      "path": "library/developer-tools/azure-devops",
+      "printer": "davbebawy",
+      "printer_name": "David Bebawy",
+      "contributors": [
+        {
+          "handle": "davbebawy",
+          "name": "David Bebawy"
+        }
+      ]
     },
     {
       "name": "azure-functions-admin",
@@ -1531,15 +1882,12 @@
       "name": "blu-ray",
       "category": "media-and-entertainment",
       "api": "Blu-ray.com",
-      "description": "The disc-collector's CLI for Blu-ray.com — offline catalog, live deals, and a price-drop watchlist with zero...",
+      "description": "The disc-collector's CLI for Blu-ray.com — offline catalog, live deals, and a price-drop watchlist with zero account required.",
       "search_terms": [
         "blu-ray",
         "Blu-ray.com",
         "blu-ray-pp-cli",
-        "Blu-ray.com disc database CLI — local catalog, listings, deals, news, and price-drop watchlist for every Blu-ray, 4K, DVD, and digital release.",
-        "Offline FTS5 Search",
-        "search",
-        "Instant offline search across every Blu-ray release in Blu-ray.com's published sitemap (~400k+ entries). Faster than the site's JS-rendered search and works without a network round-trip after one sync.",
+        "The disc-collector's CLI for Blu-ray.com — offline catalog, live deals, and a price-drop watchlist with zero account required.",
         "Price-Drop Watchlist",
         "watch check",
         "Local watchlist of release ids; re-scans Blu-ray.com deals on demand and alerts when any watched disc hits its target price or a new historical low.",
@@ -1700,14 +2048,59 @@
       }
     },
     {
+      "name": "braze",
+      "category": "marketing",
+      "api": "Braze Read",
+      "description": "Read-first Braze REST API surface for marketing analytics, campaign inspection, content assets, and catalog lookup.",
+      "search_terms": [
+        "braze",
+        "Braze Read",
+        "braze-pp-cli",
+        "Read-first Braze REST API surface for marketing analytics, campaign inspection, content assets, and catalog lookup.",
+        "Local SQLite mirror",
+        "sync",
+        "Sync read endpoints into a local SQLite store for offline search, joins, and repeatable agent analysis.",
+        "Full-text search across API data",
+        "search",
+        "Search live or locally synced API records from one agent-friendly command.",
+        "SQL analytics on synced records",
+        "analytics",
+        "Run read-only SQL against the local store for compound questions the upstream API does not expose directly.",
+        "Agent command discovery",
+        "which",
+        "Map natural-language capabilities to the exact CLI command path before spending tokens on trial and error."
+      ],
+      "path": "library/marketing/braze",
+      "printer": "debgotwired",
+      "printer_name": "Deb Mukherjee",
+      "creator": {
+        "handle": "debgotwired",
+        "name": "Deb Mukherjee"
+      },
+      "mcp": {
+        "binary": "braze-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 27,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "BRAZE_BEARER_AUTH"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "breezedoc",
       "category": "productivity",
       "api": "BreezeDoc",
-      "description": "BreezeDoc's REST API provides a handful of endpoints which can be used to get information about your account and",
+      "description": "Manage BreezeDoc e-signature and invoicing workflows across documents, templates, recipients, teams, invoices, and follow-ups.",
       "search_terms": [
         "breezedoc",
         "breezedoc-pp-cli",
-        "E-signature and invoicing API for documents, templates, recipients, teams, and invoice workflows.",
+        "Manage BreezeDoc e-signature and invoicing workflows across documents, templates, recipients, teams, invoices, and follow-ups.",
         "Invoice lifecycle",
         "workflow invoice-lifecycle",
         "Create, update, optionally send, and refetch BreezeDoc invoices as one structured agent workflow.",
@@ -1822,6 +2215,51 @@
       }
     },
     {
+      "name": "calendly",
+      "category": "productivity",
+      "api": "Calendly Read",
+      "description": "Read-first Calendly API surface for scheduling, availability, event, invitee, and webhook inspection.",
+      "search_terms": [
+        "calendly",
+        "Calendly Read",
+        "calendly-pp-cli",
+        "Read-first Calendly API surface for scheduling, availability, event, invitee, and webhook inspection.",
+        "Local SQLite mirror",
+        "sync",
+        "Sync read endpoints into a local SQLite store for offline search, joins, and repeatable agent analysis.",
+        "Full-text search across API data",
+        "search",
+        "Search live or locally synced API records from one agent-friendly command.",
+        "SQL analytics on synced records",
+        "analytics",
+        "Run read-only SQL against the local store for compound questions the upstream API does not expose directly.",
+        "Agent command discovery",
+        "which",
+        "Map natural-language capabilities to the exact CLI command path before spending tokens on trial and error."
+      ],
+      "path": "library/productivity/calendly",
+      "printer": "debgotwired",
+      "printer_name": "Deb Mukherjee",
+      "creator": {
+        "handle": "debgotwired",
+        "name": "Deb Mukherjee"
+      },
+      "mcp": {
+        "binary": "calendly-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 19,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "CALENDLY_BEARER_AUTH"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "cf-domain",
       "category": "cloud",
       "api": "Cloudflare Registrar Domains",
@@ -1884,7 +2322,10 @@
         "Reconstructs session-level browsing timelines using timestamp gaps and device filters.",
         "Rabbithole Drift Detection",
         "rabbitholes",
-        "Detects sessions that drift from productive starts into distracting browsing patterns."
+        "Detects sessions that drift from productive starts into distracting browsing patterns.",
+        "Accumulating History Archive",
+        "archive",
+        "Opt-in sticky archive that preserves browsing history past Chrome's pruning/clears; sync --accumulate appends, archive enable/disable/status/clobber/reset/vacuum manage it, with scoped read routing so rich Chrome-only commands keep reading the live snapshot."
       ],
       "path": "library/productivity/chrome-history",
       "printer": "vinnyp",
@@ -1899,8 +2340,8 @@
           "stdio",
           "http"
         ],
-        "tool_count": 19,
-        "public_tool_count": 19,
+        "tool_count": 22,
+        "public_tool_count": 22,
         "auth_type": "none",
         "env_vars": [],
         "mcp_ready": "full",
@@ -1911,12 +2352,12 @@
       "name": "clarity",
       "category": "marketing",
       "api": "Microsoft Clarity",
-      "description": "Client-side instrumentation helpers for Microsoft Clarity.",
+      "description": "Generate Microsoft Clarity tracking snippets and audit local HTML for tag install, masking attributes, and client API calls.",
       "search_terms": [
         "clarity",
         "Microsoft Clarity",
         "clarity-pp-cli",
-        "Generate Microsoft Clarity client API snippets and inspect the Clarity tag script.",
+        "Generate Microsoft Clarity tracking snippets and audit local HTML for tag install, masking attributes, and client API calls.",
         "Snippet renderer",
         "snippet install",
         "Render a complete Clarity tracking snippet for a project ID, plus focused snippets for every documented client API call.",
@@ -1938,6 +2379,59 @@
         ],
         "tool_count": 1,
         "public_tool_count": 1,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "claude-agent-sdk-python-docs",
+      "category": "developer-tools",
+      "api": "Claude Agent SDK Python Docs",
+      "description": "A source-grounded CLI for exploring and verifying the Claude Agent SDK Python docs.",
+      "search_terms": [
+        "claude-agent-sdk-python-docs",
+        "Claude Agent SDK Python Docs",
+        "claude-agent-sdk-python-docs-pp-cli",
+        "A source-grounded CLI for exploring and verifying the Claude Agent SDK Python docs.",
+        "Code usage verifier against documented symbols",
+        "verify",
+        "Check Python code imports and qualified names against documented Claude Agent SDK symbols.",
+        "Agent-ready task context bundle",
+        "context",
+        "Build a compact source-cited docs bundle for one SDK implementation task.",
+        "Doc change diff by content hash",
+        "diff",
+        "Compare current docs entity hashes against an optional baseline file.",
+        "Minimal recipe composer from examples and signatures",
+        "recipe",
+        "Compose a deterministic implementation scaffold from documented snippets and exact signatures.",
+        "SDK surface map by entity type",
+        "map",
+        "Map functions, classes, types, options, tools, hooks, and message blocks by entity type.",
+        "Example-to-symbol coverage map",
+        "coverage examples",
+        "Report which documented symbols have extracted examples and which do not.",
+        "Anchor and link integrity audit",
+        "audit-links",
+        "Validate internal anchors, guide links, and section references in the fetched docs corpus."
+      ],
+      "path": "library/developer-tools/claude-agent-sdk-python-docs",
+      "printer": "nikships",
+      "printer_name": "Nik",
+      "creator": {
+        "handle": "nikships",
+        "name": "Nik"
+      },
+      "mcp": {
+        "binary": "claude-agent-sdk-python-docs-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 9,
+        "public_tool_count": 9,
         "auth_type": "none",
         "env_vars": [],
         "mcp_ready": "full",
@@ -2049,12 +2543,12 @@
       "name": "cloud-run-admin",
       "category": "cloud",
       "api": "Google Cloud Run",
-      "description": "Deploy and manage user provided container images that scale automatically based on incoming requests. The Cloud Run Admin API v1 follows the Knative Serving API specification, while v2 is aligned with Google Cloud AIP-based API standards, as described in https://google.aip.dev/.",
+      "description": "Inspect and operate Google Cloud Run services, jobs, revisions, executions, and local inventory for serverless container fleets.",
       "search_terms": [
         "cloud-run-admin",
         "Google Cloud Run",
         "cloud-run-admin-pp-cli",
-        "Cloud Run Admin API for deploying and managing serverless container services, revisions, jobs, and executions",
+        "Inspect and operate Google Cloud Run services, jobs, revisions, executions, and local inventory for serverless container fleets.",
         "Agent-ready service inventory",
         "services list",
         "Lists Cloud Run services through the Admin API with agent-friendly JSON, compact output, and field selection.",
@@ -2540,6 +3034,59 @@
         "env_vars": [
           "CUSTOMERIO_TOKEN"
         ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "daraz",
+      "category": "commerce",
+      "api": "Daraz.pk",
+      "description": "Every Daraz product search, plus a local price database, real-deal ranking, and drop alerts no Daraz scraper has.",
+      "search_terms": [
+        "daraz",
+        "Daraz.pk",
+        "daraz-pp-cli",
+        "Every Daraz product search, plus a local price database, real-deal ranking, and drop alerts no Daraz scraper has.",
+        "Price history",
+        "price-history",
+        "See a product's recorded price trend and its lowest-ever price from your local store.",
+        "Price watch",
+        "watch",
+        "Record current prices for every item matching a search into the local store so price history builds over time.",
+        "Saved-search change alerts",
+        "since",
+        "Diff a saved search against its last local snapshot to show new listings and price moves since you last checked.",
+        "Real-deal ranking",
+        "deals",
+        "Rank a search by a composite of discount, rating, and units sold to surface genuinely good deals.",
+        "Fake-discount / value detector",
+        "value",
+        "Flag inflated original-price discounts by comparing each item's claimed original price to the local median for that query.",
+        "Cross-seller compare",
+        "compare",
+        "Find the same item across sellers and show the cheapest and best-rated side by side.",
+        "Seller scorecard",
+        "seller stats",
+        "Aggregate a seller's catalog from the local store: average rating, price range, listing count, discount pattern."
+      ],
+      "path": "library/commerce/daraz",
+      "printer": "qazmataz",
+      "printer_name": "Hamza Qazi",
+      "creator": {
+        "handle": "qazmataz",
+        "name": "Hamza Qazi"
+      },
+      "mcp": {
+        "binary": "daraz-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 2,
+        "public_tool_count": 2,
+        "auth_type": "none",
+        "env_vars": [],
         "mcp_ready": "full",
         "spec_format": "internal"
       }
@@ -3312,11 +3859,11 @@
       "name": "elevenlabs",
       "category": "ai",
       "api": "ElevenLabs",
-      "description": "This is the documentation for the ElevenLabs API. You can use this API to use our service programmatically, this is...",
+      "description": "Create and manage ElevenLabs audio workflows: text-to-speech, voice conversion, transcription, dubbing, music, voices, and agents.",
       "search_terms": [
         "elevenlabs",
         "elevenlabs-pp-cli",
-        "Generate, transform, transcribe, dub, and manage AI audio, voices, music, and conversational agents with ElevenLabs.",
+        "Create and manage ElevenLabs audio workflows: text-to-speech, voice conversion, transcription, dubbing, music, voices, and agents.",
         "Voice Discovery",
         "voice discover",
         "Search owned and shared ElevenLabs voices through one compact, JSON-first command.",
@@ -3327,7 +3874,10 @@
         "tts render",
         "Render text to an audio file and print a structured manifest with file path, byte count, model, and voice.",
         "Dialogue Cast",
-        "Render speaker-labelled dialogue lines by resolving speaker-to-voice assignments and saving audio."
+        "Render speaker-labelled dialogue lines by resolving speaker-to-voice assignments and saving audio.",
+        "Voice budget",
+        "voice-budget",
+        "Compose the subscription and voices reads into remaining character credits, tier limits, reset timing, and voice-slot headroom before a large TTS batch."
       ],
       "path": "library/ai/elevenlabs",
       "printer": "cathrynlavery",
@@ -3808,12 +4358,12 @@
       "name": "facebook-marketplace",
       "category": "commerce",
       "api": "Facebook Marketplace",
-      "description": "A read-mostly Marketplace CLI with local watches, seller workflow helpers, and explicit write checkpoints.",
+      "description": "Search, draft, publish, mirror, and monitor Facebook Marketplace listings with seller helpers and explicit write checkpoints.",
       "search_terms": [
         "facebook-marketplace",
         "Facebook Marketplace",
         "facebook-marketplace-pp-cli",
-        "Search, publish, mirror, and manage Facebook Marketplace seller workflows with explicit write checkpoints.",
+        "Search, draft, publish, mirror, and monitor Facebook Marketplace listings with seller helpers and explicit write checkpoints.",
         "AI listing drafter",
         "draft",
         "Draft a Marketplace title, description, and price suggestion from photos and notes.",
@@ -3837,12 +4387,6 @@
         "handle": "cathrynlavery",
         "name": "Cathryn Lavery"
       },
-      "contributors": [
-        {
-          "handle": "tmchow",
-          "name": "Trevin Chow"
-        }
-      ],
       "mcp": {
         "binary": "facebook-marketplace-pp-mcp",
         "transports": [
@@ -3987,6 +4531,37 @@
         ],
         "mcp_ready": "full",
         "spec_format": "internal"
+      }
+    },
+    {
+      "name": "fellow-stagg-ekg",
+      "category": "devices",
+      "api": "Fellow Stagg EKG",
+      "description": "Control a Fellow Stagg EKG kettle over its local HTTP command interface from the terminal.",
+      "search_terms": [
+        "fellow-stagg-ekg",
+        "Fellow Stagg EKG",
+        "fellow-stagg-ekg-pp-cli",
+        "Control a Fellow Stagg EKG kettle over its local HTTP command interface from the terminal.",
+        "Status snapshot",
+        "status",
+        "One-shot state, settings, and firmware view for a quick kettle check.",
+        "Heat with target temperature",
+        "heat",
+        "Set the kettle target temperature and then start heating in one invocation.",
+        "Direct hardware controls",
+        "button",
+        "Press or release the kettle buttons and rotate the dial without opening the app.",
+        "Raw recovery path",
+        "raw",
+        "Send an arbitrary local HTTP command string when you need a recovery or debugging escape hatch."
+      ],
+      "path": "library/devices/fellow-stagg-ekg",
+      "printer": "erikrogne",
+      "printer_name": "Erik Rogne",
+      "creator": {
+        "handle": "erikrogne",
+        "name": "Erik Rogne"
       }
     },
     {
@@ -4163,6 +4738,12 @@
         "handle": "mvanhorn",
         "name": "Matt Van Horn"
       },
+      "contributors": [
+        {
+          "handle": "lloydarmbrust",
+          "name": "Lloyd Armbrust"
+        }
+      ],
       "mcp": {
         "binary": "flight-goat-pp-mcp",
         "transports": [
@@ -4254,6 +4835,51 @@
       "creator": {
         "handle": "john-fiedler",
         "name": "John Fiedler"
+      }
+    },
+    {
+      "name": "fred",
+      "category": "other",
+      "api": "FRED",
+      "description": "Every FRED endpoint, plus a local SQLite store, offline search, and macro commands no other FRED tool has.",
+      "search_terms": [
+        "fred",
+        "fred-pp-cli",
+        "Every FRED endpoint, plus a local SQLite store, offline search, and macro commands no other FRED tool has.",
+        "Macro dashboard",
+        "dashboard",
+        "Latest value of a curated set of headline U.S. indicators (unemployment, CPI, GDP, fed funds, 10Y, payrolls) in one call.",
+        "Series compare",
+        "Pull observations for multiple series and align them by date into one table or JSON for correlation.",
+        "Series latest",
+        "The single most recent observation (date + value) for a series, as a one-liner.",
+        "Watchlist",
+        "watchlist sync",
+        "Persist a set of series locally, sync their latest observations into SQLite, and report which ones moved since the last sync.",
+        "Release calendar",
+        "Recent and upcoming economic data release dates within a day window, aggregated across all releases."
+      ],
+      "path": "library/other/fred",
+      "printer": "LukeTheoJohnson",
+      "printer_name": "Luke J",
+      "creator": {
+        "handle": "LukeTheoJohnson",
+        "name": "Luke J"
+      },
+      "mcp": {
+        "binary": "fred-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 25,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "FRED_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
       }
     },
     {
@@ -4569,15 +5195,73 @@
       }
     },
     {
+      "name": "google-ad-manager",
+      "category": "marketing",
+      "api": "Google Ad Manager",
+      "description": "The only REST-native Google Ad Manager CLI: report, search, and manage publisher inventory from the terminal, backed by a local mirror the web console can't match.",
+      "search_terms": [
+        "google-ad-manager",
+        "Google Ad Manager",
+        "google-ad-manager-pp-cli",
+        "The only REST-native Google Ad Manager CLI: report, search, and manage publisher inventory from the terminal, backed by a local mirror the web console can't match.",
+        "One-Shot Async Report",
+        "report run",
+        "Create, run, poll, and fetch every row of a GAM report in a single blocking command instead of the four-step UI slog.",
+        "Saved Report Rerun",
+        "report rerun",
+        "Re-execute an existing saved report definition by ID and stream fresh rows, so the morning revenue pull is one short command.",
+        "Daily Report Diff",
+        "report watch",
+        "Re-run a saved report and diff it against the last cached run to surface what moved in revenue, impressions, or eCPM since yesterday.",
+        "Order Expansion Graph",
+        "order graph",
+        "Expand one order into its line items (goal, type, flight dates) in one structured object.",
+        "Ad-Unit Tree View",
+        "adunits tree",
+        "Render the full hierarchical ad-unit tree (or any subtree) from cache, with status and depth, in one offline call.",
+        "Inventory Orphan Audit",
+        "inventory orphans",
+        "Tree-walk the ad-unit hierarchy to flag active units with no placement coverage.",
+        "Local Resync Diff",
+        "since",
+        "Show which mirrored entities were added or changed (by updateTime) since a cutoff — a changelog the platform does not keep.",
+        "Line-Item Pacing Join",
+        "lineitem pace",
+        "Join read-only line-item goals against a delivery report to show each line item's pace versus goal, ranked by risk."
+      ],
+      "path": "library/marketing/google-ad-manager",
+      "printer": "stellato",
+      "printer_name": "Greg Stellato",
+      "creator": {
+        "handle": "stellato",
+        "name": "Greg Stellato"
+      },
+      "mcp": {
+        "binary": "google-ad-manager-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 111,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "GOOGLE_AD_MANAGER_ACCESS_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "google-ads",
       "category": "marketing",
       "api": "Google Ads",
-      "description": "Google Ads API for account discovery, GAQL reporting, campaigns, budgets, assets, conversions, audiences, planning, and billing operations.",
+      "description": "Discover accounts, run GAQL reports, inspect field metadata, and manage Google Ads campaigns, budgets, assets, audiences, and billing.",
       "search_terms": [
         "google-ads",
         "Google Ads",
         "google-ads-pp-cli",
-        "Query and manage Google Ads accounts from the terminal.",
+        "Discover accounts, run GAQL reports, inspect field metadata, and manage Google Ads campaigns, budgets, assets, audiences, and billing.",
         "GAQL account drilldown",
         "customers-google-ads search",
         "Run Google Ads Query Language searches from the terminal or MCP surface with JSON output.",
@@ -4595,6 +5279,12 @@
         "handle": "cathrynlavery",
         "name": "Cathryn Lavery"
       },
+      "contributors": [
+        {
+          "handle": "bobeglz",
+          "name": "bobe"
+        }
+      ],
       "mcp": {
         "binary": "google-ads-pp-mcp",
         "transports": [
@@ -4613,15 +5303,54 @@
       }
     },
     {
+      "name": "google-analytics",
+      "category": "marketing",
+      "api": "Google Analytics 4",
+      "description": "Agent-first Google Analytics 4 CLI with typed Data/Admin/Funnel API coverage and one-call reports for channels, pages, funnels, anomalies, revenue, and health.",
+      "search_terms": [
+        "google-analytics",
+        "Google Analytics 4",
+        "google-analytics-pp-cli",
+        "Agent-first Google Analytics 4 CLI with typed Data/Admin/Funnel API coverage and one-call reports for channels, pages, funnels, anomalies, revenue, and health.",
+        "Health/Doctor",
+        "health",
+        "health/doctor distinguishes token/API errors from property-level GA4 access grant failures",
+        "Channels,",
+        "channels",
+        "channels, sources, top-pages, revenue produce curated acquisition/ecommerce tables",
+        "Compare",
+        "compare calculates period-over-period deltas and percentage changes in one call",
+        "Whats-Changed",
+        "whats-changed scans movers across channels, source/medium, and landing pages",
+        "Funnel",
+        "funnel wraps v1alpha runFunnelReport for named event sequences",
+        "Agent-Context",
+        "agent-context emits structured tool metadata for agents"
+      ],
+      "path": "library/marketing/google-analytics",
+      "printer": "cathrynlavery",
+      "printer_name": "Cathryn Lavery",
+      "creator": {
+        "handle": "cathrynlavery",
+        "name": "Cathryn Lavery"
+      },
+      "contributors": [
+        {
+          "handle": "cathrynlavery",
+          "name": "Cathryn Lavery"
+        }
+      ]
+    },
+    {
       "name": "google-photos",
       "category": "media-and-entertainment",
       "api": "Google Photos",
-      "description": "Google Photos Library and Picker APIs for app-created media, albums, uploads, and user-selected media.",
+      "description": "Manage Google Photos app-created albums and media, upload files, and handle Picker sessions from terminal-friendly commands.",
       "search_terms": [
         "google-photos",
         "Google Photos",
         "google-photos-pp-cli",
-        "Manage Google Photos app-created albums and media, upload files, and work with Picker sessions from the terminal.",
+        "Manage Google Photos app-created albums and media, upload files, and handle Picker sessions from terminal-friendly commands.",
         "Raw upload-token command",
         "upload file",
         "Upload photo or video bytes to Google Photos' raw upload endpoint and return the upload token needed by media-items batch-create.",
@@ -4648,6 +5377,59 @@
         "env_vars": [
           "GOOGLE_PHOTOS_TOKEN"
         ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "google-play",
+      "category": "marketing",
+      "api": "Google Play",
+      "description": "Every public Google Play surface in one Go binary, plus a local SQLite mirror for rank history and listing change detection that no other Play tool keeps.",
+      "search_terms": [
+        "google-play",
+        "Google Play",
+        "google-play-pp-cli",
+        "Every public Google Play surface in one Go binary, plus a local SQLite mirror for rank history and listing change detection that no other Play tool keeps.",
+        "Chart movers",
+        "movers",
+        "See which games climbed, dropped, entered, or fell off a Play chart between two snapshots.",
+        "Chart rank history",
+        "rank-history",
+        "Show one app's rank trajectory over time within a chart, including first-seen, peak, and last-seen rank.",
+        "Listing change detection",
+        "watch-listing",
+        "Diff the two latest snapshots of a listing to surface what changed: title, icon, version, IAP range, ads flag, price, screenshots.",
+        "Keyword rank capture",
+        "keyword-rank",
+        "Run a live store search for a term and record where a target app ranks, persisting the data point for trend analysis.",
+        "Keyword rank history",
+        "keyword-history",
+        "Show the rank-over-time series for a term, app, and country from captured keyword snapshots.",
+        "Review digest",
+        "review-digest",
+        "Aggregate synced reviews into star and per-version histograms, developer reply rate, and complaint-term frequency, with no NLP.",
+        "Compare apps",
+        "compare",
+        "Fetch details for several apps and lay their key fields side by side in one table."
+      ],
+      "path": "library/marketing/google-play",
+      "printer": "qazmataz",
+      "printer_name": "Hamza Qazi",
+      "creator": {
+        "handle": "qazmataz",
+        "name": "Hamza Qazi"
+      },
+      "mcp": {
+        "binary": "google-play-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 1,
+        "public_tool_count": 1,
+        "auth_type": "none",
+        "env_vars": [],
         "mcp_ready": "full",
         "spec_format": "internal"
       }
@@ -5139,6 +5921,51 @@
       }
     },
     {
+      "name": "help-scout",
+      "category": "sales-and-crm",
+      "api": "Help Scout Inbox",
+      "description": "Read-first Help Scout Inbox API surface for support operations and agent workflows.",
+      "search_terms": [
+        "help-scout",
+        "Help Scout Inbox",
+        "help-scout-pp-cli",
+        "Read-first Help Scout Inbox API surface for support operations and agent workflows.",
+        "Local SQLite mirror",
+        "sync",
+        "Sync read endpoints into a local SQLite store for offline search, joins, and repeatable agent analysis.",
+        "Full-text search across API data",
+        "search",
+        "Search live or locally synced API records from one agent-friendly command.",
+        "SQL analytics on synced records",
+        "analytics",
+        "Run read-only SQL against the local store for compound questions the upstream API does not expose directly.",
+        "Agent command discovery",
+        "which",
+        "Map natural-language capabilities to the exact CLI command path before spending tokens on trial and error."
+      ],
+      "path": "library/sales-and-crm/help-scout",
+      "printer": "debgotwired",
+      "printer_name": "Deb Mukherjee",
+      "creator": {
+        "handle": "debgotwired",
+        "name": "Deb Mukherjee"
+      },
+      "mcp": {
+        "binary": "help-scout-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 22,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "HELP_SCOUT_BEARER_AUTH"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "here-now",
       "category": "cloud",
       "api": "here.now",
@@ -5397,6 +6224,44 @@
       ]
     },
     {
+      "name": "instagram",
+      "category": "social-and-messaging",
+      "api": "instagram",
+      "description": "Every Instagram Business metric across all your brand accounts",
+      "search_terms": [
+        "instagram",
+        "instagram-pp-cli",
+        "Cross-account engagement compare",
+        "compare",
+        "Rank all your brand accounts side by side by reach, interactions, and engagement rate over a window.",
+        "Follower-growth week-over-week",
+        "growth",
+        "Track follower-count growth over time per brand, week over week.",
+        "Best-time-to-post",
+        "best-time",
+        "Surface the weekday/hour slots where your posts historically earn the most engagement.",
+        "Top-posts ranking",
+        "top-posts",
+        "Rank individual posts across your brands by reach, interactions, saves, or shares over a window.",
+        "Format performance breakdown",
+        "formats",
+        "Compare Reels vs Feed vs Story vs Carousel by reach, engagement, and Reels watch-time.",
+        "Competitor delta over time",
+        "rivals",
+        "Track rival public accounts' follower and engagement growth across syncs, benchmarked against your brands.",
+        "Hashtag-performance ranking",
+        "hashtag-perf",
+        "Rank the hashtags you track by the reach and engagement of their top media."
+      ],
+      "path": "library/social-and-messaging/instagram",
+      "printer": "alkhamis-80",
+      "printer_name": "Mohammed Al Khamis",
+      "creator": {
+        "handle": "alkhamis-80",
+        "name": "Mohammed Al Khamis"
+      }
+    },
+    {
       "name": "intercom",
       "category": "sales-and-crm",
       "api": "Intercom",
@@ -5434,6 +6299,58 @@
         "auth_type": "bearer_token",
         "env_vars": [
           "INTERCOM_ACCESS_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
+      "name": "intervals-icu",
+      "category": "other",
+      "api": "Intervals.icu",
+      "description": "The first intervals.",
+      "search_terms": [
+        "intervals-icu",
+        "Intervals.icu",
+        "intervals-icu-pp-cli",
+        "The first intervals.icu CLI with a local training database — offline search, SQL, and fitness/form analytics no other tool has.",
+        "Local training database",
+        "sync",
+        "Sync your full activity, wellness, event, workout and gear history into a local SQLite database for offline search and SQL.",
+        "Fitness & form trend",
+        "form",
+        "Compute CTL (fitness), ATL (fatigue) and TSB/form from your synced activity load and show the trend.",
+        "Season curve comparison",
+        "curve compare",
+        "Compare best power/pace/HR curves between two date ranges from the local store.",
+        "Wellness vs load correlation",
+        "wellness trends",
+        "Correlate HRV / resting HR / sleep against training load over a window from the local store.",
+        "Calendar catch-up window",
+        "since",
+        "Show planned workouts, completed activities, and what was missed within a recent time window.",
+        "Gear mileage rollup",
+        "gear status",
+        "Roll up distance/time per gear component against reminders to flag what needs service or replacement."
+      ],
+      "path": "library/other/intervals-icu",
+      "printer": "milosm",
+      "printer_name": "Milos Mladenovic",
+      "creator": {
+        "handle": "milosm",
+        "name": "Milos Mladenovic"
+      },
+      "mcp": {
+        "binary": "intervals-icu-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 146,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "INTERVALS_ICU_API_KEY"
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
@@ -5570,6 +6487,54 @@
       }
     },
     {
+      "name": "judge-me",
+      "category": "marketing",
+      "api": "Judge Me",
+      "description": "Our REST API lets you access to resources and perform actions on behalf of a store.",
+      "search_terms": [
+        "judge-me",
+        "Judge Me",
+        "judge-me-pp-cli",
+        "Our REST API lets you access to resources and perform actions on behalf of a store.",
+        "Reputation summary",
+        "One read-only dashboard for store-level review count, rating, shop metadata, settings, and local review stats.",
+        "Product reputation hotspots",
+        "reputation products",
+        "Ranks synced products by low-rating rate, average rating, verified rate, and newest review recency.",
+        "Moderation attention queue",
+        "reputation moderation-queue",
+        "Surfaces low-rated, hidden, spam-marked, or not-yet-curated synced reviews for human attention.",
+        "Trust settings audit",
+        "reputation settings-audit",
+        "Audits Judge.me settings that affect trust presentation, including autopublish, picture reviews, star color, and admin email presence when returned.",
+        "Product evidence view",
+        "reputation product",
+        "Fetches product-level count/histogram evidence when product ID is known and widget availability/byte evidence for handles or external IDs."
+      ],
+      "path": "library/marketing/judge-me",
+      "printer": "cathrynlavery",
+      "printer_name": "Cathryn Lavery",
+      "creator": {
+        "handle": "cathrynlavery",
+        "name": "Cathryn Lavery"
+      },
+      "mcp": {
+        "binary": "judge-me-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 34,
+        "public_tool_count": 1,
+        "auth_type": "api_key",
+        "env_vars": [
+          "JUDGE_ME_API_TOKEN",
+          "JUDGE_ME_PRIVATE_APIKEY",
+          "JUDGE_ME_SHOP_DOMAIN"
+        ],
+        "mcp_ready": "full"
+      }
+    },
+    {
       "name": "kalshi",
       "category": "payments",
       "api": "Kalshi Trade Manual",
@@ -5598,6 +6563,9 @@
         "Exposure Analysis",
         "portfolio exposure",
         "Break down total exposure by category with concentration warnings when any bucket exceeds a configurable risk threshold.",
+        "Read-only safe mode",
+        "--read-only",
+        "Global env-var/flag lock that blocks every mutating command client-side regardless of which key tier is loaded — pair with --dry-run on every mutator for safe scripting against read-only credentials.",
         "Subaccount roll-up",
         "subaccounts rollup",
         "Aggregate positions, fills-today, balance, and exposure-by-category across every subaccount you can see — household view of risk and resting orders.",
@@ -5621,21 +6589,75 @@
         "public_tool_count": 0,
         "auth_type": "api_key",
         "env_vars": [
-          "KALSHI_TRADE_MANUAL_KALSHI_ACCESS_KEY"
+          "KALSHI_API_KEY",
+          "KALSHI_PRIVATE_KEY_PATH"
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
       }
     },
     {
+      "name": "kdpnichefinder",
+      "category": "marketing",
+      "api": "KDP Niche Finder",
+      "description": "Every KDP Niche Finder bucket as a local research database — rank niches across buckets, track whether revenue is rising or fading, and export shortlists, none of which the web tool does.",
+      "search_terms": [
+        "kdpnichefinder",
+        "KDP Niche Finder",
+        "kdpnichefinder-pp-cli",
+        "Every KDP Niche Finder bucket as a local research database — rank niches across buckets, track whether revenue is rising or fading, and export shortlists, none of which the web tool does.",
+        "Opportunity rank",
+        "rank",
+        "Rank niches across all four buckets at once by a composite of estimated revenue, sales, and price.",
+        "Revenue drift",
+        "drift",
+        "Show which synced niches are rising or fading in estimated revenue versus an earlier snapshot.",
+        "Cross-bucket dedup",
+        "dupes",
+        "Find books that appear in more than one niche bucket (same ASIN) and show which buckets.",
+        "Publisher saturation",
+        "saturation",
+        "Per bucket, show how concentrated estimated revenue is among publishers (whale vs fragmented).",
+        "Competitor inspect",
+        "competitors",
+        "For a focus book, list same-publisher and same-price-band competitors using the extracted ASIN.",
+        "KDP keyword CSV export",
+        "export",
+        "Export title, ASIN, price, estimated sales, and revenue as CSV for KDP backend keyword and cover work.",
+        "Title keyword frequency",
+        "keywords",
+        "Tokenize synced book titles and count keyword frequency to surface hot terms for a niche."
+      ],
+      "path": "library/marketing/kdpnichefinder",
+      "printer": "vcolombo",
+      "printer_name": "Vincent Colombo",
+      "creator": {
+        "handle": "vcolombo",
+        "name": "Vincent Colombo"
+      },
+      "mcp": {
+        "binary": "kdpnichefinder-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 7,
+        "public_tool_count": 0,
+        "auth_type": "cookie",
+        "env_vars": [],
+        "mcp_ready": "partial",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "kit",
       "category": "marketing",
       "api": "Kit",
-      "description": "Manage Kit subscribers, tags, forms, sequences, broadcasts, purchases, and email marketing automation data from the terminal.",
+      "description": "Operate Kit email marketing from the terminal: subscribers, tags, forms, sequences, broadcasts, purchases, snapshots, and audience health.",
       "search_terms": [
         "kit",
         "kit-pp-cli",
-        "Manage Kit subscribers, tags, forms, sequences, broadcasts, purchases, and email marketing automation data from the terminal.",
+        "Operate Kit email marketing from the terminal: subscribers, tags, forms, sequences, broadcasts, purchases, snapshots, and audience health.",
         "Creator Snapshot",
         "workflow creator-snapshot",
         "One-call read-only operating snapshot for Kit account, growth, audience, content, webhooks, and broadcast stats.",
@@ -5675,11 +6697,11 @@
       "name": "klaviyo",
       "category": "marketing",
       "api": "Klaviyo",
-      "description": "Marketing automation, profiles, events, campaigns, flows, segments, and templates.",
+      "description": "Work with Klaviyo profiles, events, campaigns, flows, segments, templates, and local performance analytics for marketing automation.",
       "search_terms": [
         "klaviyo",
         "klaviyo-pp-cli",
-        "Marketing automation, profiles, events, campaigns, flows, segments, and templates.",
+        "Work with Klaviyo profiles, events, campaigns, flows, segments, templates, and local performance analytics for marketing automation.",
         "Campaign Deploy",
         "campaigns deploy",
         "Create an email template, create a draft campaign, and assign the template to the campaign message in one audited workflow.",
@@ -5767,6 +6789,59 @@
           "name": "Trevin Chow"
         }
       ]
+    },
+    {
+      "name": "lda-gov",
+      "category": "other",
+      "api": "LDA.gov",
+      "description": "Lobbying disclosure records with local sync, entity resolution, and evidence-grade exports.",
+      "search_terms": [
+        "lda-gov",
+        "LDA.gov",
+        "lda-gov-pp-cli",
+        "Lobbying disclosure records with local sync, entity resolution, and evidence-grade exports.",
+        "Filing Anomaly Audit",
+        "audit filings",
+        "Flag amendments, terminations, duplicate-risk filings, client/registrant conflicts, and missing source URLs.",
+        "Entity Resolve Dossier",
+        "entities resolve",
+        "Rank matching registrants, clients, and lobbyists with official IDs, counts, last activity, and source URLs.",
+        "Lobbying Spend Timeline",
+        "audit spend",
+        "Aggregate disclosed lobbying income and expenses by client, registrant, issue, year, and quarter.",
+        "Relationship Graph Export",
+        "graph export",
+        "Export client-registrant-lobbyist-issue-government entity edges for graph analysis.",
+        "Contribution Counterparty Totals",
+        "contributions totals",
+        "Aggregate LD-203 contribution items by contributor, recipient, payee, item type, year, and report.",
+        "Quarterly Activity Report",
+        "reports quarter",
+        "Produce quarter stats for filings, amendments, terminations, top issues, top entities, spend, and LD-203 totals.",
+        "Covered Positions Map",
+        "lobbyists covered-positions",
+        "List lobbyists' covered government positions connected to clients, registrants, and filing periods."
+      ],
+      "path": "library/other/lda-gov",
+      "printer": "mherzog4",
+      "printer_name": "Mherzog4",
+      "creator": {
+        "handle": "mherzog4",
+        "name": "Mherzog4"
+      },
+      "mcp": {
+        "binary": "lda-gov-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 18,
+        "public_tool_count": 18,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
     },
     {
       "name": "lemonsqueezy",
@@ -5950,6 +7025,52 @@
         ],
         "tool_count": 2,
         "public_tool_count": 2,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "luma",
+      "category": "social-and-messaging",
+      "api": "Luma",
+      "description": "Browse, search, and export public Luma events from one Go binary — no account, no API key, plus offline full-text search the public API doesn't have.",
+      "search_terms": [
+        "luma",
+        "luma-pp-cli",
+        "Browse, search, and export public Luma events from one Go binary — no account, no API key, plus offline full-text search the public API doesn't have.",
+        "Multi-city/category agenda",
+        "agenda",
+        "One flat, date-sorted list of upcoming events across multiple cities and categories at once.",
+        "Geo-radius event search",
+        "near",
+        "Find events within N km of a lat/lng, ranked by distance.",
+        "ICS export of any filtered set",
+        "ics",
+        "Export a synced/filtered set of events to a .ics calendar file your calendar app can import.",
+        "Drift / new-since-last-sync",
+        "watch",
+        "Show what changed on synced events since the previous sync — new, removed, filling up, sold out, rescheduled.",
+        "Multi-calendar aggregate compare",
+        "calendars compare",
+        "Side-by-side upcoming-event counts and total guest counts across several calendars (communities)."
+      ],
+      "path": "library/social-and-messaging/luma",
+      "printer": "richardadonnell",
+      "printer_name": "richardadonnell",
+      "creator": {
+        "handle": "richardadonnell",
+        "name": "richardadonnell"
+      },
+      "mcp": {
+        "binary": "luma-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 8,
+        "public_tool_count": 8,
         "auth_type": "none",
         "env_vars": [],
         "mcp_ready": "full",
@@ -6159,14 +7280,44 @@
       }
     },
     {
+      "name": "masterpark",
+      "category": "travel",
+      "api": "MasterPark",
+      "description": "Unofficial CLI for MasterPark airport parking locations, quotes, profile sync, and safe gated reservation booking.",
+      "search_terms": [
+        "masterpark",
+        "masterpark-pp-cli",
+        "Unofficial CLI for MasterPark airport parking reservations, including locations, quotes, safe credential injection, profile sync, reservation dry-runs, and gated booking submission.",
+        "Safe pay-at-lot reservation workflow",
+        "reserve",
+        "Composes reservations from live quotes and saved profile data, stays dry-run by default, requires --submit --yes for real bookings, and no-ops under PRINTING_PRESS_VERIFY=1.",
+        "Generic secret-command credential injection",
+        "auth check",
+        "Supports --username-command and --password-command so 1Password or any secret manager can inject credentials without printing or persisting passwords.",
+        "Saved non-secret customer and vehicle profile",
+        "auth sync-profile",
+        "Logs in once and stores only non-secret customer and vehicle defaults so future reservations can fill required fields without saving a password.",
+        "Fresh-booking verification caveat",
+        "reservations list",
+        "Documents that MasterPark's listReservations endpoint may lag or omit newly-created active reservations, so agents trust saveReservation responses and confirmation email immediately after booking."
+      ],
+      "path": "library/travel/masterpark",
+      "printer": "bwishan",
+      "printer_name": "Brian Wishan",
+      "creator": {
+        "handle": "bwishan",
+        "name": "Brian Wishan"
+      }
+    },
+    {
       "name": "mercury",
       "category": "payments",
       "api": "Mercury",
-      "description": "Business banking API for accounts, transactions, payments, recipients, cards, invoices, treasury, and webhooks",
+      "description": "Inspect Mercury business banking data and build safer payment plans across accounts, transactions, recipients, cards, invoices, and treasury.",
       "search_terms": [
         "mercury",
         "mercury-pp-cli",
-        "Business banking API for accounts, transactions, payments, recipients, cards, invoices, treasury, and webhooks",
+        "Inspect Mercury business banking data and build safer payment plans across accounts, transactions, recipients, cards, invoices, and treasury.",
         "Agent money movement plan",
         "workflow payment-plan",
         "Builds a read-only approval plan with body, idempotency key, dry-run command, and execute command before payment or transfer writes.",
@@ -6175,7 +7326,13 @@
         "Syncs supported Mercury resources into a local SQLite store for offline search and analytics.",
         "Structured command introspection",
         "agent-context",
-        "Emits machine-readable command metadata for agents and MCP hosts."
+        "Emits machine-readable command metadata for agents and MCP hosts.",
+        "Cash runway estimate",
+        "cash-runway",
+        "Compose account balances and recent transactions into average weekly net burn and projected weeks of runway.",
+        "Spend by category",
+        "spend-by-category",
+        "Roll up outflow by Mercury category over a period with a week-over-week delta from one windowed transaction read."
       ],
       "path": "library/payments/mercury",
       "printer": "cathrynlavery",
@@ -6248,6 +7405,48 @@
         "auth_type": "bearer_token",
         "env_vars": [
           "META_ACCESS_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
+      "name": "metacritic",
+      "category": "media-and-entertainment",
+      "api": "Metacritic",
+      "description": "Browse, search, and compare Metascores and user scores for games, movies, and TV shows, plus critic and user reviews, without a Metacritic account.",
+      "search_terms": [
+        "metacritic",
+        "metacritic-pp-cli",
+        "Browse, search, and compare Metascores and user scores for games, movies, and TV shows, plus critic and user reviews, without a Metacritic account.",
+        "Full-Text Title Search",
+        "search",
+        "FTS5 full-text search across locally synced games, movies, and TV titles.",
+        "Local Analytics",
+        "analytics",
+        "Aggregate group-by and count queries over locally synced Metacritic data.",
+        "Compound Workflows",
+        "workflow",
+        "Chain multiple API operations (browse, detail, reviews) into one agent-friendly command."
+      ],
+      "path": "library/media-and-entertainment/metacritic",
+      "printer": "coopdogGGs",
+      "printer_name": "Ryan Cooper",
+      "creator": {
+        "handle": "coopdogGGs",
+        "name": "Ryan Cooper"
+      },
+      "mcp": {
+        "binary": "metacritic-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 6,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "METACRITIC_API_KEY"
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
@@ -6362,6 +7561,49 @@
       "creator": {
         "handle": "count",
         "name": "Count"
+      }
+    },
+    {
+      "name": "motohunt",
+      "category": "other",
+      "api": "MotoHunt",
+      "description": "Search motorcycle and ATV listings from the terminal — with MotoHunt's MSRP/average-price/deal-rating data exposed as",
+      "search_terms": [
+        "motohunt",
+        "motohunt-pp-cli",
+        "Search motorcycle and ATV listings from the terminal — with MotoHunt's MSRP/average-price/deal-rating data exposed as structured fields no other tool gives you.",
+        "Price-research surfacing",
+        "get",
+        "See a listing's MSRP, average listing price, and deal rating as typed fields, not buried prose.",
+        "Offline deal ranking",
+        "deal",
+        "Rank synced listings by how far the asking price sits below the average listing price.",
+        "Saved-search watch + diff",
+        "watch run",
+        "Re-run saved searches and report new listings and price drops since the last run.",
+        "Dual-marketplace parity",
+        "search",
+        "Search motorcycles (motohunt.com) or ATV/UTV/SxS (atvhunt.com) from one binary via --site."
+      ],
+      "path": "library/other/motohunt",
+      "printer": "richardadonnell",
+      "printer_name": "richardadonnell",
+      "creator": {
+        "handle": "richardadonnell",
+        "name": "richardadonnell"
+      },
+      "mcp": {
+        "binary": "motohunt-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 2,
+        "public_tool_count": 2,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
       }
     },
     {
@@ -6539,11 +7781,11 @@
       "name": "namecheap",
       "category": "developer-tools",
       "api": "Namecheap",
-      "description": "Curated OpenAPI description for Namecheap's XML API. The real API uses a single",
+      "description": "Manage Namecheap domains, DNS, contacts, pricing, account balances, TLDs, and SSL metadata through a JSON-friendly XML API wrapper.",
       "search_terms": [
         "namecheap",
         "namecheap-pp-cli",
-        "Manage Namecheap domains, DNS, account balances, pricing, contacts, TLDs, and SSL metadata from the terminal using Namecheap’s XML API.",
+        "Manage Namecheap domains, DNS, contacts, pricing, account balances, TLDs, and SSL metadata through a JSON-friendly XML API wrapper.",
         "XML-to-JSON envelope conversion",
         "users get-balances",
         "Converts Namecheap XML envelopes into stable JSON so agents can filter, select, and compose responses without XML parsing.",
@@ -6631,6 +7873,59 @@
         ],
         "tool_count": 5,
         "public_tool_count": 5,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "nhc",
+      "category": "other",
+      "api": "National Hurricane Center",
+      "description": "Credible, real-time National Hurricane Center data for AI agents: active storms, parsed advisories, and tropical outlooks, text-first with link-outs for everything else.",
+      "search_terms": [
+        "nhc",
+        "National Hurricane Center",
+        "nhc-pp-cli",
+        "Credible, real-time National Hurricane Center data for AI agents: active storms, parsed advisories, and tropical outlooks, text-first with link-outs for everything else.",
+        "One-call situational brief",
+        "brief",
+        "One command returns active storms, the tropical outlook, and live NWS tropical alerts as a single payload, with an optional human briefing.",
+        "Flattened storm detail with null-safe link-outs",
+        "storm",
+        "Full detail for one storm: vitals plus every advisory-product URL and GIS link-out, with not-applicable fields returned as explicit null.",
+        "Parsed advisory text (TCP/TCD/TCM)",
+        "advisory",
+        "Fetches and parses the Public Advisory, Forecast Discussion, or Forecast/Marine Advisory into structured fields plus the clean body text, with no HTML scraping by the agent.",
+        "Tropical Weather Outlook with formation odds",
+        "outlook",
+        "Parses the Tropical Weather Outlook for any basin into development areas and 48-hour / 7-day formation chances, with graphic link-outs.",
+        "Storm graphics link-outs with download/open",
+        "graphics",
+        "Returns the cone, track, surge, and wind link-outs for a storm; --download saves the files locally and --open views them.",
+        "ArcGIS MapServer layer link-outs",
+        "gis",
+        "Maps a storm to its ArcGIS REST layer URLs (forecast cone, wind field, watch/warning) for mapping clients. Link-out only; never ingested.",
+        "Credits and safety disclaimer",
+        "credits",
+        "Thanks the people of the National Hurricane Center and states plainly that this is an unofficial tool and NHC/NWS is authoritative."
+      ],
+      "path": "library/other/nhc",
+      "printer": "abe238",
+      "printer_name": "Abe Diaz (@abe238)",
+      "creator": {
+        "handle": "abe238",
+        "name": "Abe Diaz (@abe238)"
+      },
+      "mcp": {
+        "binary": "nhc-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 2,
+        "public_tool_count": 2,
         "auth_type": "none",
         "env_vars": [],
         "mcp_ready": "full",
@@ -6909,6 +8204,48 @@
           "name": "Amit"
         }
       ]
+    },
+    {
+      "name": "nypl-digital-collections",
+      "category": "other",
+      "api": "Nypl Digital Collections",
+      "description": "New York Public Library Digital Collections API. Source docs: https://api.repo.nypl.org/.",
+      "search_terms": [
+        "nypl-digital-collections",
+        "Nypl Digital Collections",
+        "nypl-digital-collections-pp-cli",
+        "New York Public Library Digital Collections API. Source docs: https://api.repo.nypl.org/.",
+        "Story discovery plans",
+        "stories discover",
+        "Expand a seed person or topic into NYPL-friendly narrative clusters, related characters, and archive search queries.",
+        "Research plan execution",
+        "search run-plan",
+        "Execute or preview story discovery plans against NYPL item search with public-domain filtering and bounded per-query limits.",
+        "Local research workspaces",
+        "workspace",
+        "Save search runs and deduped evidence items into local reusable research workspaces.",
+        "Story dossiers",
+        "stories dossier",
+        "Emit Markdown or JSON research dossiers combining narrative clusters, related figures, search prompts, and ranked item candidates."
+      ],
+      "path": "library/other/nypl-digital-collections",
+      "printer": "kierandotai",
+      "printer_name": "kierandotai",
+      "mcp": {
+        "binary": "nypl-digital-collections-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 21,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "NYPL_DIGITAL_COLLECTIONS_NYPL_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
     },
     {
       "name": "obsidian",
@@ -7476,6 +8813,51 @@
       }
     },
     {
+      "name": "oura",
+      "category": "health",
+      "api": "Oura",
+      "description": "Personal health data from the Oura Ring - sleep, readiness, daily activity, heart rate, workouts, SpO2, stress, and resilience.",
+      "search_terms": [
+        "oura",
+        "oura-pp-cli",
+        "Personal health data from the Oura Ring - sleep, readiness, daily activity, heart rate, workouts, SpO2, stress, and resilience.",
+        "Local SQLite Sync",
+        "sync",
+        "Mirror Oura usercollection data into a local SQLite store for offline search and analysis",
+        "Full-Text Search",
+        "search",
+        "FTS5 full-text search across locally synced Oura records",
+        "Local Analytics",
+        "analytics",
+        "Aggregate group-by and count queries over locally synced health data",
+        "Compound Workflows",
+        "workflow",
+        "Chain multiple Oura API operations into one agent-friendly command"
+      ],
+      "path": "library/health/oura",
+      "printer": "coopdogGGs",
+      "printer_name": "ryanc00per",
+      "creator": {
+        "handle": "coopdogGGs",
+        "name": "ryanc00per"
+      },
+      "mcp": {
+        "binary": "oura-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 75,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "OURA_OAUTH2"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "outlook-calendar",
       "category": "productivity",
       "api": "Outlook Calendar",
@@ -7658,6 +9040,40 @@
       }
     },
     {
+      "name": "pangolin",
+      "category": "developer-tools",
+      "api": "pangolin",
+      "description": "The first agent-native CLI for Pangolin — every endpoint, plus offline SQLite, cross-org audits",
+      "search_terms": [
+        "pangolin",
+        "pangolin-pp-cli",
+        "Cross-org health audit",
+        "audit",
+        "Find stale targets, orphaned resources, and missing role bindings across every org you administer, in one command.",
+        "Certificate expiry watch",
+        "cert-watch",
+        "List certificates sorted by days-until-expiry across every org, with a configurable warning window.",
+        "Full config backup",
+        "backup",
+        "Export the complete Pangolin configuration — orgs, sites, resources, targets, roles, IdPs — as version-controllable JSON.",
+        "Config restore from backup",
+        "restore",
+        "Re-apply a backup against a fresh Pangolin install, in the correct dependency order, with dry-run preview.",
+        "Access graph",
+        "access-graph",
+        "Answer 'who can reach what' by joining users, roles, resources, and orgs into one queryable view.",
+        "One-shot expose",
+        "expose",
+        "Create site (if needed), create resource, attach target, bind a role — in one command, with dry-run preview.",
+        "Doctor with base-URL discovery",
+        "doctor",
+        "Validate auth, probe both /v1 and /api/v1 mount paths, and report the working integration-API base URL with environment-variable guidance."
+      ],
+      "path": "library/developer-tools/pangolin",
+      "printer": "CarlF01",
+      "printer_name": "CFinney"
+    },
+    {
       "name": "pcgs",
       "category": "other",
       "api": "Pcgs",
@@ -7758,6 +9174,49 @@
       "creator": {
         "handle": "markvandeven",
         "name": "markvandeven"
+      }
+    },
+    {
+      "name": "pipedrive",
+      "category": "sales-and-crm",
+      "api": "Pipedrive",
+      "description": "CRM for sales teams - deals, contacts, pipelines, activities, and organizations",
+      "search_terms": [
+        "pipedrive",
+        "pipedrive-pp-cli",
+        "CRM for sales teams - deals, contacts, pipelines, activities, and organizations",
+        "Local SQLite mirror",
+        "sync",
+        "Sync read endpoints into a local SQLite store for offline search, joins, and repeatable agent analysis.",
+        "Full-text search across API data",
+        "search",
+        "Search live or locally synced API records from one agent-friendly command.",
+        "SQL analytics on synced records",
+        "analytics",
+        "Run read-only SQL against the local store for compound questions the upstream API does not expose directly.",
+        "Agent command discovery",
+        "which",
+        "Map natural-language capabilities to the exact CLI command path before spending tokens on trial and error."
+      ],
+      "path": "library/sales-and-crm/pipedrive",
+      "printer": "debgotwired",
+      "printer_name": "Deb Mukherjee",
+      "creator": {
+        "handle": "debgotwired",
+        "name": "Deb Mukherjee"
+      },
+      "mcp": {
+        "binary": "pipedrive-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 213,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "PIPEDRIVE_API_KEY"
+        ],
+        "mcp_ready": "full"
       }
     },
     {
@@ -7865,6 +9324,46 @@
         ],
         "mcp_ready": "partial",
         "spec_format": "internal"
+      }
+    },
+    {
+      "name": "podcastindex",
+      "category": "media-and-entertainment",
+      "api": "PodcastIndex",
+      "description": "The only PodcastIndex tool that is agent-native and works offline: search, resolve, and analyse any podcast from one signed binary with a local mirror you can FTS and SQL.",
+      "search_terms": [
+        "podcastindex",
+        "podcastindex-pp-cli",
+        "The only PodcastIndex tool that is agent-native and works offline: search, resolve, and analyse any podcast from one signed binary with a local mirror you can FTS and SQL.",
+        "Transcript grep",
+        "tgrep",
+        "Search inside actual episode transcripts, not just titles and descriptions."
+      ],
+      "path": "library/media-and-entertainment/podcastindex",
+      "printer": "adbonnet",
+      "printer_name": "adbonnet",
+      "creator": {
+        "handle": "adbonnet",
+        "name": "adbonnet"
+      },
+      "mcp": {
+        "binary": "podcastindex-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 52,
+        "public_tool_count": 19,
+        "auth_type": "api_key",
+        "env_vars": [
+          "PODCASTINDEX_KEY",
+          "PODCASTINDEX_ORG_API_KEY",
+          "PODCASTINDEX_ORG_AUTHORIZATION",
+          "PODCASTINDEX_ORG_DATE",
+          "PODCASTINDEX_ORG_USER_AGENT"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
       }
     },
     {
@@ -8447,29 +9946,50 @@
     },
     {
       "name": "qbo",
-      "category": "accounting",
-      "api": "qbo",
+      "category": "payments",
+      "api": "QuickBooks Online",
       "description": "Fixture-first, read-only QuickBooks Online CLI for agents.",
       "search_terms": [
         "qbo",
+        "QuickBooks Online",
         "qbo-pp-cli",
-        "Fixture-first, read-only QuickBooks Online CLI for agents.",
-        "Fixture-only read surface",
-        "qbo-pp-cli status",
-        "Reports read-only, no-live-OAuth safety status for agent use.",
-        "Local JSON fixture reads",
-        "qbo-pp-cli accounts list --fixture testdata/fixtures/qbo/accounts.json",
-        "Reads deterministic local accounting fixtures without credentials or network access.",
-        "Report fixture reads",
-        "qbo-pp-cli reports trial-balance --fixture testdata/fixtures/qbo/trial_balance.json",
-        "Exposes accounting report fixtures as JSON envelopes for agent workflows."
+        "Interact with QuickBooks Online directly. Query ledger items, sync transactions locally, and run advanced reconciliation triage.",
+        "Changed entities check",
+        "changed",
+        "Show ledger entities modified since a duration or timestamp, using SQLite index searching.",
+        "Double-billing expense audit",
+        "duplicates",
+        "Find duplicate purchases or bills to prevent double-billing by auditing vendor and amount proximity.",
+        "Bank transaction reconciliation",
+        "reconcile",
+        "Find ledger candidates matching a bank transaction for reconciliation, optimized to avoid N+1 scans.",
+        "Net worth calculator",
+        "net-worth",
+        "Calculate net worth from asset and liability accounts using offline SQLite mirrors."
       ],
-      "path": "library/accounting/qbo",
-      "printer": "jeffreydebolt",
-      "printer_name": "Jeff DeBolt",
+      "path": "library/payments/qbo",
+      "printer": "kesslerio",
+      "printer_name": "Martin Kessler",
       "creator": {
-        "handle": "jeffreydebolt",
-        "name": "Jeff DeBolt"
+        "handle": "kesslerio",
+        "name": "Martin Kessler"
+      },
+      "mcp": {
+        "binary": "qbo-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 18,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "QBO_CLIENT_ID",
+          "QBO_CLIENT_SECRET",
+          "QBO_REALM_ID"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
       }
     },
     {
@@ -8529,6 +10049,49 @@
         "mcp_ready": "full",
         "spec_format": "internal"
       }
+    },
+    {
+      "name": "rechtspraak",
+      "category": "other",
+      "api": "rechtspraak",
+      "description": "The first CLI for Dutch court decisions with rich local narrowing for long-tail legal keywords, an appeal-chain walker",
+      "search_terms": [
+        "rechtspraak",
+        "rechtspraak-pp-cli",
+        "Appeal-chain walker",
+        "chain",
+        "Walk the cassation, conclusie, and eerdere-aanleg graph for a Dutch court decision in both directions and print the full chain as a tree or JSON.",
+        "Vindplaatsen extractor",
+        "citations",
+        "Extract the citation list (vindplaatsen) for a decision and emit as BibTeX, CSV, or JSON ready for legal-brief footnotes.",
+        "Dossier by zaaknummer",
+        "dossier",
+        "List every decision sharing a case number across instances, sorted chronologically.",
+        "Watch / incremental new-decision poll",
+        "watch",
+        "Poll for new decisions matching a filter, dedupe against the local SQLite, and emit only the new ECLIs — cron-friendly with --quiet.",
+        "Conclusie pairing",
+        "conclusie",
+        "Given a Hoge Raad decision ECLI, return the matching A-G conclusie (or reverse).",
+        "Bulk archive ingest",
+        "sync archive",
+        "Download the official weekly full-corpus archive and bulk-insert to the local SQLite — orders of magnitude faster than paging the Atom feed for backfills.",
+        "Court-code dictionary",
+        "code",
+        "Bidirectional offline lookup against the Instanties controlled vocabulary — court code to full name and PSI URI, or fuzzy name to code.",
+        "MCP server mode",
+        "mcp serve",
+        "Expose every rechtspraak command as an MCP tool — the first MCP server for Dutch case law.",
+        "ECLI parse/validate",
+        "ecli parse",
+        "Pure-local regex parse of an ECLI into country, court, year, and sequence — with validation — and `ecli url` for the deeplink.",
+        "Narrowing pipe",
+        "narrow",
+        "Read an ECLI list from stdin (or piped from search/watch/sync), fetch each decision's content from the live API (paced via the shared rate limiter), apply local include/exclude/phrase/regex filters against title+summary+body, and emit the narrowed list — the defining workflow for keyword-overlap-heavy Dutch legal research. Bounded by --max-pages on upstream input scope; one HTTP call per ECLI."
+      ],
+      "path": "library/other/rechtspraak",
+      "printer": "markvandeven",
+      "printer_name": "markvandeven"
     },
     {
       "name": "recipe-goat",
@@ -8721,6 +10284,61 @@
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
+      }
+    },
+    {
+      "name": "reno-goat",
+      "category": "commerce",
+      "api": "Reno Goat",
+      "description": "Multi-source renovation CLI — search, compare, price-watch, model-enrich, and project-track homeowner-visible renovation selections across 33 active sources plus 5 tracked stubs, with category routing and model intelligence across appliances, plumbing, electrical, HVAC, flooring, hardware, materials, furniture, and decor. No API keys required.",
+      "search_terms": [
+        "reno-goat",
+        "Reno Goat",
+        "reno-goat-pp-cli",
+        "Multi-source renovation CLI — search, compare, price-watch, model-enrich, and project-track homeowner-visible renovation selections across 33 active sources plus 5 tracked stubs, with category routing and model intelligence across appliances, plumbing, electrical, HVAC, flooring, hardware, materials, furniture, and decor. No API keys required.",
+        "Compound Category Search",
+        "product-search --room bathroom",
+        "Room-type shortcuts that expand to multi-category fan-outs across the relevant source fleet.",
+        "Model Intelligence",
+        "model-intel",
+        "Compound model/SKU lookup for installed-selection decisions, including priced source rows, product-page enrichment, spec/install PDFs, and blocked model-page evidence.",
+        "Source Probe",
+        "source-probe",
+        "Readable/blocked route triage for appliance, big-box, and bath-showroom source candidates before activation.",
+        "Price Watch",
+        "watch",
+        "SQLite price history with cron-friendly polling and threshold alerts across all sources.",
+        "Project Tracker",
+        "project",
+        "Named project grouping with cross-store budget tracking.",
+        "Stale Detector",
+        "saved --check-stale",
+        "Re-fetches saved products to detect discontinuation, out-of-stock, and price changes.",
+        "Spec Sheet Export",
+        "product --spec-sheet",
+        "Normalized product specs from unstructured retailer pages.",
+        "Brand Cross-Reference",
+        "brands --cross-ref",
+        "Cross-retailer brand availability and price comparison.",
+        "Review Aggregation",
+        "reviews --aggregate",
+        "Cross-source review merging plus external review site integration."
+      ],
+      "path": "library/commerce/reno-goat",
+      "printer": "H179922",
+      "printer_name": "H179922",
+      "mcp": {
+        "binary": "reno-goat-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 26,
+        "public_tool_count": 26,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
       }
     },
     {
@@ -9049,7 +10667,10 @@
         "Estimates per-domain time-on-site from visit-time gaps (Safari stores no native dwell).",
         "Navigation Graph",
         "graph",
-        "Builds a page-node / referrer-edge navigation graph (JSON or Graphviz dot)."
+        "Builds a page-node / referrer-edge navigation graph (JSON or Graphviz dot).",
+        "iCloud Tabs Reader",
+        "icloud-tabs",
+        "Deterministic read of synced iCloud tabs open on the user's other Apple devices from CloudTabs.db, with per-device counts (--summary), device-name/pinned filters, no-silent-cap, and an opt-in Safari-activate --refresh for freshness."
       ],
       "path": "library/productivity/safari-history",
       "printer": "vinnyp",
@@ -9064,12 +10685,57 @@
           "stdio",
           "http"
         ],
-        "tool_count": 19,
-        "public_tool_count": 19,
+        "tool_count": 20,
+        "public_tool_count": 20,
         "auth_type": "none",
         "env_vars": [],
         "mcp_ready": "full",
         "spec_format": "sqlite"
+      }
+    },
+    {
+      "name": "salesloft",
+      "category": "sales-and-crm",
+      "api": "Salesloft Read",
+      "description": "Read-first Salesloft API surface for agent workflows, based on the public Salesloft v2 developer documentation.",
+      "search_terms": [
+        "salesloft",
+        "Salesloft Read",
+        "salesloft-pp-cli",
+        "Read-first Salesloft API surface for agent workflows, based on the public Salesloft v2 developer documentation.",
+        "Local SQLite mirror",
+        "sync",
+        "Sync read endpoints into a local SQLite store for offline search, joins, and repeatable agent analysis.",
+        "Full-text search across API data",
+        "search",
+        "Search live or locally synced API records from one agent-friendly command.",
+        "SQL analytics on synced records",
+        "analytics",
+        "Run read-only SQL against the local store for compound questions the upstream API does not expose directly.",
+        "Agent command discovery",
+        "which",
+        "Map natural-language capabilities to the exact CLI command path before spending tokens on trial and error."
+      ],
+      "path": "library/sales-and-crm/salesloft",
+      "printer": "debgotwired",
+      "printer_name": "Deb Mukherjee",
+      "creator": {
+        "handle": "debgotwired",
+        "name": "Deb Mukherjee"
+      },
+      "mcp": {
+        "binary": "salesloft-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 20,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "SALESLOFT_BEARER_AUTH"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
       }
     },
     {
@@ -9144,15 +10810,64 @@
       }
     },
     {
+      "name": "scrape-do",
+      "category": "developer-tools",
+      "api": "Scrape.do",
+      "description": "The first CLI for Scrape-do with Google SERP scraping plus a credit and concurrency governor",
+      "search_terms": [
+        "scrape-do",
+        "Scrape.do",
+        "scrape-do-pp-cli",
+        "The first CLI for Scrape-do with Google SERP scraping plus a credit and concurrency governor",
+        "SERP rank-drift diff",
+        "drift",
+        "Diff a Google query's two most recent stored SERPs and see exactly which results moved, appeared, or dropped — entirely offline, no credits spent.",
+        "Multi-agent safe fan-out",
+        "batch",
+        "Dispatch a list of URLs or queries through a shared concurrency lease and per-call credit ledger, auto-retrying only the non-billed 429/502/510 classes and stopping before a credit ceiling.",
+        "Local credit ledger + spend forecast",
+        "budget",
+        "Attribute spend by mode and query-family from a local ledger debited off the authoritative per-call cost header, joined with cached account state to forecast burn-rate against days remaining.",
+        "Pre-flight cost estimator",
+        "cost",
+        "Print the exact credit cost a request will incur — accounting for render, super-proxy, Google endpoints, and per-domain overrides — before spending a single credit.",
+        "Cross-query movers digest",
+        "movers",
+        "Scan every tracked query's latest-versus-previous SERP snapshot and surface only the queries whose top positions moved past a threshold."
+      ],
+      "path": "library/developer-tools/scrape-do",
+      "printer": "Charles-Garrison",
+      "printer_name": "Charles Garrison",
+      "creator": {
+        "handle": "Charles-Garrison",
+        "name": "Charles Garrison"
+      },
+      "mcp": {
+        "binary": "scrape-do-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 1,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "SCRAPEDO_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "seats-aero",
       "category": "travel",
       "api": "Seats Aero Partner",
-      "description": "Seats.aero Partner API for award travel availability, cached search, route lists, and trip revalidation details.",
+      "description": "Search Seats.aero award-flight availability, route coverage, mileage-program feeds, and trip details from the terminal.",
       "search_terms": [
         "seats-aero",
         "Seats Aero Partner",
         "seats-aero-pp-cli",
-        "Search Seats.aero award-flight availability, route coverage, and trip details from the terminal.",
+        "Search Seats.aero award-flight availability, route coverage, mileage-program feeds, and trip details from the terminal.",
         "Seats.aero Partner API key from https://seats.aero/partner-api.",
         "Award deal finder",
         "seats-aero-partner-search",
@@ -9220,7 +10935,10 @@
         "Find issuers that filed an NT 10-K, NT 10-Q, or NT 20-F in the window — the SEC's 'I'm going to miss my reporting deadline' notification.",
         "13F holdings delta",
         "holdings delta",
-        "Diff an institutional investor's 13F holdings across two consecutive quarters. Categorize each issuer as ADD / EXIT / INCREASE / DECREASE with share-count delta."
+        "Diff an institutional investor's 13F holdings across two consecutive quarters. Categorize each issuer as ADD / EXIT / INCREASE / DECREASE with share-count delta.",
+        "Beneficial-ownership section extraction",
+        "ownership",
+        "Resolve a ticker, name, or CIK, find the latest DEF 14A proxy, fetch the document, and extract the \"Security Ownership of Certain Beneficial Owners\" section as readable text."
       ],
       "path": "library/developer-tools/sec-edgar",
       "printer": "ChrisDrit",
@@ -9311,6 +11029,73 @@
       }
     },
     {
+      "name": "sendfox",
+      "category": "marketing",
+      "api": "SendFox",
+      "description": "SendFox email marketing API for authenticated user details, contact lists, contacts, unsubscribe operations",
+      "search_terms": [
+        "sendfox",
+        "sendfox-pp-cli",
+        "Operate SendFox contacts, lists, campaigns, audience hygiene, CSV reconciliation, launch checklists, signup-form handoffs, and webhook setup packets from the terminal.",
+        "Capabilities Matrix",
+        "capabilities",
+        "Machine-readable support matrix that tells agents which SendFox resources can be listed, created, or only handled in the dashboard.",
+        "Account Snapshot",
+        "workflow account-snapshot",
+        "One read-only operating snapshot across /me, lists, contacts, and campaigns.",
+        "Audience Map",
+        "workflow audience-map",
+        "Map contacts to lists and surface contacts without list memberships for segmentation cleanup.",
+        "Hygiene Report",
+        "workflow hygiene-report",
+        "Find duplicate emails, invalid emails, status mix, and list-membership gaps from live contacts.",
+        "Launch Plan",
+        "workflow launch-plan",
+        "Generate a safe SendFox list-launch checklist and exact next CLI/dashboard steps without faking campaign write endpoints.",
+        "Campaign Digest",
+        "workflow campaign-digest",
+        "Summarize campaign count, status mix, and recent campaigns.",
+        "Contacts Audit CSV",
+        "contacts audit-csv",
+        "Validate subscriber CSVs for invalid and duplicate emails before any mutation.",
+        "Contacts Reconcile CSV",
+        "contacts reconcile-csv",
+        "Compare a CSV against live contacts and emit create/skip actions before bulk import.",
+        "Contacts Onboard",
+        "Create a contact and attach list memberships in one automation-aware command with dry-run call preview.",
+        "Contacts Import CSV",
+        "contacts import-csv",
+        "Bulk-create contacts from CSV after a required dry-run/--yes safety gate.",
+        "Forms Generate",
+        "Generate a self-contained signup form handoff with server-side SendFox proxy guidance.",
+        "Webhooks Handoff",
+        "Generate dashboard setup and handler-contract packets for SendFox webhook receivers."
+      ],
+      "path": "library/marketing/sendfox",
+      "printer": "cathrynlavery",
+      "printer_name": "Cathryn Lavery",
+      "creator": {
+        "handle": "cathrynlavery",
+        "name": "Cathryn Lavery"
+      },
+      "mcp": {
+        "binary": "sendfox-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 11,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "SENDFOX_API_TOKEN",
+          "SENDFOX_BEARER_AUTH"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "sendgrid",
       "category": "productivity",
       "api": "Twilio Sendgrid",
@@ -9368,11 +11153,11 @@
       "name": "sentry",
       "category": "monitoring",
       "api": "Sentry",
-      "description": "Error tracking and performance monitoring - projects, issues, events, releases",
+      "description": "Inspect Sentry organizations, projects, issues, events, releases, and Seer metadata for error tracking and performance monitoring.",
       "search_terms": [
         "sentry",
         "sentry-pp-cli",
-        "Error tracking and performance monitoring - projects, issues, events, releases",
+        "Inspect Sentry organizations, projects, issues, events, releases, and Seer metadata for error tracking and performance monitoring.",
         "Sentry organization inventory",
         "organizations list",
         "List Sentry organizations available to the authenticated token with structured output.",
@@ -9558,14 +11343,125 @@
       }
     },
     {
+      "name": "shelters",
+      "category": "other",
+      "api": "Shelters",
+      "description": "Credible, real-time disaster shelter information for AI agents and people",
+      "search_terms": [
+        "shelters",
+        "shelters-pp-cli",
+        "Credible, real-time disaster shelter information for AI agents and people",
+        "Closest open shelter, including pet-friendly",
+        "near",
+        "Ranks open shelters by straight-line distance from a lat,lon, ZIP, or street address; geocodes shelters that are missing coordinates and reports any it cannot locate rather than dropping them.",
+        "Honest capacity, never a fabricated denominator",
+        "capacity",
+        "Computes utilization only where both a population and a capacity are reported, labeling the denominator (evacuation vs post-impact), and surfaces shelters reported FULL without asserting it as ground truth.",
+        "One-call situational briefing",
+        "brief",
+        "One command returns the open count, a breakdown by state, pet-friendly and accessible counts, and the capacity picture, with an optional human briefing.",
+        "Filtered open-shelter listing",
+        "Open shelters flattened from the feed and filterable by state, pets, ADA, wheelchair, managing org, and status.",
+        "Flattened shelter detail by stable id",
+        "shelter",
+        "Full detail for one shelter joined on the stable shelter_id rather than the churning objectid, with unreported fields as explicit null."
+      ],
+      "path": "library/other/shelters",
+      "printer": "abe238",
+      "printer_name": "Abe Diaz (@abe238)",
+      "creator": {
+        "handle": "abe238",
+        "name": "Abe Diaz (@abe238)"
+      },
+      "mcp": {
+        "binary": "shelters-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 1,
+        "public_tool_count": 1,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "shipsgo",
+      "category": "commerce",
+      "api": "ShipsGo",
+      "description": "Every ShipsGo endpoint, plus an RFQ workspace, lane analytics, and an offline shipment book no other tool offers.",
+      "search_terms": [
+        "shipsgo",
+        "shipsgo-pp-cli",
+        "Every ShipsGo endpoint, plus an RFQ workspace, lane analytics, and an offline shipment book no other tool offers.",
+        "RFQ workspace",
+        "rfq new",
+        "Create, populate, and inspect an RFQ workspace that groups multiple tracked shipments under one quote slug.",
+        "RFQ carrier comparison",
+        "rfq compare",
+        "For one RFQ slug, group its shipments by carrier and emit mean actual transit days, ETA-vs-actual delta, and shipment count.",
+        "Lane statistics",
+        "lane stats",
+        "Across all locally tracked shipments on an origin→destination lane, report p50/p90 transit days with per-carrier breakdown.",
+        "ETA drift detector",
+        "eta-drift",
+        "List shipments whose ETA shifted by more than N days since the last sync — sorted by drift magnitude.",
+        "Credit budget guardrail",
+        "credit-budget",
+        "Read ShipsGo X-RateLimit-* headers from the last response, combine with local dedupe state, and refuse new POSTs when the reserve would be breached.",
+        "Unified shipment book",
+        "book",
+        "Single view across ocean + air shipments, filterable by ETA window, status, tag, port, or carrier — backed by FTS5 and local indices.",
+        "Carrier reliability score",
+        "reliability",
+        "Median(actual_delivery − original_eta) and on-time percentage for a carrier, optionally scoped to a specific lane.",
+        "Webhook event tail",
+        "webhook tail",
+        "Tail the locally stored webhook_events table chronologically; supports --since, --shipment, and --watch.",
+        "Pre-write dupe check",
+        "dupe-check",
+        "Look up a container number or AWB in the local store and exit non-zero with the existing shipment id if already tracked.",
+        "RFQ stakeholder digest",
+        "digest",
+        "Emit a structured table of shipment id, last milestone, current ETA, and ETA-delta since last digest, scoped to an RFQ or a time window.",
+        "RFQ follower fan-out",
+        "followers-broadcast",
+        "Add or remove one follower email across every shipment in an RFQ in one command, gated by credit-budget and --dry-run."
+      ],
+      "path": "library/commerce/shipsgo",
+      "printer": "WerkstoffClub",
+      "printer_name": "WerkstoffClub",
+      "creator": {
+        "handle": "WerkstoffClub",
+        "name": "WerkstoffClub"
+      },
+      "mcp": {
+        "binary": "shipsgo-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 22,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "SHIPSGO_USER_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "shopify",
       "category": "commerce",
       "api": "Shopify",
-      "description": "Operate a Shopify store from the terminal with curated Admin GraphQL commands, local sync, analytics, and bulk exports.",
+      "description": "Operate a Shopify store with Admin GraphQL commands, local sync, analytics, bulk exports, and ShopifyQL reporting.",
       "search_terms": [
         "shopify",
         "shopify-pp-cli",
-        "Operate a Shopify store from the terminal with local sync, analytics, and bulk exports.",
+        "Operate a Shopify store with Admin GraphQL commands, local sync, analytics, bulk exports, and ShopifyQL reporting.",
         "Sales Funnel from ShopifyQL",
         "shopifyql funnel",
         "Three-stage funnel over N days (sessions -> checkouts -> orders) computed via ShopifyQL with real response columns.",
@@ -9665,6 +11561,110 @@
         ],
         "mcp_ready": "full",
         "spec_format": "internal"
+      }
+    },
+    {
+      "name": "shopper",
+      "category": "commerce",
+      "api": "Shopper",
+      "description": "The first CLI for Shopper — every catalog, cart",
+      "search_terms": [
+        "shopper",
+        "shopper-pp-cli",
+        "The first CLI for Shopper — every catalog, cart, and delivery surface plus a local price/basket history the web app throws away each cycle.",
+        "Charge & Edit Calendar",
+        "charge-calendar",
+        "Every upcoming cycle's charge date, edit-lock deadline, and delivery date in one timeline so you never miss an edit window or get surprised by a charge.",
+        "Basket Diff",
+        "Compares your current recurring basket against a previous cycle's snapshot to show exactly what was added, dropped, or re-quantified before the template locks.",
+        "Price Watch",
+        "price-watch",
+        "Tracks the price history of the SKUs you actually buy and alerts when one rises or drops meaningfully versus your own purchase baseline.",
+        "Restock Predictor",
+        "restock predict",
+        "Predicts when you'll run out of each staple from your historical buying cadence and suggests what to add to the upcoming basket.",
+        "Catalog Drift Detector",
+        "catalog drift",
+        "Flags products you buy that were discontinued, silently swapped, or kept their price while shrinking the pack, surfacing the real R$/kg or R$/L change.",
+        "Cashback Threshold Optimizer",
+        "cashback optimize",
+        "Computes the cheapest set of items to add (or whether to wait) to cross the next cashback tier, favoring things you'll need anyway."
+      ],
+      "path": "library/commerce/shopper",
+      "printer": "educrvz",
+      "printer_name": "educrvz",
+      "creator": {
+        "handle": "educrvz",
+        "name": "educrvz"
+      },
+      "mcp": {
+        "binary": "shopper-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 21,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "SHOPPER_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "shopping",
+      "category": "commerce",
+      "api": "Shopping",
+      "description": "Every LemmeBuyIt retail endpoint, plus a local store that compares one UPC across 70+ retailers",
+      "search_terms": [
+        "shopping",
+        "shopping-pp-cli",
+        "Every LemmeBuyIt retail endpoint, plus a local store that compares one UPC across 70+ retailers, ranks weekly price drops, and computes Amazon FBA arbitrage margin — compound queries the per-retailer API can't answer.",
+        "Local retail index sync",
+        "index",
+        "Pull products (and optional price history) from one or more retailers into a fast local SQLite store so every other query runs instantly and offline.",
+        "Cross-retailer identifier compare",
+        "compare",
+        "See which synced retailer sells the exact same item (by UPC/EAN/GTIN/ASIN) cheapest right now, ranked, with the savings spread.",
+        "Compound deal finder",
+        "deals",
+        "Surface deals that clear several bars at once — deep discount, under a price ceiling, well-reviewed, in stock — across all tracked retailers in one ranked list.",
+        "FBA arbitrage margin",
+        "arbitrage",
+        "Rank synced products by what you would net reselling them on Amazon after referral and FBA fees, filtered by ROI and buy price.",
+        "Weekly price-drop ranking",
+        "price-drops",
+        "Rank the products that fell the most over the last week (or N weeks) across everything synced, by both dollar and percent drop.",
+        "Retailer & category discount leaderboard",
+        "leaderboard",
+        "Show which retailers and categories are consistently the deepest-discount buckets in your synced data, by average discount, on-sale count, or average price.",
+        "Price watch tracker",
+        "watch status",
+        "Pin items you care about and, after each index refresh, see which ones moved, by how much, and which hit your target price."
+      ],
+      "path": "library/commerce/shopping",
+      "printer": "NicholasSpisak",
+      "printer_name": "NicholasSpisak",
+      "creator": {
+        "handle": "NicholasSpisak",
+        "name": "NicholasSpisak"
+      },
+      "mcp": {
+        "binary": "shopping-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 9,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "SHOPPING_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
       }
     },
     {
@@ -10668,6 +12668,64 @@
       }
     },
     {
+      "name": "sutra-fitness",
+      "category": "productivity",
+      "api": "Sutra",
+      "description": "Every Sutra (Arketa) Partner API resource, plus a local data mirror and the studio analytics the dashboard buries — no-show rates, capacity, churn, and revenue you can finally query.",
+      "search_terms": [
+        "sutra-fitness",
+        "Sutra",
+        "sutra-fitness-pp-cli",
+        "Every Sutra (Arketa) Partner API resource, plus a local data mirror and the studio analytics the dashboard buries — no-show rates, capacity, churn, and revenue you can finally query.",
+        "Instructor scorecard",
+        "scorecard",
+        "Rank instructors by class fill rate, no-show rate, and check-in rate across your synced schedule.",
+        "No-show rate",
+        "no-shows",
+        "Surface no-show rates grouped by instructor, class, or client from synced reservations.",
+        "Capacity utilization",
+        "utilization",
+        "Compute fill ratio (booked vs capacity) per class, instructor, time-slot, or location over a date window.",
+        "Expiring / low-balance watchlist",
+        "expiring",
+        "List active memberships and class-packs expiring within a window or running low on credits, with client contact info.",
+        "Churn / at-risk clients",
+        "churn",
+        "Flag non-removed clients with no recent check-in and/or an expired plan using a mechanical recency threshold.",
+        "Revenue with prior-period comparison",
+        "revenue",
+        "Sum purchase revenue by membership type for a window and show the delta versus the prior equal window.",
+        "Referral funnel conversion",
+        "referral-funnel",
+        "Trace referrals to whether the referred client signed up, purchased, and attended, and rank top referrers.",
+        "Client lifetime value",
+        "ltv",
+        "Rank clients by total purchase spend with tenure since signup."
+      ],
+      "path": "library/productivity/sutra-fitness",
+      "printer": "adam-birddog",
+      "printer_name": "adam-birddog",
+      "creator": {
+        "handle": "adam-birddog",
+        "name": "adam-birddog"
+      },
+      "mcp": {
+        "binary": "sutra-fitness-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 12,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "SUTRA_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "table-reservation-goat",
       "category": "food-and-dining",
       "api": "Table Reservation GOAT",
@@ -10779,10 +12837,13 @@
         "Stream new webhook events from the inbox to stdout, and replay any prior message to a local URL with valid HMAC headers — no public tunnel needed.",
         "Bulk standard edit pass",
         "clips edit-pass",
-        "Apply a chained set of edits (remove-fillers, trim-silences-gt N, blur preset) across every clip in a playlist in one command.",
+        "Apply a chained set of edits (remove-fillers, remove-buffers, trim-edges, trim-silences-gt N, find-mistakes [unofficial]) across every clip in a playlist in one command.",
         "Transcript diff (cut vs uncut)",
         "clips transcript-diff",
         "Diff a clip's cut transcript against its uncut transcript to surface every word that editing removed (filler, silence, hand-edit) with timecodes.",
+        "Upload-to-edit workflow",
+        "sources upload-file + videos clips add",
+        "Create a Tella source, upload local video bytes to the pre-signed URL, then add the source as a new clip without leaving the CLI.",
         "Exports waitlist",
         "exports wait",
         "Kick off exports for one or more videos and block until each is ready, short-circuiting on the Export ready webhook event.",
@@ -10790,7 +12851,28 @@
         "clips captions",
         "Format a clip's cut transcript as an SRT or VTT subtitle file ready to attach to an embed or upload.",
         "Workspace stats",
-        "Local aggregate of video count, clip count, total duration, transcript word count, and export count by month across the cached workspace."
+        "Local aggregate of video count, clip count, total duration, transcript word count, and export count by month across the cached workspace.",
+        "Declarative video storyboard",
+        "videos storyboard + videos apply-storyboard",
+        "Export a full editable timeline and apply a reviewed JSON edit plan across video settings, clips, cuts, and transcript cuts.",
+        "One-shot media insertion",
+        "videos clips insert-file / add-broll",
+        "Upload local media into a Tella source and attach it as a clip or B-roll layout media from one workflow command.",
+        "Transcript-driven repairs",
+        "videos clips cut-words / replace-word-ranges",
+        "Plan and apply transcript-index cuts, optionally inserting replacement media for surgical corrections.",
+        "Pre-publish edit QA",
+        "videos audit",
+        "Scan a video timeline for likely issues such as long silences before export or sharing.",
+        "Playlist-scale edit planning",
+        "playlists edit-pass",
+        "Plan a standard remove-fillers/remove-buffers/trim-edges/export recipe across every video in a playlist.",
+        "Safe clip clean workflow",
+        "videos clips clean",
+        "Plan/apply a standard per-clip cleanup pass (remove-fillers, remove-buffers, trim-edges, optional AI mistakes) with automatic pre-apply cut snapshots.",
+        "Cut rollback workflow",
+        "videos clips undo-last-cuts / restore-cuts",
+        "Restore the latest saved cuts snapshot or an explicit cuts JSON body so compound edit passes are reversible."
       ],
       "path": "library/media-and-entertainment/tella",
       "printer": "gregce",
@@ -10811,7 +12893,7 @@
           "stdio",
           "http"
         ],
-        "tool_count": 51,
+        "tool_count": 55,
         "public_tool_count": 0,
         "auth_type": "bearer_token",
         "env_vars": [
@@ -10976,11 +13058,11 @@
       "name": "tidycal",
       "category": "productivity",
       "api": "TidyCal",
-      "description": "TidyCal's REST API provides a handful of endpoints which can be used to get information about your account and bookings.",
+      "description": "Manage TidyCal scheduling data: bookings, contacts, booking types, team calendars, schedule briefs, triage, and availability shortlists.",
       "search_terms": [
         "tidycal",
         "tidycal-pp-cli",
-        "Scheduling and booking API for meetings, contacts, booking types, and team calendars.",
+        "Manage TidyCal scheduling data: bookings, contacts, booking types, team calendars, schedule briefs, triage, and availability shortlists.",
         "Schedule brief",
         "brief",
         "Produce a contact-aware schedule brief for a day or date range.",
@@ -11025,12 +13107,12 @@
       "name": "tiktok-shop",
       "category": "commerce",
       "api": "TikTok Shop",
-      "description": "Safe v1 TikTok Shop Seller API CLI/MCP for auth readiness, token exchange and refresh, read-only shops, orders, products, inventory search, fulfillment packages, and warehouses.",
+      "description": "Use TikTok Shop Seller API workflows for auth, shops, orders, products, inventory search, fulfillment, warehouses, and safe write preflights.",
       "search_terms": [
         "tiktok-shop",
         "TikTok Shop",
         "tiktok-shop-pp-cli",
-        "Safe v1 TikTok Shop Seller API CLI/MCP for auth readiness, token exchange and read endpoints; pre-flight checks gate live writes by default.",
+        "Use TikTok Shop Seller API workflows for auth, shops, orders, products, inventory search, fulfillment, warehouses, and safe write preflights.",
         "Official-docs safety context",
         "agent-context",
         "Emit machine-readable command, auth, official-doc URL, and mutation-policy context so agents can distinguish confirmed safe v1 capabilities from deferred TikTok Shop surfaces.",
@@ -11071,6 +13153,61 @@
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
+      }
+    },
+    {
+      "name": "toodledo",
+      "category": "productivity",
+      "api": "Toodledo",
+      "description": "Every Toodledo feature from the terminal, plus an offline SQLite mirror, GTD reviews, and rate-budget-aware sync that no other Toodledo tool has.",
+      "search_terms": [
+        "toodledo",
+        "toodledo-pp-cli",
+        "Every Toodledo feature from the terminal, plus an offline SQLite mirror, GTD reviews, and rate-budget-aware sync that no other Toodledo tool has.",
+        "GTD next actions",
+        "next-actions",
+        "Your GTD 'what should I do now?' list — incomplete Next-Action tasks, sorted by priority then due date, optionally scoped to a context or goal.",
+        "Weekly review buckets",
+        "review",
+        "The full GTD weekly review in one pass: inbox (untriaged), overdue, stalled projects, waiting-for, and someday/maybe.",
+        "Stalled projects",
+        "stalled-projects",
+        "Folders (projects) that have open tasks but zero Next Actions — the GTD failure mode that silently stalls progress.",
+        "Goal progress rollup",
+        "goal-progress",
+        "Per-goal counts of completed vs incomplete contributing tasks, rolled up the lifetime/long-term/short-term goal hierarchy.",
+        "GTD dashboard",
+        "dashboard",
+        "A one-screen status board: incomplete task counts by status, priority, folder, and context, plus overdue, due-today, and starred totals.",
+        "Sync cost preview",
+        "sync-cost",
+        "Forecasts how many of your 100 per-token API calls an incremental sync would spend, before fetching any rows.",
+        "Batch capture",
+        "capture",
+        "Add many tasks from a file or stdin (one title per line), resolving folder/context names to ids, in budget-aware batches of 50."
+      ],
+      "path": "library/productivity/toodledo",
+      "printer": "wwilson1017",
+      "printer_name": "wwilson1017",
+      "creator": {
+        "handle": "wwilson1017",
+        "name": "wwilson1017"
+      },
+      "mcp": {
+        "binary": "toodledo-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 34,
+        "public_tool_count": 0,
+        "auth_type": "oauth2",
+        "env_vars": [
+          "TOODLEDO_CLIENT_ID",
+          "TOODLEDO_CLIENT_SECRET"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
       }
     },
     {
@@ -11310,12 +13447,12 @@
       "name": "twelvelabs",
       "category": "ai",
       "api": "Twelvelabs Video Understanding",
-      "description": "Use the TwelveLabs Video Understanding API to extract information from your videos and make it available to your",
+      "description": "Upload, index, search, summarize, embed, and analyze video with TwelveLabs, including editor-ready briefs and waitable workflows.",
       "search_terms": [
         "twelvelabs",
         "Twelvelabs Video Understanding",
         "twelvelabs-pp-cli",
-        "Use the TwelveLabs Video Understanding API to extract information from your videos and make it available to your",
+        "Upload, index, search, summarize, embed, and analyze video with TwelveLabs, including editor-ready briefs and waitable workflows.",
         "Upload and wait for indexing",
         "upload-video",
         "Upload a local video file or register a public URL, then poll Twelve Labs until indexing reaches a terminal status.",
@@ -11493,10 +13630,6 @@
       "path": "library/other/ufo-goat",
       "printer": "davemorin",
       "printer_name": "Dave Morin",
-      "creator": {
-        "handle": "davemorin",
-        "name": "Dave Morin"
-      },
       "mcp": {
         "binary": "ufo-goat-pp-mcp",
         "transports": [
@@ -11675,14 +13808,53 @@
       }
     },
     {
+      "name": "vercel-admin",
+      "category": "cloud",
+      "api": "Vercel",
+      "description": "Agent-ready Vercel admin CLI for deployments, projects, domains, environment variables, teams, logs, and operator briefs.",
+      "search_terms": [
+        "vercel-admin",
+        "Vercel",
+        "vercel-admin-pp-cli",
+        "Agent-ready Vercel admin CLI for deployments, projects, domains, environment variables, teams, logs, and operator briefs.",
+        "Recent deployment brief",
+        "ops recent-deployments",
+        "Summarize recent Vercel deployments by project, target, and state from the live deployments API.",
+        "Deployment failure brief",
+        "ops failure-brief",
+        "Join deployment metadata, events, check runs, and runtime logs into one incident-triage payload."
+      ],
+      "path": "library/cloud/vercel-admin",
+      "printer": "hnshah",
+      "printer_name": "hnshah",
+      "creator": {
+        "handle": "hnshah",
+        "name": "hnshah"
+      },
+      "mcp": {
+        "binary": "vercel-admin-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 316,
+        "public_tool_count": 3,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "VERCEL_ADMIN_TOKEN"
+        ],
+        "mcp_ready": "full"
+      }
+    },
+    {
       "name": "vestaboard",
       "category": "devices",
       "api": "Vestaboard",
-      "description": "Read, render",
+      "description": "Read, preview, render, and write Vestaboard messages from the terminal, including character-code lookup for precise board output.",
       "search_terms": [
         "vestaboard",
         "vestaboard-pp-cli",
-        "Read, render, and write your Vestaboard from the terminal — with a board preview and character-code table no other Vestaboard tool ships.",
+        "Read, preview, render, and write Vestaboard messages from the terminal, including character-code lookup for precise board output.",
         "Board preview",
         "message preview",
         "See what's on your Vestaboard right now as readable text instead of a raw integer grid.",
@@ -11858,11 +14030,11 @@
       "name": "wavespeed",
       "category": "ai",
       "api": "WaveSpeed",
-      "description": "Docs-derived OpenAPI spec for WaveSpeed AI's REST API.",
+      "description": "Run WaveSpeed AI models with schema-aware inputs, prompt shortcuts, price estimates, wait/download helpers, aliases, and media uploads.",
       "search_terms": [
         "wavespeed",
         "wavespeed-pp-cli",
-        "Docs-derived OpenAPI spec for WaveSpeed AI's REST API.",
+        "Run WaveSpeed AI models with schema-aware inputs, prompt shortcuts, price estimates, wait/download helpers, aliases, and media uploads.",
         "API key from WaveSpeed access key settings",
         "Dynamic model runner",
         "run",
@@ -12015,6 +14187,16 @@
         "handle": "gregvanhorn",
         "name": "Greg Van Horn"
       },
+      "contributors": [
+        {
+          "handle": "bobeglz",
+          "name": "Roberto González Grajeda"
+        },
+        {
+          "handle": "tmchow",
+          "name": "Trevin Chow"
+        }
+      ],
       "mcp": {
         "binary": "whoop-pp-mcp",
         "transports": [
@@ -12066,6 +14248,57 @@
       }
     },
     {
+      "name": "withings",
+      "category": "devices",
+      "api": "Withings",
+      "description": "Every Withings metric in one offline-first, agent-native CLI — with a local SQLite mirror and recomposition, recovery, sleep-debt and clinician-report analytics no Withings tool has.",
+      "search_terms": [
+        "withings",
+        "withings-pp-cli",
+        "Every Withings metric in one offline-first, agent-native CLI — with a local SQLite mirror and recomposition, recovery, sleep-debt and clinician-report analytics no Withings tool has.",
+        "Body-recomposition tracker",
+        "recomp",
+        "See whether you're actually recomposing — fat mass down while lean mass holds — on a de-noised rolling-average weight, not scale-weight whiplash.",
+        "Training load vs recovery",
+        "recovery",
+        "Weigh recent workout HR-zone load against your recovery markers (resting HR, HRV, sleep score) to catch overtraining before it catches you.",
+        "Clinician BP/AFib report",
+        "bp-report",
+        "A dated blood-pressure + AFib table with your own annotations (medication changes, symptoms) — the clean history to hand a cardiologist.",
+        "Sleep-debt rolling window",
+        "sleep debt",
+        "Cumulative sleep deficit against your target over a rolling window — the number the per-night summary never adds up for you.",
+        "Since-time health digest",
+        "digest",
+        "One structured 'what changed since <time> across all my metrics' snapshot — built for piping into an agent.",
+        "Multi-metric correlation",
+        "correlate",
+        "Pearson + best-lag correlation between any two daily metrics (weight vs sleep score, steps vs resting HR)."
+      ],
+      "path": "library/devices/withings",
+      "printer": "stellato",
+      "printer_name": "Greg Stellato",
+      "creator": {
+        "handle": "stellato",
+        "name": "Greg Stellato"
+      },
+      "mcp": {
+        "binary": "withings-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 14,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "WITHINGS_ACCESS_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "wolt",
       "category": "food-and-dining",
       "api": "Wolt",
@@ -12102,15 +14335,59 @@
       }
     },
     {
+      "name": "worten",
+      "category": "commerce",
+      "api": "Worten Reverse Engineered",
+      "description": "Local OpenAPI seed extracted from the working housebuy Worten CLI.",
+      "search_terms": [
+        "worten",
+        "Worten Reverse Engineered",
+        "worten-pp-cli",
+        "Local OpenAPI seed extracted from the working housebuy Worten CLI.",
+        "Canonical product resolution",
+        "resolve",
+        "Resolve a Worten product URL slug or UUID to the canonical product identifier the other commands use.",
+        "Normalized buyer view",
+        "buyer",
+        "Return a stable retailer-normalized buyer view instead of raw storefront payloads so downstream tooling can compare products consistently.",
+        "Persistent product snapshots",
+        "snapshot",
+        "Capture and reuse normalized product snapshots on disk so agents can refresh or inspect prior product state without rebuilding the view by hand.",
+        "Normalized stock context",
+        "stock",
+        "Combine product, seller, shipping, and optional nearby-store stock context behind one command instead of stitching endpoint calls manually."
+      ],
+      "path": "library/commerce/worten",
+      "printer": "asantos00",
+      "printer_name": "Alexandre Santos",
+      "creator": {
+        "handle": "asantos00",
+        "name": "Alexandre Santos"
+      },
+      "mcp": {
+        "binary": "worten-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 5,
+        "public_tool_count": 5,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "x-twitter",
       "category": "social-and-messaging",
       "api": "X (Twitter)",
-      "description": "Combined CLI for multiple API services",
+      "description": "Use X/Twitter with local searchable archives, post and conversation resolvers, collections, analytics, MCP tools, and tier diagnostics.",
       "search_terms": [
         "x-twitter",
         "X (Twitter)",
         "x-twitter-pp-cli",
-        "The only X CLI with an offline, searchable local mirror — full-text search and analytics over your archived posts without re-spending per-read API credits — plus a full-surface MCP server and honest tier/reachability diagnostics.",
+        "Use X/Twitter with local searchable archives, post and conversation resolvers, collections, analytics, MCP tools, and tier diagnostics.",
         "Post URL resolver",
         "post resolve",
         "Normalize any X post URL or raw post ID into a canonical structured post record with provenance, author context, metrics, local-state reuse, and suggested next workflow commands.",
@@ -12148,7 +14425,10 @@
         "Parse a markdown file with YAML frontmatter into the Draft.js content_state JSON X's Articles editor accepts; previews by default; --draft saves a draft, --post publishes publicly.",
         "Offline bookmark search",
         "users bookmarks find",
-        "Search your synced bookmarks by keyword and/or author, offline — X has no bookmark search and its API exposes no bookmark timestamp, so the local store rebuilds the missing retrieval layer without re-spending read credits."
+        "Search your synced bookmarks by keyword and/or author, offline — X has no bookmark search and its API exposes no bookmark timestamp, so the local store rebuilds the missing retrieval layer without re-spending read credits.",
+        "Top posts ranking",
+        "top-posts",
+        "Compose /2/users/me with the user-timeline read into one ranked leaderboard of your recent posts by engagement (likes + reposts + replies + quotes), or by a single metric via --metric. Paginates the timeline up to --max-fetch, ranks client-side, and degrades gracefully when impression_count is unavailable below Basic tier. Read-only."
       ],
       "path": "library/social-and-messaging/x-twitter",
       "printer": "cathrynlavery",
@@ -12314,6 +14594,67 @@
         "public_tool_count": 11,
         "auth_type": "none",
         "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
+      "name": "yeswehack",
+      "category": "developer-tools",
+      "api": "YesWeHack",
+      "description": "Every YesWeHack researcher feature, plus an offline SQLite-backed cockpit for scope cartography, drift detection,...",
+      "search_terms": [
+        "yeswehack",
+        "yeswehack-pp-cli",
+        "Every YesWeHack researcher feature, plus an offline SQLite-backed cockpit for scope cartography, drift detection, draft reports, and hacktivity learning.",
+        "Scope drift report",
+        "programs scope-drift",
+        "See what changed in any program's scope this week — assets added, removed, or modified, with first-seen dates.",
+        "Cross-program shared assets",
+        "scopes overlap",
+        "Surface assets (host or wildcard) that appear in two or more of your invited programs, ranked by best payout.",
+        "Weekend slate",
+        "triage weekend",
+        "Ranked plan for a short hunting session - newly added scope, reports needing your response, and trending CWEs in your specialty.",
+        "Pre-submit dedupe",
+        "report dedupe",
+        "FTS5 search over the public hacktivity feed plus your own reports for title, asset, or CWE overlap — exits 2 if a high-confidence collision exists.",
+        "Program fit ranker",
+        "programs fit",
+        "Rank invited and public programs by how well your historical CWE specialties match each program's hacktivity payout pattern.",
+        "Hacktivity CWE trends per program",
+        "hacktivity trends",
+        "Histogram of disclosed report categories and average bounty for one program over a time window.",
+        "Calendar of program events",
+        "events calendar",
+        "Chronological view of platform events, payout deadlines, and CTFs gating private invites - filtered to programs you are invited to.",
+        "CVSS sanity check",
+        "report cvss-check",
+        "Parse a CVSS 3.1 vector, recompute its base score, and flag impossible combinations against report steps text - rule-based, no LLM.",
+        "Draft report scaffold",
+        "report draft",
+        "Create a markdown draft pre-filled with the program's reward grid, accepted severity levels, and an allowed asset picker from local scopes - no network call.",
+        "Submit a draft (guard-railed)",
+        "report submit",
+        "Submit a drafted report after dry-run preview, in-scope validation, and automatic pre-submit dedupe. Requires --confirm.",
+        "Hacktivity learning brief",
+        "hacktivity learn",
+        "Filtered slice of disclosed reports for a program and CWE - top N by bounty, with severity and writeup links, in pipe-friendly JSON."
+      ],
+      "path": "library/developer-tools/yeswehack",
+      "printer": "mvanhorn",
+      "printer_name": "Matt Van Horn",
+      "mcp": {
+        "binary": "yeswehack-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 17,
+        "public_tool_count": 10,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "YESWEHACK_JWT"
+        ],
         "mcp_ready": "full",
         "spec_format": "internal"
       }

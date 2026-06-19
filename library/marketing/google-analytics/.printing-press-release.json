@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "google-analytics",
+  "cli_name": "google-analytics-pp-cli",
+  "version": "2026.6.2",
+  "released_at": "2026-06-16T00:53:31Z",
+  "source_commit": "0b2c5701d74528313ea28d7137ebaecca16611f7",
+  "printing_press_version": "4.20.1",
+  "run_id": "ga4-20260612",
+  "changes": [
+    {
+      "title": "Improve catalog descriptions",
+      "pr": 1222,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/1222",
+      "commit": "0b2c5701d74528313ea28d7137ebaecca16611f7"
+    }
+  ]
+}

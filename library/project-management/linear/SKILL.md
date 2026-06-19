@@ -180,10 +180,11 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
   linear-pp-cli comments edit <comment-id> --body-file /tmp/comment.md --agent
   linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  linear-pp-cli documents create --title "Team runbook" --team ENG --content-file /tmp/runbook.md --agent
   linear-pp-cli documents edit <document-id-or-slug> --content-file /tmp/updated.md --agent
   ```
 
-  `issues edit --media`, `comments edit --media`, and `documents edit --media` with no body/content flag fetch the existing Markdown live and append uploaded media links. Images become Markdown image embeds; non-images become Markdown links. Add `--media-public` only when the uploaded asset must be reachable outside the Linear workspace.
+  `documents create` requires exactly one parent (`--issue`, `--project`, `--team`, `--initiative`, `--cycle`, `--release`, or `--folder`); `--team` accepts a key such as `ENG` or a UUID. `issues edit --media`, `comments edit --media`, and `documents edit --media` with no body/content flag fetch the existing Markdown live and append uploaded media links. Images become Markdown image embeds; non-images become Markdown links. Add `--media-public` only when the uploaded asset must be reachable outside the Linear workspace.
 - **Current issue reads and comments** — Read full issue bodies and discussion without falling back to stale local state. `comments list` takes the issue positionally (preferred) or via `--issue`.
 
   ```bash
@@ -207,6 +208,12 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli issues edit ENG-123 --state-name "In Progress" --agent
   linear-pp-cli issues edit ENG-123 --state-type started --agent   # usage error if the team has several 'started' states
+  ```
+
+  `issues create` takes the same trio, resolved against `--team`, so an issue can open directly in the right state. `--state` requires a UUID (a non-UUID value is a usage error pointing at `--state-name`):
+
+  ```bash
+  linear-pp-cli issues create --title "..." --team ENG --state-name "In Progress" --agent
   ```
 
   Do not use `linear-pp-cli api` or `linear-pp-cli sql` for workflow states — `api` only exposes generated REST-shaped interfaces (currently `integrations`), not Linear GraphQL objects.

@@ -281,7 +281,10 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli issues edit ENG-123 --description-file /tmp/body.md --agent
   linear-pp-cli comments add --issue ENG-123 --body-file /tmp/comment.md --media /tmp/screenshot.png --agent
   linear-pp-cli documents create --title "Runbook" --issue ENG-123 --content-file /tmp/runbook.md --agent
+  linear-pp-cli documents create --title "Team runbook" --team ENG --content-file /tmp/runbook.md --agent
   ```
+
+  `documents create` requires exactly one parent (`--issue`, `--project`, `--team`, `--initiative`, `--cycle`, `--release`, or `--folder`); `--team` accepts a key such as `ENG` or a UUID.
 - **Current issue reads and comments** — Read full issue bodies and discussion from live Linear when freshness matters.
 
   ```bash

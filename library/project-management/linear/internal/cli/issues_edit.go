@@ -69,6 +69,13 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 				}
 				input["stateId"] = stateFlag
 			}
+			if stateTypeFlag != "" {
+				normalizedType, err := normalizeWorkflowStateType(stateTypeFlag)
+				if err != nil {
+					return err
+				}
+				stateTypeFlag = normalizedType
+			}
 			if parentFlag != "" && noParentFlag {
 				return usageErr(fmt.Errorf("pass either --parent or --no-parent, not both"))
 			}
@@ -218,7 +225,7 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 				return fmt.Errorf("parsing issueUpdate response: %w", err)
 			}
 			if !parsed.IssueUpdate.Success {
-				return fmt.Errorf("Linear reported issueUpdate success=false")
+				return apiErr(fmt.Errorf("Linear reported issueUpdate success=false"))
 			}
 			writeIssueBack(resolveDBPath(*dbPath), parsed.IssueUpdate.Issue)
 			return renderLiveObject(cmd, flags, parsed.IssueUpdate.Issue, "issues")
@@ -233,7 +240,7 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID (see 'workflow-states list --team <key>')")
 	cmd.Flags().StringVar(&stateNameFlag, "state-name", "", "Workflow state name (e.g. \"In Progress\"); resolved against the issue's team")
-	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled); resolved against the issue's team")
+	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled, duplicate); resolved against the issue's team")
 	cmd.Flags().StringVar(&parentFlag, "parent", "", "Parent issue identifier or UUID")
 	cmd.Flags().BoolVar(&noParentFlag, "no-parent", false, "Clear issue parentage")
 	cmd.Flags().StringSliceVar(&labelsFlag, "label", nil, "Replacement label UUIDs (repeatable)")

@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "dice-fm",
   "cli_name": "dice-fm-pp-cli",
-  "version": "2026.6.2",
-  "released_at": "2026-06-09T00:24:55Z",
-  "source_commit": "bc8a6f352af9c4a286a2e2ec13cf40f4f214bd82",
+  "version": "2026.6.3",
+  "released_at": "2026-06-11T07:12:55Z",
+  "source_commit": "bdbaf0bb221032270bcf11e123c83bad088a4396",
   "printing_press_version": "4.12.0",
   "run_id": "20260511-193451",
   "changes": [
     {
-      "title": "fix(dice-fm): harden entity-normalization subsystem (2026-06-08 audit)",
-      "pr": 1109,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/1109",
-      "commit": "bc8a6f352af9c4a286a2e2ec13cf40f4f214bd82"
+      "title": "fix(dice-fm): consolidated 2026-06-08 whole-project review hardening",
+      "pr": 1117,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/1117",
+      "commit": "bdbaf0bb221032270bcf11e123c83bad088a4396"
     }
   ]
 }

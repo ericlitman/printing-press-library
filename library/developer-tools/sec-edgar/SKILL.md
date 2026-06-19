@@ -111,6 +111,15 @@ These capabilities aren't available in any other tool for this API.
   sec-edgar-pp-cli late-filers --since 90d --form 10-K --json
   ```
 
+### Proxy & ownership
+- **`ownership`** — Resolve a ticker, name, or CIK, find the company's latest DEF 14A proxy statement, fetch the document, and extract the "Security Ownership of Certain Beneficial Owners" section as readable text.
+
+  _The beneficial-ownership table is present under a near-identical heading in every proxy, but reaching it means chaining submissions → document fetch → HTML section extraction that no single SEC endpoint provides. Pick this when an agent needs who-owns-the-company from the proxy itself._
+
+  ```bash
+  sec-edgar-pp-cli ownership MSFT --json
+  ```
+
 ## Command Reference
 
 **companies** — Company directory (ticker → CIK → name)

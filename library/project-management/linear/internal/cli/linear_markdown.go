@@ -48,11 +48,17 @@ func readMarkdownBody(cmd *cobra.Command, spec markdownBodySpec) (string, bool, 
 		if err != nil {
 			return "", false, fmt.Errorf("reading --%s: %w", spec.FileFlag, err)
 		}
+		if strings.TrimSpace(string(data)) == "" {
+			return "", false, usageErr(fmt.Errorf("%s from --%s is empty", spec.Label, spec.FileFlag))
+		}
 		return string(data), true, nil
 	case stdinSet:
 		data, err := io.ReadAll(cmd.InOrStdin())
 		if err != nil {
 			return "", false, fmt.Errorf("reading --%s: %w", spec.StdinFlag, err)
+		}
+		if strings.TrimSpace(string(data)) == "" {
+			return "", false, usageErr(fmt.Errorf("%s from --%s is empty", spec.Label, spec.StdinFlag))
 		}
 		return string(data), true, nil
 	default:

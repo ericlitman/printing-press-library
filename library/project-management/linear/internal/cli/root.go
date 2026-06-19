@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "2026.6.1"
+var version = "2026.6.2"
 
 type rootFlags struct {
 	asJSON        bool
@@ -45,6 +45,7 @@ type rootFlags struct {
 	rateLimit           float64
 	dataSource          string
 	freshnessMeta       any
+	errorWritten        bool
 
 	// deliverBuf captures command output when --deliver is set to a
 	// non-stdout sink. Flushed to the sink after Execute returns.
@@ -53,11 +54,6 @@ type rootFlags struct {
 
 	trustMode string
 	ppSession string
-
-	// envelopeEmitted records that a JSON error envelope already went to
-	// stdout mid-command (writeAPIErrorEnvelope), so finalizeError does not
-	// emit a second one for the same failure.
-	envelopeEmitted bool
 
 	// maxAge is the freshness threshold for local-store-backed reads. When
 	// a read returns data older than maxAge, the CLI emits a stderr hint
@@ -179,12 +175,8 @@ Highlights (not in the official API docs):
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'linear-pp-cli doctor' to verify auth and connectivity.
 See README.md or the bundled SKILL.md for recipes.`,
-		SilenceUsage: true,
-		// Errors are printed by Execute's finalizeError so JSON/agent mode
-		// can emit a machine-parseable envelope instead of cobra's plain
-		// "Error: ..." line (which broke agents piping stdout to a JSON
-		// parser — see MOB-104).
 		SilenceErrors: true,
+		SilenceUsage:  true,
 		Version:       version,
 	}
 	rootCmd.SetVersionTemplate("linear-pp-cli {{ .Version }}\n")
