@@ -25,7 +25,7 @@ This skill drives the `linear-pp-cli` binary. **Do not invoke a command named `l
 2. Verify: `linear-pp-cli --version`
 3. Ensure the reported install directory is on `$PATH` for the agent/runtime that will invoke this skill.
 
-If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.3 or newer):
+If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.4 or newer):
 
 ```bash
 go install github.com/mvanhorn/printing-press-library/library/project-management/linear/cmd/linear-pp-cli@latest
@@ -36,7 +36,7 @@ If `--version` reports "command not found" after install, the runtime cannot see
 ## Agent Contract
 
 - Add `--agent` to commands unless a human-readable table is explicitly needed. It implies JSON, compact output, non-interactive mode, no color, and confirmation-safe scripting.
-- Use `--data-source live` for closeout/state/description checks where current truth matters. Use `--data-source local` or `similar` for duplicate search and analytics after `sync`.
+- Use `--data-source live` for closeout/state/description checks where current truth matters. Use `issues search` for duplicate checks; it refreshes stale issue search data or fails visibly. Use `--data-source local` or `similar` only when stale/offline local duplicate search is intentional.
 - A missing `description` in compact output does not mean an empty issue body. Request it explicitly: `linear-pp-cli issues ENG-123 --agent --data-source live --select identifier,title,description,state.name,url`.
 - Before passing label UUIDs to `issues create` or `issues edit`, run `linear-pp-cli labels list --team ENG --agent --select id,name,global,team.key`. Use only global labels or labels owned by the target issue team; the CLI preflights label ownership and refuses cross-team labels before mutating.
 - Never pass multiline Markdown, shell snippets, GraphQL, logs, backticks, `$()` expansions, or media-rich content as inline shell arguments. Write the body to a file or stdin and use the `*-file` / `*-stdin` flags below.
@@ -71,13 +71,18 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli stale --days 30 --team ENG --json
   ```
-- **`similar`** — Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
+- **`issues search` / `similar`** — Find issues that look like duplicates of a query string using local FTS5 search.
 
   _Reach for this during triage when you suspect an incoming bug duplicates an existing issue._
 
   ```bash
+  linear-pp-cli issues search "login redirect bug" --limit 5 --agent
+  linear-pp-cli issues search "pipeline follow-up" --team SYMPH --limit 10 --agent
   linear-pp-cli similar "login redirect bug" --limit 5 --json
+  linear-pp-cli similar "pipeline follow-up" --team SYMPH --limit 10 --agent
   ```
+
+  Prefer `issues search` when checking for existing tickets before creating or updating follow-up work; it is the supported issue-search spelling agents tend to reach for. It coordinates freshness for duplicate checks: fresh local data is searched immediately, stale or empty issue data refreshes behind a cross-process lock before search, and refresh failures return a typed error instead of silently serving stale results. Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue. Multi-word `issues search` queries may be quoted or passed as separate words; both forms are joined into one FTS query. Under `--agent` / `--json`, `issues search` returns a provenance envelope with freshness metadata; `similar` keeps the legacy raw result array. Use `--data-source local` only when stale/offline local results are intentional.
 
 ### Cross-entity rollups
 - **`projects burndown`** — Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.
@@ -344,6 +349,8 @@ linear-pp-cli which "<capability in your own words>"
 
 For parent/sub-issue linking, `linear-pp-cli which "set issue parent" --agent` should point to `issues edit --parent`.
 
+For duplicate checks, `linear-pp-cli which "search issues by text" --agent` should point to `issues search`; use that instead of inventing `issues search --help` fallbacks or raw SQL. If the local issue cache is stale, `issues search` refreshes it or fails with a typed freshness error; agents should not jump to raw GraphQL just because the cache was stale.
+
 ## Recipes
 
 
@@ -411,6 +418,12 @@ Commands fall into three categories with different data-source semantics. Use `-
 - These compute joins/aggregations/FTS5 matches over your synced corpus — there is no single live Linear API call that returns these shapes. The `--data-source` flag is ignored; they always read from the local store.
 - **You must `sync` before using these.** Cold-start hint: an empty result prints `(no <resource> in local store — run 'linear-pp-cli sync' to populate)` to stderr.
 - Stale-data hint: if the local store hasn't been synced within `--max-age` (default 30 minutes), reads print `(<resource> data is Xm old, exceeds --max-age=30m — run 'linear-pp-cli sync' to refresh)` to stderr. `--json` output stays clean (the hint is stderr-only).
+
+**Freshness-coordinated local search**
+
+- `issues search`
+- Uses the local FTS issue index, but coordinates freshness for duplicate checks. If issues data is fresh enough, it searches immediately. If issues data is stale or empty, it takes a cross-process lock, refreshes teams, workflow states, labels, and issues, then searches.
+- If refresh fails, it emits a typed JSON error under `--agent` instead of returning stale duplicate-search results. Agent/JSON output is a provenance envelope with freshness metadata; `refreshed` means local issue data changed during the invocation, and `refreshed_by` identifies whether this process, a peer, or an external sync did it. Use `--data-source local` only for explicit offline/stale mode; the JSON metadata marks that stale-local policy. Use `--max-age 0` only when disabling the freshness gate is intentional; the metadata marks `freshness_gate_disabled`. Empty local stores are marked with `unsynced`.
 
 **Category 3: Mutations**
 

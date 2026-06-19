@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -46,6 +47,8 @@ type issueRow struct {
 	URL       string `json:"url,omitempty"`
 }
 
+var errTeamFilterNotFound = errors.New("team not found")
+
 func newIssuesCmd(flags *rootFlags) *cobra.Command {
 	var dbPath string
 	cmd := &cobra.Command{
@@ -84,6 +87,7 @@ parent and sub-issue links.`,
 	cmd.PersistentFlags().StringVar(&dbPath, "db", "", "Database path")
 
 	cmd.AddCommand(newIssuesListCmd(flags, &dbPath))
+	cmd.AddCommand(newIssuesSearchCmd(flags, &dbPath))
 	cmd.AddCommand(newIssuesCreateCmd(flags))
 	cmd.AddCommand(newIssuesEditCmd(flags, &dbPath))
 	return cmd
@@ -547,7 +551,7 @@ func resolveTeamFilter(db *store.Store, input string) (string, error) {
 			return t.ID, nil
 		}
 	}
-	return "", fmt.Errorf("no team matching %q in local store", input)
+	return "", fmt.Errorf("%w: no team matching %q in local store", errTeamFilterNotFound, input)
 }
 
 // resolveProjectFilter maps --project input to a project UUID. Accepts name or UUID.
