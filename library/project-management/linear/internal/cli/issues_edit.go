@@ -72,8 +72,14 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 			if parentFlag != "" && noParentFlag {
 				return usageErr(fmt.Errorf("pass either --parent or --no-parent, not both"))
 			}
+			parentRef := parentFlag
 			if parentFlag != "" {
-				input["parentId"] = parentFlag
+				validatedParentRef, validateErr := validateParentIssueRef(parentFlag)
+				if validateErr != nil {
+					return validateErr
+				}
+				parentRef = validatedParentRef
+				input["parentId"] = parentRef
 			}
 			if noParentFlag {
 				input["parentId"] = nil
@@ -152,7 +158,7 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 				}
 			}
 			if parentFlag != "" {
-				parentID, err := resolveParentIssueID(c, parentFlag)
+				parentID, err := resolveParentIssueID(c, parentRef)
 				if err != nil {
 					return classifyLiveReadError(err, flags)
 				}

@@ -275,6 +275,17 @@ func resolveIssueID(c graphqlQueryer, identifier string) (string, error) {
 }
 
 func resolveParentIssueID(c graphqlQueryer, parent string) (string, error) {
+	parent, err := validateParentIssueRef(parent)
+	if err != nil {
+		return "", err
+	}
+	if store.IsUUID(parent) {
+		return parent, nil
+	}
+	return resolveIssueID(c, parent)
+}
+
+func validateParentIssueRef(parent string) (string, error) {
 	parent = strings.TrimSpace(parent)
 	if parent == "" {
 		return "", usageErr(fmt.Errorf("--parent requires an issue identifier (TEAM-NUMBER) or issue UUID"))
@@ -285,7 +296,7 @@ func resolveParentIssueID(c graphqlQueryer, parent string) (string, error) {
 	if _, _, ok := parseIssueIdentifier(parent); !ok {
 		return "", usageErr(fmt.Errorf("--parent expects an issue identifier (TEAM-NUMBER, e.g. MOB-123) or issue UUID; got %q", parent))
 	}
-	return resolveIssueID(c, parent)
+	return parent, nil
 }
 
 func parseIssueIdentifier(identifier string) (string, float64, bool) {

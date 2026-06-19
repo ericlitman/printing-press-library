@@ -116,8 +116,13 @@ sub-issue under an existing parent.`,
 			if len(labelsFlag) > 0 {
 				input["labelIds"] = labelsFlag
 			}
+			parentRef := parentFlag
 			if parentFlag != "" {
-				input["parentId"] = parentFlag
+				parentRef, err = validateParentIssueRef(parentFlag)
+				if err != nil {
+					return err
+				}
+				input["parentId"] = parentRef
 			}
 			if flags.dryRun {
 				out := map[string]any{"input": input}
@@ -133,7 +138,7 @@ sub-issue under an existing parent.`,
 				return err
 			}
 			if parentFlag != "" {
-				parentID, err := resolveParentIssueID(c, parentFlag)
+				parentID, err := resolveParentIssueID(c, parentRef)
 				if err != nil {
 					return classifyLiveReadError(err, flags)
 				}
