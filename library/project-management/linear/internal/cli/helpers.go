@@ -214,7 +214,9 @@ func parentNoSubcommandRunE(flags *rootFlags) func(*cobra.Command, []string) err
 			}
 			sort.Strings(subs)
 			_ = json.NewEncoder(cmd.OutOrStdout()).Encode(map[string]any{
+				"code":              2,
 				"error":             "subcommand required",
+				"type":              "usage",
 				"valid_subcommands": subs,
 			})
 			flags.errorWritten = true

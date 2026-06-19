@@ -559,6 +559,9 @@ func TestParentNoSubcommandAgentModeSingleEnvelope(t *testing.T) {
 	if envelope["error"] != "subcommand required" {
 		t.Fatalf("unexpected envelope: %#v", envelope)
 	}
+	if envelope["code"] != float64(2) || envelope["type"] != "usage" {
+		t.Fatalf("parent command envelope missing typed error fields: %#v", envelope)
+	}
 	var extra map[string]any
 	if err := dec.Decode(&extra); err != io.EOF {
 		t.Fatalf("expected exactly one JSON envelope, second decode err=%v extra=%#v output=%s", err, extra, out)
