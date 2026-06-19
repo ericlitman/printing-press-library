@@ -15,7 +15,7 @@ import (
 // in init(). Calls Linear's issueCreate mutation and records the resulting issue
 // into the local pp_created ledger so pp-cleanup can find it later.
 func newIssuesCreateCmd(flags *rootFlags) *cobra.Command {
-	var titleFlag, teamFlag, descFlag, assigneeFlag, projectFlag, stateFlag string
+	var titleFlag, teamFlag, descFlag, assigneeFlag, projectFlag, stateFlag, parentFlag string
 	var descFile string
 	var descStdin bool
 	var priorityFlag int
@@ -30,12 +30,18 @@ func newIssuesCreateCmd(flags *rootFlags) *cobra.Command {
 		Long: `Create a Linear issue via the issueCreate mutation. The new issue's ID is
 written to the local pp_created table along with a session tag, so pp-test
 list shows it and pp-cleanup can archive it without touching pre-existing
-tickets in the workspace.`,
+tickets in the workspace.
+
+Pass --parent with an issue identifier or UUID to create the new issue as a
+sub-issue under an existing parent.`,
 		Example: `  # Quick test ticket in team ENG
   linear-pp-cli issues create --title "pp-test sanity" --team ENG
 
   # Dry-run (shows the GraphQL request without sending)
   linear-pp-cli issues create --title "x" --team ENG --dry-run
+
+  # Create a sub-issue under an existing issue
+  linear-pp-cli issues create --title "child" --team ENG --parent ENG-123 --description-file /tmp/body.md --agent
 
   # JSON output (agent-mode)
   linear-pp-cli issues create --title "x" --team ENG --json`,
@@ -110,6 +116,14 @@ tickets in the workspace.`,
 			if len(labelsFlag) > 0 {
 				input["labelIds"] = labelsFlag
 			}
+			parentRef := parentFlag
+			if parentFlag != "" {
+				parentRef, err = validateParentIssueRef(parentFlag)
+				if err != nil {
+					return err
+				}
+				input["parentId"] = parentRef
+			}
 			if flags.dryRun {
 				out := map[string]any{"input": input}
 				if len(mediaFlag) > 0 {
@@ -122,6 +136,13 @@ tickets in the workspace.`,
 			c, err := flags.newClient()
 			if err != nil {
 				return err
+			}
+			if parentFlag != "" {
+				parentID, err := resolveParentIssueID(c, parentRef)
+				if err != nil {
+					return classifyLiveReadError(err, flags)
+				}
+				input["parentId"] = parentID
 			}
 			if len(labelsFlag) > 0 {
 				if err := validateIssueLabelTeams(c, labelsFlag, teamInfo); err != nil {
@@ -145,6 +166,7 @@ tickets in the workspace.`,
 						state { id name type }
 						assignee { id name displayName }
 						project { id name }
+						parent { id identifier title }
 					}
 				}
 			}`
@@ -183,6 +205,11 @@ tickets in the workspace.`,
 							ID   string `json:"id"`
 							Name string `json:"name"`
 						} `json:"project,omitempty"`
+						Parent *struct {
+							ID         string `json:"id"`
+							Identifier string `json:"identifier"`
+							Title      string `json:"title"`
+						} `json:"parent,omitempty"`
 					} `json:"issue"`
 				} `json:"issueCreate"`
 			}
@@ -242,6 +269,14 @@ tickets in the workspace.`,
 					}
 					wb["projectId"] = parsed.IssueCreate.Issue.Project.ID
 				}
+				if parsed.IssueCreate.Issue.Parent != nil {
+					wb["parent"] = map[string]any{
+						"id":         parsed.IssueCreate.Issue.Parent.ID,
+						"identifier": parsed.IssueCreate.Issue.Parent.Identifier,
+						"title":      parsed.IssueCreate.Issue.Parent.Title,
+					}
+					wb["parentId"] = parsed.IssueCreate.Issue.Parent.ID
+				}
 				newIssueJSON, mErr := json.Marshal(wb)
 				if mErr == nil {
 					if upErr := db.UpsertIssue(parsed.IssueCreate.Issue.ID, parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title, newIssueJSON); upErr != nil {
@@ -255,7 +290,7 @@ tickets in the workspace.`,
 			if flags.asJSON {
 				enc := json.NewEncoder(os.Stdout)
 				enc.SetIndent("", "  ")
-				return enc.Encode(map[string]any{
+				event := map[string]any{
 					"event":      "issue_created",
 					"identifier": parsed.IssueCreate.Issue.Identifier,
 					"id":         parsed.IssueCreate.Issue.ID,
@@ -264,7 +299,16 @@ tickets in the workspace.`,
 					"state":      parsed.IssueCreate.Issue.State.Name,
 					"url":        parsed.IssueCreate.Issue.URL,
 					"session":    sess,
-				})
+				}
+				if parsed.IssueCreate.Issue.Parent != nil {
+					event["parent"] = map[string]any{
+						"id":         parsed.IssueCreate.Issue.Parent.ID,
+						"identifier": parsed.IssueCreate.Issue.Parent.Identifier,
+						"title":      parsed.IssueCreate.Issue.Parent.Title,
+					}
+					event["parentId"] = parsed.IssueCreate.Issue.Parent.ID
+				}
+				return enc.Encode(event)
 			}
 			fmt.Printf("Created %s — %s\n", parsed.IssueCreate.Issue.Identifier, parsed.IssueCreate.Issue.Title)
 			fmt.Printf("  URL: %s\n", parsed.IssueCreate.Issue.URL)
@@ -281,6 +325,7 @@ tickets in the workspace.`,
 	cmd.Flags().StringVar(&assigneeFlag, "assignee", "", "Assignee user UUID")
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID")
+	cmd.Flags().StringVar(&parentFlag, "parent", "", "Parent issue identifier or UUID; creates the issue as a sub-issue")
 	cmd.Flags().StringSliceVar(&labelsFlag, "label", nil, "Label UUIDs (repeatable)")
 	cmd.Flags().StringSliceVar(&mediaFlag, "media", nil, "Upload file and append it to the description markdown (repeatable)")
 	cmd.Flags().BoolVar(&mediaPublic, "media-public", false, "Request public Linear asset URLs for uploaded media")
