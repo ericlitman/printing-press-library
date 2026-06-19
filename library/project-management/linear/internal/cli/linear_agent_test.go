@@ -694,6 +694,50 @@ func TestIssuesCreateWithParentResolvesIdentifierBeforeMutation(t *testing.T) {
 	}
 }
 
+func TestIssuesCreateWithParentUUIDSkipsIdentifierLookup(t *testing.T) {
+	const teamID = "00000000-0000-0000-0000-000000000001"
+	const parentID = "00000000-0000-0000-0000-000000000123"
+	var seenParentID string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if strings.Contains(req.Query, "issues(filter") {
+			t.Errorf("uuid parent should not trigger identifier lookup")
+			http.Error(w, "unexpected parent lookup", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "issueCreate") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		input, _ := req.Variables["input"].(map[string]any)
+		seenParentID, _ = input["parentId"].(string)
+		fmt.Fprint(w, `{"data":{"issueCreate":{"success":true,"issue":{"id":"child-uuid","identifier":"MOB-124","title":"Child","description":"","url":"https://linear.app/issue/MOB-124","priority":0,"createdAt":"2026-06-18T00:00:00Z","updatedAt":"2026-06-18T00:00:00Z","team":{"id":"00000000-0000-0000-0000-000000000001","key":"MOB"},"state":{"id":"state-1","name":"Todo","type":"unstarted"},"parent":{"id":"00000000-0000-0000-0000-000000000123","identifier":"MOB-123","title":"Parent"}}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithStdout("issues", "create",
+		"--title", "Child",
+		"--team", teamID,
+		"--parent", parentID,
+		"--db", filepath.Join(t.TempDir(), "linear.db"),
+		"--agent",
+		"--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues create --parent uuid failed: %v\n%s", err, out)
+	}
+	if seenParentID != parentID {
+		t.Fatalf("issueCreate parentId = %q, want %s", seenParentID, parentID)
+	}
+}
+
 func TestIssuesEditParentAndNoParent(t *testing.T) {
 	t.Run("set parent", func(t *testing.T) {
 		var seenIssueID string
@@ -775,6 +819,81 @@ func TestIssuesEditParentAndNoParent(t *testing.T) {
 			t.Fatalf("issueUpdate did not send parentId:null")
 		}
 	})
+}
+
+func TestIssuesEditDryRunWithParentOptionsDoesNotCallAPI(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		http.Error(w, "dry-run should not call API", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithStdout("issues", "edit",
+		"MOB-124",
+		"--parent", "MOB-123",
+		"--db", filepath.Join(t.TempDir(), "linear.db"),
+		"--dry-run",
+		"--agent")
+	if err != nil {
+		t.Fatalf("issues edit --parent dry-run failed: %v\n%s", err, out)
+	}
+	var parentPreview struct {
+		Event string `json:"event"`
+		Input struct {
+			ParentID string `json:"parentId"`
+		} `json:"input"`
+	}
+	if err := json.Unmarshal([]byte(out), &parentPreview); err != nil {
+		t.Fatalf("parent dry-run output is not JSON: %v\n%s", err, out)
+	}
+	if parentPreview.Event != "would_update_issue" || parentPreview.Input.ParentID != "MOB-123" {
+		t.Fatalf("parent dry-run output missing parent preview: %+v\n%s", parentPreview, out)
+	}
+
+	out, err = executeRootForTestWithStdout("issues", "edit",
+		"MOB-124",
+		"--no-parent",
+		"--db", filepath.Join(t.TempDir(), "linear.db"),
+		"--dry-run",
+		"--agent")
+	if err != nil {
+		t.Fatalf("issues edit --no-parent dry-run failed: %v\n%s", err, out)
+	}
+	var clearPreview struct {
+		Event string         `json:"event"`
+		Input map[string]any `json:"input"`
+	}
+	if err := json.Unmarshal([]byte(out), &clearPreview); err != nil {
+		t.Fatalf("clear dry-run output is not JSON: %v\n%s", err, out)
+	}
+	value, ok := clearPreview.Input["parentId"]
+	if clearPreview.Event != "would_update_issue" || !ok || value != nil {
+		t.Fatalf("clear dry-run output missing parentId:null preview: %+v\n%s", clearPreview, out)
+	}
+	if calls != 0 {
+		t.Fatalf("dry-runs made %d API calls", calls)
+	}
+}
+
+func TestIssuesEditParentFlagsAreMutuallyExclusive(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("issues", "edit",
+		"MOB-124",
+		"--parent", "MOB-123",
+		"--no-parent",
+		"--agent",
+		"--data-source", "live")
+	if err == nil {
+		t.Fatalf("issues edit --parent --no-parent succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	if !strings.Contains(out, `"type":"usage"`) || !strings.Contains(out, "pass either --parent or --no-parent") {
+		t.Fatalf("mutual exclusion did not render usage envelope:\n%s", out)
+	}
 }
 
 func TestIssueParentResolutionErrorsAreTyped(t *testing.T) {
@@ -975,6 +1094,8 @@ func executeRootForTestWithInput(input string, args ...string) (string, error) {
 	return out.String(), err
 }
 
+// These helpers temporarily replace process stdout; do not use them in tests
+// that call t.Parallel.
 func executeRootForTestWithStdout(args ...string) (string, error) {
 	var flags rootFlags
 	cmd := newRootCmd(&flags)

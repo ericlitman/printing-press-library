@@ -59,7 +59,6 @@ Single-issue get resolution order (with --data-source auto, the default):
   3. on live failure with a fresh store, return the store miss as not found
 
 Use 'issues list' for filtered listing against the local sqlite store.
-Use 'issues search' for duplicate checks and free-text search across synced issues.
 Use 'issues create --parent' or 'issues edit --parent/--no-parent' to manage
 parent and sub-issue links.`,
 		Example: `  linear-pp-cli issues ESP-1155
@@ -67,7 +66,6 @@ parent and sub-issue links.`,
   linear-pp-cli issues list --assignee me
   linear-pp-cli issues list --assignee me --state started
   linear-pp-cli issues list --team ESP --state started --json
-  linear-pp-cli issues search "login redirect bug" --team ESP --agent
   linear-pp-cli issues create --title "child" --team ESP --parent ESP-1155 --agent
   linear-pp-cli issues edit ESP-1156 --no-parent --agent`,
 		Args: cobra.MaximumNArgs(1),
