@@ -27,6 +27,17 @@ type workflowStateRow struct {
 	} `json:"team"`
 }
 
+var validLinearWorkflowStateTypes = map[string]struct{}{
+	"triage":    {},
+	"backlog":   {},
+	"unstarted": {},
+	"started":   {},
+	"completed": {},
+	"canceled":  {},
+}
+
+const validLinearWorkflowStateTypeList = "triage, backlog, unstarted, started, completed, canceled"
+
 func newWorkflowStatesCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "workflow-states",
@@ -173,8 +184,12 @@ func resolveWorkflowState(c graphqlQueryer, team issueTeamInfo, name, stateType 
 		filter["name"] = map[string]any{"eqIgnoreCase": name}
 		selector = fmt.Sprintf("--state-name %q", name)
 	case stateType != "":
-		filter["type"] = map[string]any{"eq": stateType}
-		selector = fmt.Sprintf("--state-type %q", stateType)
+		normalizedType := strings.ToLower(strings.TrimSpace(stateType))
+		if _, ok := validLinearWorkflowStateTypes[normalizedType]; !ok {
+			return "", usageErr(fmt.Errorf("--state-type %q is not a valid Linear workflow state type; valid types: %s", stateType, validLinearWorkflowStateTypeList))
+		}
+		filter["type"] = map[string]any{"eq": normalizedType}
+		selector = fmt.Sprintf("--state-type %q", normalizedType)
 	default:
 		return "", fmt.Errorf("cannot resolve workflow state: no name or type given")
 	}
