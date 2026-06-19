@@ -63,6 +63,13 @@ description is fetched live and the uploaded media links are appended.`,
 				}
 				input["stateId"] = stateFlag
 			}
+			if stateTypeFlag != "" {
+				normalizedType, err := normalizeWorkflowStateType(stateTypeFlag)
+				if err != nil {
+					return err
+				}
+				stateTypeFlag = normalizedType
+			}
 			if len(labelsFlag) > 0 {
 				input["labelIds"] = labelsFlag
 			}
@@ -203,7 +210,7 @@ description is fetched live and the uploaded media links are appended.`,
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID (see 'workflow-states list --team <key>')")
 	cmd.Flags().StringVar(&stateNameFlag, "state-name", "", "Workflow state name (e.g. \"In Progress\"); resolved against the issue's team")
-	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled); resolved against the issue's team")
+	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled, duplicate); resolved against the issue's team")
 	cmd.Flags().StringSliceVar(&labelsFlag, "label", nil, "Replacement label UUIDs (repeatable)")
 	cmd.Flags().StringSliceVar(&mediaFlag, "media", nil, "Upload file and append it to the description markdown (repeatable)")
 	cmd.Flags().BoolVar(&mediaPublic, "media-public", false, "Request public Linear asset URLs for uploaded media")

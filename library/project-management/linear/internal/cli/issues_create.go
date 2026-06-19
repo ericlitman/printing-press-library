@@ -104,6 +104,13 @@ tickets in the workspace.`,
 			if stateFlag != "" && !store.IsUUID(stateFlag) {
 				return usageErr(fmt.Errorf("--state expects a workflow state UUID (got %q); use --state-name %q, or run 'linear-pp-cli workflow-states list --team %s' to find the UUID", stateFlag, stateFlag, teamFlag))
 			}
+			if stateTypeFlag != "" {
+				normalizedType, err := normalizeWorkflowStateType(stateTypeFlag)
+				if err != nil {
+					return err
+				}
+				stateTypeFlag = normalizedType
+			}
 
 			input := map[string]any{
 				"title":  titleFlag,
@@ -321,7 +328,7 @@ tickets in the workspace.`,
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID (see 'workflow-states list --team <key>'); use --state-name to set by name")
 	cmd.Flags().StringVar(&stateNameFlag, "state-name", "", "Workflow state name (e.g. \"In Progress\"); resolved against --team")
-	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled); resolved against --team")
+	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled, duplicate); resolved against --team")
 	cmd.Flags().StringSliceVar(&labelsFlag, "label", nil, "Label UUIDs (repeatable)")
 	cmd.Flags().StringSliceVar(&mediaFlag, "media", nil, "Upload file and append it to the description markdown (repeatable)")
 	cmd.Flags().BoolVar(&mediaPublic, "media-public", false, "Request public Linear asset URLs for uploaded media")

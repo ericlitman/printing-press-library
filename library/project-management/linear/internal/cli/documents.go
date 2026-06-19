@@ -482,6 +482,9 @@ func normalizeDocumentRef(ref string) string {
 			ref = path.Base(u.Path)
 		}
 	}
+	if store.IsUUID(ref) {
+		return ref
+	}
 	// Title-slug + slugId: the slugId is the segment after the last hyphen.
 	if idx := strings.LastIndex(ref, "-"); idx >= 0 && idx < len(ref)-1 {
 		ref = ref[idx+1:]
@@ -491,6 +494,9 @@ func normalizeDocumentRef(ref string) string {
 
 func fetchDocumentLive(c graphqlQueryer, ref string) (json.RawMessage, error) {
 	idOrSlug := normalizeDocumentRef(ref)
+	if idOrSlug == "" || strings.Trim(idOrSlug, "-") == "" {
+		return nil, notFoundErr(fmt.Errorf("document %q not found (could not extract a document UUID or slugId); pass a document UUID, bare slugId, full URL slug, or the document URL", ref))
+	}
 	if store.IsUUID(idOrSlug) {
 		const byID = `query($id: String!) {
 		document(id: $id) {

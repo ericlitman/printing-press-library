@@ -9,9 +9,11 @@
   "files": [
     "internal/cli/documents.go",
     "internal/cli/helpers.go",
+    "internal/cli/issues_create.go",
+    "internal/cli/issues_edit.go",
     "internal/cli/workflow_states.go",
     "internal/cli/linear_agent_test.go",
     "internal/cli/mob104_ergonomics_test.go"
   ],
-  "validated_outcome": "`documents list --team <key>` uses a case-insensitive team-key GraphQL filter; invalid `--state-type` values return code-2 usage with the valid Linear state-type set before workflow-state lookup; parent commands invoked with `--agent` emit exactly one JSON error envelope."
+  "validated_outcome": "`documents list --team <key>` uses a case-insensitive team-key GraphQL filter; invalid `--state-type` values return code-2 usage with the valid Linear state-type set before any live request, including Linear's documented `duplicate` state type; parent commands invoked with `--agent` emit exactly one JSON error envelope."
 }

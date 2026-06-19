@@ -182,6 +182,7 @@ func TestNormalizeDocumentRef(t *testing.T) {
 		{"symphony-pipeline-restart-runbook-f7f48ab36080", "f7f48ab36080"},
 		{"https://linear.app/mobilyze-llc/document/symphony-pipeline-restart-runbook-f7f48ab36080", "f7f48ab36080"},
 		{"https://linear.app/mobilyze-llc/document/symphony-pipeline-restart-runbook-f7f48ab36080?view=full", "f7f48ab36080"},
+		{"https://linear.app/mobilyze-llc/document/4a09c2e6-3a25-4cb8-ab63-9c9f6754b24e", "4a09c2e6-3a25-4cb8-ab63-9c9f6754b24e"},
 		{"  f7f48ab36080  ", "f7f48ab36080"},
 	}
 	for _, c := range cases {
@@ -216,6 +217,25 @@ func TestDocumentsAcceptsFullURLSlug(t *testing.T) {
 	}
 	if !strings.Contains(out, "doc-uuid") {
 		t.Fatalf("document output missing id: %s", out)
+	}
+}
+
+func TestDocumentsRejectsEmptySlugRefBeforeNetwork(t *testing.T) {
+	var liveRequest bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		liveRequest = true
+		http.Error(w, "document lookup should not run for an empty slug ref", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	_, err := executeRootForTest("documents", "-", "--agent")
+	if err == nil || ExitCode(err) != 3 {
+		t.Fatalf("hyphen-only document ref should be a code-3 not-found error, got %v", err)
+	}
+	if liveRequest {
+		t.Fatalf("document lookup should not run for an empty slug ref")
 	}
 }
 
@@ -665,24 +685,10 @@ func TestIssuesCreateStateNameResolvesTeamKeyWithoutLocalStore(t *testing.T) {
 }
 
 func TestResolveWorkflowStateRejectsInvalidStateType(t *testing.T) {
-	var workflowStateLookup bool
+	var liveRequest bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var req client.GraphQLRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			t.Errorf("decode request: %v", err)
-			http.Error(w, "bad request", http.StatusBadRequest)
-			return
-		}
-		switch {
-		case strings.Contains(req.Query, "issues(filter"):
-			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-uuid","identifier":"MOB-105","title":"Issue","description":"","team":{"id":"team-1","key":"MOB","name":"Mobilyze"}}]}}}`)
-		case strings.Contains(req.Query, "workflowStates("):
-			workflowStateLookup = true
-			http.Error(w, "workflow state lookup should not run for invalid state type", http.StatusInternalServerError)
-		default:
-			t.Errorf("unexpected query: %s", req.Query)
-			http.Error(w, "unexpected query", http.StatusBadRequest)
-		}
+		liveRequest = true
+		http.Error(w, "invalid state type should not make a live request", http.StatusInternalServerError)
 	}))
 	t.Cleanup(srv.Close)
 	t.Setenv("LINEAR_BASE_URL", srv.URL)
@@ -696,7 +702,7 @@ func TestResolveWorkflowStateRejectsInvalidStateType(t *testing.T) {
 	if !strings.Contains(err.Error(), validLinearWorkflowStateTypeList) {
 		t.Fatalf("invalid type error should list valid types, got: %v", err)
 	}
-	if workflowStateLookup {
-		t.Fatalf("workflow state lookup should not run for invalid --state-type")
+	if liveRequest {
+		t.Fatalf("invalid --state-type should not make a live request")
 	}
 }

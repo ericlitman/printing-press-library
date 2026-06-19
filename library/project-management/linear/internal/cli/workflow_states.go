@@ -34,9 +34,18 @@ var validLinearWorkflowStateTypes = map[string]struct{}{
 	"started":   {},
 	"completed": {},
 	"canceled":  {},
+	"duplicate": {},
 }
 
-const validLinearWorkflowStateTypeList = "triage, backlog, unstarted, started, completed, canceled"
+const validLinearWorkflowStateTypeList = "triage, backlog, unstarted, started, completed, canceled, duplicate"
+
+func normalizeWorkflowStateType(stateType string) (string, error) {
+	normalizedType := strings.ToLower(strings.TrimSpace(stateType))
+	if _, ok := validLinearWorkflowStateTypes[normalizedType]; !ok {
+		return "", usageErr(fmt.Errorf("--state-type %q is not a valid Linear workflow state type; valid types: %s", stateType, validLinearWorkflowStateTypeList))
+	}
+	return normalizedType, nil
+}
 
 func newWorkflowStatesCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
@@ -184,9 +193,9 @@ func resolveWorkflowState(c graphqlQueryer, team issueTeamInfo, name, stateType 
 		filter["name"] = map[string]any{"eqIgnoreCase": name}
 		selector = fmt.Sprintf("--state-name %q", name)
 	case stateType != "":
-		normalizedType := strings.ToLower(strings.TrimSpace(stateType))
-		if _, ok := validLinearWorkflowStateTypes[normalizedType]; !ok {
-			return "", usageErr(fmt.Errorf("--state-type %q is not a valid Linear workflow state type; valid types: %s", stateType, validLinearWorkflowStateTypeList))
+		normalizedType, err := normalizeWorkflowStateType(stateType)
+		if err != nil {
+			return "", err
 		}
 		filter["type"] = map[string]any{"eq": normalizedType}
 		selector = fmt.Sprintf("--state-type %q", normalizedType)
