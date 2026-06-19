@@ -217,6 +217,7 @@ func parentNoSubcommandRunE(flags *rootFlags) func(*cobra.Command, []string) err
 				"error":             "subcommand required",
 				"valid_subcommands": subs,
 			})
+			flags.errorWritten = true
 			return usageErr(fmt.Errorf("subcommand required for %q", cmd.CommandPath()))
 		}
 		return cmd.Help()

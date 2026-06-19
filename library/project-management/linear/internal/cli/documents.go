@@ -74,7 +74,11 @@ func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
 				filter["project"] = map[string]any{"id": map[string]any{"eq": project}}
 			}
 			if team != "" {
-				filter["team"] = map[string]any{"id": map[string]any{"eq": team}}
+				if store.IsUUID(team) {
+					filter["team"] = map[string]any{"id": map[string]any{"eq": team}}
+				} else {
+					filter["team"] = map[string]any{"key": map[string]any{"eqIgnoreCase": team}}
+				}
 			}
 			if limit <= 0 {
 				limit = 50
@@ -120,7 +124,7 @@ func newDocumentsListCmd(flags *rootFlags) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&issue, "issue", "", "Filter by issue identifier or UUID")
 	cmd.Flags().StringVar(&project, "project", "", "Filter by project UUID")
-	cmd.Flags().StringVar(&team, "team", "", "Filter by team UUID")
+	cmd.Flags().StringVar(&team, "team", "", "Filter by team key or UUID")
 	cmd.Flags().StringVar(&after, "after", "", "Cursor from pageInfo.endCursor for the next page")
 	cmd.Flags().IntVar(&limit, "limit", 50, "Maximum documents to return")
 	return cmd

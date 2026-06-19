@@ -918,6 +918,38 @@ func TestDocumentsListSendsAfterCursor(t *testing.T) {
 	}
 }
 
+func TestDocumentsListTeamKeyFilter(t *testing.T) {
+	var seenFilter map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "documents(first") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		seenFilter, _ = req.Variables["filter"].(map[string]any)
+		fmt.Fprint(w, `{"data":{"documents":{"nodes":[{"id":"doc-1","title":"Runbook","slugId":"runbook-f7f48ab36080","url":"https://linear.app/acme/document/runbook-f7f48ab36080","team":{"id":"team-symph","key":"SYMPH","name":"Symphony"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("documents", "list", "--team", "SYMPH", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("documents list failed: %v\n%s", err, out)
+	}
+	teamFilter, _ := seenFilter["team"].(map[string]any)
+	keyFilter, _ := teamFilter["key"].(map[string]any)
+	if keyFilter == nil || keyFilter["eqIgnoreCase"] != "SYMPH" {
+		t.Fatalf("documents list team filter = %#v, want key eqIgnoreCase SYMPH", teamFilter)
+	}
+}
+
 func TestPromotedGraphQLReadsUsePost(t *testing.T) {
 	var seen []string
 	var teamsAfter []string

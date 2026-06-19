@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -525,6 +526,25 @@ func TestFinalizeErrorSkipsDoubleEnvelope(t *testing.T) {
 	}
 }
 
+func TestParentNoSubcommandAgentModeSingleEnvelope(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("workflow-states", "--agent")
+	if err == nil || ExitCode(err) != 2 {
+		t.Fatalf("workflow-states without subcommand should be a code-2 usage error, got %v\n%s", err, out)
+	}
+	dec := json.NewDecoder(strings.NewReader(out))
+	var envelope map[string]any
+	if err := dec.Decode(&envelope); err != nil {
+		t.Fatalf("output is not a JSON envelope: %v\n%s", err, out)
+	}
+	if envelope["error"] != "subcommand required" {
+		t.Fatalf("unexpected envelope: %#v", envelope)
+	}
+	var extra map[string]any
+	if err := dec.Decode(&extra); err != io.EOF {
+		t.Fatalf("expected exactly one JSON envelope, second decode err=%v extra=%#v output=%s", err, extra, out)
+	}
+}
+
 // TestIssuesCreateStateFlagValidation mirrors the issues-edit guard: --state on
 // create now rejects a non-UUID before any network call (MOB-104 follow-up:
 // the original gap let "In Progress" pass straight through as stateId and fail
@@ -641,5 +661,42 @@ func TestIssuesCreateStateNameResolvesTeamKeyWithoutLocalStore(t *testing.T) {
 	}
 	if seenStateID != "state-progress" {
 		t.Fatalf("stateId sent to issueCreate = %q, want resolved %q", seenStateID, "state-progress")
+	}
+}
+
+func TestResolveWorkflowStateRejectsInvalidStateType(t *testing.T) {
+	var workflowStateLookup bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "issues(filter"):
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-uuid","identifier":"MOB-105","title":"Issue","description":"","team":{"id":"team-1","key":"MOB","name":"Mobilyze"}}]}}}`)
+		case strings.Contains(req.Query, "workflowStates("):
+			workflowStateLookup = true
+			http.Error(w, "workflow state lookup should not run for invalid state type", http.StatusInternalServerError)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	_, err := executeRootForTest("issues", "edit", "MOB-105", "--state-type", "in-progress",
+		"--db", filepath.Join(t.TempDir(), "linear.db"), "--agent")
+	if err == nil || ExitCode(err) != 2 {
+		t.Fatalf("invalid --state-type should be a code-2 usage error, got %v", err)
+	}
+	if !strings.Contains(err.Error(), validLinearWorkflowStateTypeList) {
+		t.Fatalf("invalid type error should list valid types, got: %v", err)
+	}
+	if workflowStateLookup {
+		t.Fatalf("workflow state lookup should not run for invalid --state-type")
 	}
 }
