@@ -37,7 +37,7 @@ npx -y @mvanhorn/printing-press-library install linear --agent claude-code --age
 
 ### Without Node (Go fallback)
 
-If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.3 or newer):
+If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.4 or newer):
 
 ```bash
 go install github.com/mvanhorn/printing-press-library/library/project-management/linear/cmd/linear-pp-cli@latest
@@ -174,7 +174,7 @@ These capabilities aren't available in any other tool for this API.
   ```bash
   linear-pp-cli stale --days 30 --team ENG --json
   ```
-- **`issues search` / `similar`** — Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
+- **`issues search` / `similar`** — Find issues that look like duplicates of a query string using local FTS5 search.
 
   _Reach for this during triage when you suspect an incoming bug duplicates an existing issue._
 
@@ -185,7 +185,7 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli similar "pipeline follow-up" --team SYMPH --limit 10 --agent
   ```
 
-  Prefer `issues search` when checking for existing tickets before creating or updating follow-up work. Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue.
+  Prefer `issues search` when checking for existing tickets before creating or updating follow-up work. It coordinates freshness for duplicate checks: fresh local data is searched immediately, stale or empty issue data refreshes behind a cross-process lock before search, and refresh failures return a typed error instead of silently serving stale results. Add `--team <key-name-or-uuid>` when a common project name or label appears across teams and the duplicate check must stay inside the target team's queue. Under `--agent` / `--json`, `issues search` returns a provenance envelope with freshness metadata; `similar` keeps the legacy raw result array. Use `--data-source local` only when stale/offline local results are intentional.
 
 ### Cross-entity rollups
 - **`projects burndown`** — Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.
@@ -530,7 +530,8 @@ Read commands fall into three categories with different data-source semantics. T
 | Category | Commands | Default | Override |
 | --- | --- | --- | --- |
 | **Live-first with local fallback** | `attachments`, `projects get`, `teams`, `initiatives get`, `issues`, `issues list` (the v4 refactor) | `--data-source auto`: live API → write-through → fall back to local on network error | `--data-source live` (no fallback), `--data-source local` (no API) |
-| **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `issues search`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
+| **Freshness-coordinated local search** | `issues search` | Local FTS over synced issues. If issue data is stale or empty, the command refreshes teams, workflow states, labels, and issues behind a cross-process lock before searching; if refresh fails, it returns a typed error. Agent/JSON output is a provenance envelope with freshness metadata; `refreshed` means local issue data changed during the invocation, and `refreshed_by` identifies whether this process, a peer, or an external sync did it. | `--data-source local` explicitly allows stale/offline local results; `--max-age 0` disables the freshness gate and marks `freshness_gate_disabled`. Empty local stores are marked with `unsynced`. |
+| **Snapshot-computational** | `today`, `bottleneck`, `blocking`, `similar`, `velocity`, `slipped`, `cycles compare`, `projects burndown`, `initiatives health`, `milestones at-risk` | Local store only — no live equivalent exists. **Must `sync` first.** | None (flag ignored) |
 | **Label discovery** | `labels list --team ENG` | `--data-source auto`: reads live by default; `--data-source local` reads the synced `issue_labels` table | `--data-source live`, `--data-source local` |
 | **Live collaboration reads** | `comments list`, `documents`, `documents list` | Always live; comments and working-session docs are collaboration surfaces where stale local state is misleading | n/a |
 | **Mutations** | `issues create`, `issues edit`, `comments add`, `comments edit`, `documents create`, `documents edit`, `pp-cleanup` | Always live; on success, the HTTP cache is invalidated AND issue mutations are written back to the local store | n/a |

@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +11,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
@@ -245,16 +249,26 @@ func TestIssuesSearchAliasUsesSimilarSearchEngine(t *testing.T) {
 		t.Fatalf("close store: %v", err)
 	}
 
-	out, err := executeRootForTest("issues", "search", "Kimi", "replay", "temp", "directories", "cleanup", "--team", "SYMPH", "--limit", "10", "--db", dbPath, "--agent", "--select", "identifier,title")
+	out, err := executeRootForTest("issues", "search", "Kimi", "replay", "temp", "directories", "cleanup", "--team", "SYMPH", "--limit", "10", "--db", dbPath, "--agent", "--data-source", "local", "--select", "identifier,title")
 	if err != nil {
 		t.Fatalf("issues search failed: %v\n%s", err, out)
 	}
-	var results []map[string]any
-	if err := json.Unmarshal([]byte(out), &results); err != nil {
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				StalePolicy string `json:"stale_policy"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
 		t.Fatalf("issues search output is not JSON: %v\n%s", err, out)
 	}
-	if len(results) != 1 || results[0]["identifier"] != "SYMPH-689" || results[0]["title"] != "Kimi replay temp directories cleanup" {
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-689" || got.Results[0]["title"] != "Kimi replay temp directories cleanup" {
 		t.Fatalf("unexpected issues search results: %s", out)
+	}
+	if got.Meta.Freshness.StalePolicy != "allow" {
+		t.Fatalf("issues search test DB should use stale-local policy via --data-source local, got %+v", got.Meta.Freshness)
 	}
 }
 
@@ -277,6 +291,460 @@ func TestIssuesSearchMissingQueryReturnsAgentUsageEnvelope(t *testing.T) {
 	if envelope.Code != 2 || envelope.Type != "usage" || !strings.Contains(envelope.Error, "linear-pp-cli similar") {
 		t.Fatalf("usage error envelope = %+v, want code=2 type=usage with similar hint; output=%s", envelope, out)
 	}
+}
+
+func TestIssuesSearchRefreshesStaleCacheBeforeSearch(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+	var issuesQueries int32
+	srv := newIssueSearchRefreshServer(t, &issuesQueries, http.StatusOK, 0)
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "search", "Fresh", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search refresh failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Source    string `json:"source"`
+			Freshness struct {
+				StalePolicy   string `json:"stale_policy"`
+				Refreshed     bool   `json:"refreshed"`
+				RefreshReason string `json:"refresh_reason"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("issues search output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-999" {
+		t.Fatalf("unexpected refreshed search results: %+v\n%s", got.Results, out)
+	}
+	if got.Meta.Source != "local" || got.Meta.Freshness.StalePolicy != "refresh" || !got.Meta.Freshness.Refreshed || got.Meta.Freshness.RefreshReason != "stale" {
+		t.Fatalf("unexpected freshness metadata: %+v\n%s", got.Meta, out)
+	}
+	if atomic.LoadInt32(&issuesQueries) != 1 {
+		t.Fatalf("issues refresh queries = %d, want 1", issuesQueries)
+	}
+}
+
+func TestIssuesSearchFreshCacheSkipsRefresh(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedFreshIssueSearchStore(t, dbPath)
+	var apiCalls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&apiCalls, 1)
+		http.Error(w, "fresh cache should not call API", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "search", "Fresh", "local", "--team", "SYMPH", "--db", dbPath, "--agent", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search fresh cache failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				Refreshed       bool   `json:"refreshed"`
+				RefreshReason   string `json:"refresh_reason"`
+				LocalIssueCount int    `json:"local_issue_count"`
+				Unsynced        bool   `json:"unsynced"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("fresh cache output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-FRESH" {
+		t.Fatalf("unexpected fresh-cache results: %+v\n%s", got.Results, out)
+	}
+	if atomic.LoadInt32(&apiCalls) != 0 {
+		t.Fatalf("fresh cache API calls = %d, want 0", apiCalls)
+	}
+	if got.Meta.Freshness.Refreshed || got.Meta.Freshness.RefreshReason != "" || got.Meta.Freshness.LocalIssueCount != 1 || got.Meta.Freshness.Unsynced {
+		t.Fatalf("unexpected fresh-cache metadata: %+v\n%s", got.Meta.Freshness, out)
+	}
+}
+
+func TestIssuesSearchRefreshesAllIssueAndLabelPages(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+	var issuesQueries int32
+	var labelQueries int32
+	srv := newIssueSearchMultiPageRefreshServer(t, &issuesQueries, &labelQueries)
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "search", "Fresh", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search multi-page refresh failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				Refreshed       bool   `json:"refreshed"`
+				RefreshedBy     string `json:"refreshed_by"`
+				LocalIssueCount int    `json:"local_issue_count"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("multi-page output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-999" {
+		t.Fatalf("unexpected multi-page results: %+v\n%s", got.Results, out)
+	}
+	if atomic.LoadInt32(&issuesQueries) != 2 || atomic.LoadInt32(&labelQueries) != 2 {
+		t.Fatalf("page counts issues=%d labels=%d, want 2/2", issuesQueries, labelQueries)
+	}
+	if !got.Meta.Freshness.Refreshed || got.Meta.Freshness.RefreshedBy != "self" || got.Meta.Freshness.LocalIssueCount != 2 {
+		t.Fatalf("unexpected multi-page freshness metadata: %+v\n%s", got.Meta.Freshness, out)
+	}
+}
+
+func TestIssuesSearchReclaimsStaleRefreshLock(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+	lockPath := dbPath + ".issues-search-sync.lock"
+	staleCreatedAt := time.Now().UTC().Add(-(issueSearchRefreshLockTimeout + time.Second)).Format(time.RFC3339)
+	if err := os.WriteFile(lockPath, []byte(fmt.Sprintf("pid=%d\ncreated_at=%s\n", os.Getpid(), staleCreatedAt)), 0o600); err != nil {
+		t.Fatalf("write stale lock: %v", err)
+	}
+	var issuesQueries int32
+	srv := newIssueSearchRefreshServer(t, &issuesQueries, http.StatusOK, 0)
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "search", "Fresh", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search with stale lock failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				LockContended bool `json:"lock_contended"`
+				LockReclaimed bool `json:"lock_reclaimed"`
+				Refreshed     bool `json:"refreshed"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("issues search output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-999" {
+		t.Fatalf("unexpected refreshed search results after lock reclaim: %+v\n%s", got.Results, out)
+	}
+	if !got.Meta.Freshness.LockContended || !got.Meta.Freshness.LockReclaimed || !got.Meta.Freshness.Refreshed {
+		t.Fatalf("unexpected lock freshness metadata: %+v\n%s", got.Meta.Freshness, out)
+	}
+	if _, err := os.Stat(lockPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("refresh lock after command: err=%v, want not exist", err)
+	}
+}
+
+func TestIssuesSearchRefreshFailureReturnsTypedError(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+	var issuesQueries int32
+	srv := newIssueSearchRefreshServer(t, &issuesQueries, http.StatusInternalServerError, 0)
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "search", "Old", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent")
+	if err == nil {
+		t.Fatalf("issues search with failed refresh succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 5 {
+		t.Fatalf("ExitCode() = %d, want 5; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Code  int    `json:"code"`
+		Type  string `json:"type"`
+		Error string `json:"error"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("refresh failure output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Code != 5 || envelope.Type != "api" || !strings.Contains(envelope.Error, "--data-source local") {
+		t.Fatalf("unexpected refresh failure envelope: %+v\n%s", envelope, out)
+	}
+}
+
+func TestIssuesSearchDataSourceLocalAllowsStaleCache(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+
+	out, err := executeRootForTest("issues", "search", "Old", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent", "--data-source", "local", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search --data-source local failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				StalePolicy   string `json:"stale_policy"`
+				Refreshed     bool   `json:"refreshed"`
+				RefreshReason string `json:"refresh_reason"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("local stale output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-OLD" {
+		t.Fatalf("unexpected stale-local results: %+v\n%s", got.Results, out)
+	}
+	if got.Meta.Freshness.StalePolicy != "allow" || got.Meta.Freshness.Refreshed || got.Meta.Freshness.RefreshReason != "user_requested_local" {
+		t.Fatalf("unexpected stale-local metadata: %+v\n%s", got.Meta.Freshness, out)
+	}
+}
+
+func TestIssuesSearchMaxAgeZeroDisablesFreshnessGate(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+
+	out, err := executeRootForTest("issues", "search", "Old", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent", "--max-age", "0", "--select", "identifier,title")
+	if err != nil {
+		t.Fatalf("issues search --max-age 0 failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				StalePolicy   string `json:"stale_policy"`
+				Refreshed     bool   `json:"refreshed"`
+				RefreshReason string `json:"refresh_reason"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("max-age zero output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-OLD" {
+		t.Fatalf("unexpected max-age zero results: %+v\n%s", got.Results, out)
+	}
+	if got.Meta.Freshness.StalePolicy != "allow" || got.Meta.Freshness.Refreshed || got.Meta.Freshness.RefreshReason != "freshness_gate_disabled" {
+		t.Fatalf("unexpected max-age zero metadata: %+v\n%s", got.Meta.Freshness, out)
+	}
+}
+
+func TestIssuesSearchMaxAgeZeroMarksUnsyncedStore(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close store: %v", err)
+	}
+
+	out, err := executeRootForTest("issues", "search", "missing", "duplicate", "--db", dbPath, "--agent", "--max-age", "0")
+	if err != nil {
+		t.Fatalf("issues search --max-age 0 empty store failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Results []map[string]any `json:"results"`
+		Meta    struct {
+			Freshness struct {
+				RefreshReason   string `json:"refresh_reason"`
+				LocalIssueCount int    `json:"local_issue_count"`
+				Unsynced        bool   `json:"unsynced"`
+			} `json:"freshness"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("max-age zero empty-store output is not provenance JSON: %v\n%s", err, out)
+	}
+	if len(got.Results) != 0 {
+		t.Fatalf("empty store returned results: %+v\n%s", got.Results, out)
+	}
+	if got.Meta.Freshness.RefreshReason != "freshness_gate_disabled" || got.Meta.Freshness.LocalIssueCount != 0 || !got.Meta.Freshness.Unsynced {
+		t.Fatalf("unexpected max-age zero empty-store metadata: %+v\n%s", got.Meta.Freshness, out)
+	}
+}
+
+func TestIssuesSearchConcurrentRefreshCoalesces(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	seedStaleIssueSearchStore(t, dbPath)
+	var issuesQueries int32
+	srv := newIssueSearchRefreshServer(t, &issuesQueries, http.StatusOK, 150*time.Millisecond)
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	var wg sync.WaitGroup
+	errs := make(chan string, 2)
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			out, err := executeRootForTest("issues", "search", "Fresh", "duplicate", "--team", "SYMPH", "--db", dbPath, "--agent")
+			if err != nil {
+				errs <- fmt.Sprintf("%v\n%s", err, out)
+				return
+			}
+			var got struct {
+				Results []map[string]any `json:"results"`
+			}
+			if err := json.Unmarshal([]byte(out), &got); err != nil || len(got.Results) != 1 || got.Results[0]["identifier"] != "SYMPH-999" {
+				errs <- fmt.Sprintf("bad output: %v\n%s", err, out)
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for msg := range errs {
+		t.Fatal(msg)
+	}
+	if got := atomic.LoadInt32(&issuesQueries); got != 1 {
+		t.Fatalf("issues refresh queries = %d, want 1", got)
+	}
+}
+
+func TestIssueSearchRefreshMetadataMarksExternalSync(t *testing.T) {
+	freshness := issueSearchFreshness{
+		PreviousSyncedAt: "2026-06-19T14:00:00Z",
+		SyncedAt:         "2026-06-19T14:01:00Z",
+	}
+
+	applyIssueSearchRefreshMetadata(&freshness, false, false)
+
+	if !freshness.Refreshed || freshness.RefreshedBy != "external" {
+		t.Fatalf("unexpected external refresh metadata: %+v", freshness)
+	}
+	if len(freshness.RefreshResources) != 0 {
+		t.Fatalf("external refresh should not claim resources refreshed by this process: %+v", freshness.RefreshResources)
+	}
+}
+
+func seedStaleIssueSearchStore(t *testing.T, dbPath string) {
+	t.Helper()
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	if err := db.UpsertTeam("team-symph", json.RawMessage(`{"id":"team-symph","key":"SYMPH","name":"Symphony"}`)); err != nil {
+		t.Fatalf("UpsertTeam: %v", err)
+	}
+	if err := db.UpsertIssue("issue-old", "SYMPH-OLD", "Old duplicate", json.RawMessage(`{"id":"issue-old","identifier":"SYMPH-OLD","title":"Old duplicate","description":"stale local row","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph"}`)); err != nil {
+		t.Fatalf("UpsertIssue: %v", err)
+	}
+	if err := db.UpdateSyncCursor("issues", "", 1); err != nil {
+		t.Fatalf("UpdateSyncCursor: %v", err)
+	}
+	if _, err := db.DB().Exec(`UPDATE sync_state SET last_synced_at = datetime('now', '-2 hours') WHERE resource_type = 'issues'`); err != nil {
+		t.Fatalf("age sync_state: %v", err)
+	}
+}
+
+func seedFreshIssueSearchStore(t *testing.T, dbPath string) {
+	t.Helper()
+	db, err := store.Open(dbPath)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	if err := db.UpsertTeam("team-symph", json.RawMessage(`{"id":"team-symph","key":"SYMPH","name":"Symphony"}`)); err != nil {
+		t.Fatalf("UpsertTeam: %v", err)
+	}
+	if err := db.UpsertIssue("issue-fresh", "SYMPH-FRESH", "Fresh local duplicate", json.RawMessage(`{"id":"issue-fresh","identifier":"SYMPH-FRESH","title":"Fresh local duplicate","description":"fresh local row","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph"}`)); err != nil {
+		t.Fatalf("UpsertIssue: %v", err)
+	}
+	if err := db.UpdateSyncCursor("issues", "", 1); err != nil {
+		t.Fatalf("UpdateSyncCursor: %v", err)
+	}
+}
+
+func newIssueSearchRefreshServer(t *testing.T, issuesQueries *int32, status int, issueDelay time.Duration) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if status != http.StatusOK {
+			http.Error(w, "upstream unavailable", status)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "workflowStates"):
+			fmt.Fprint(w, `{"data":{"workflowStates":{"nodes":[]}}}`)
+		case strings.Contains(req.Query, "issueLabels"):
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "issues("):
+			atomic.AddInt32(issuesQueries, 1)
+			if issueDelay > 0 {
+				time.Sleep(issueDelay)
+			}
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-fresh","identifier":"SYMPH-999","title":"Fresh duplicate","description":"fresh remote row","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph","state":{"name":"Backlog","type":"backlog"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "teams"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
+}
+
+func newIssueSearchMultiPageRefreshServer(t *testing.T, issuesQueries *int32, labelQueries *int32) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "workflowStates"):
+			fmt.Fprint(w, `{"data":{"workflowStates":{"nodes":[]}}}`)
+		case strings.Contains(req.Query, "issueLabels"):
+			atomic.AddInt32(labelQueries, 1)
+			after, _ := req.Variables["after"].(string)
+			if after == "" {
+				fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-1","name":"bug","color":"#111","team":{"id":"team-symph","key":"SYMPH","name":"Symphony"}}],"pageInfo":{"hasNextPage":true,"endCursor":"label-page-2"}}}}`)
+				return
+			}
+			if after != "label-page-2" {
+				t.Errorf("issueLabels after cursor = %q, want label-page-2", after)
+				http.Error(w, "unexpected label cursor", http.StatusBadRequest)
+				return
+			}
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-2","name":"duplicate","color":"#222","team":{"id":"team-symph","key":"SYMPH","name":"Symphony"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "issues("):
+			atomic.AddInt32(issuesQueries, 1)
+			after, _ := req.Variables["after"].(string)
+			if after == "" {
+				fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-page-1","identifier":"SYMPH-998","title":"Fresh page one","description":"first remote page","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph","state":{"name":"Backlog","type":"backlog"}}],"pageInfo":{"hasNextPage":true,"endCursor":"issue-page-2"}}}}`)
+				return
+			}
+			if after != "issue-page-2" {
+				t.Errorf("issues after cursor = %q, want issue-page-2", after)
+				http.Error(w, "unexpected issue cursor", http.StatusBadRequest)
+				return
+			}
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-fresh","identifier":"SYMPH-999","title":"Fresh duplicate","description":"fresh remote row","team":{"id":"team-symph","key":"SYMPH"},"teamId":"team-symph","state":{"name":"Backlog","type":"backlog"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "teams"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
+		default:
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+		}
+	}))
 }
 
 func TestDocumentsCreateRequiresExactlyOneParentBeforeMutation(t *testing.T) {
