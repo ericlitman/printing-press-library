@@ -1374,6 +1374,37 @@ func TestIssuesCreateDryRunWithParentDoesNotCallAPI(t *testing.T) {
 	}
 }
 
+func TestIssuesCreateDryRunWithBadParentValidatesLocally(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		http.Error(w, "dry-run should not call API", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "create",
+		"--title", "Child",
+		"--team", "MOB",
+		"--parent", "bad-format",
+		"--db", filepath.Join(t.TempDir(), "linear.db"),
+		"--dry-run",
+		"--agent")
+	if err == nil {
+		t.Fatalf("issues create --parent bad-format --dry-run succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	if !strings.Contains(out, `"type":"usage"`) || !strings.Contains(out, "--parent expects an issue identifier") {
+		t.Fatalf("bad parent dry-run did not render usage envelope:\n%s", out)
+	}
+	if calls != 0 {
+		t.Fatalf("dry-run made %d API calls; output:\n%s", calls, out)
+	}
+}
+
 func TestIssuesCreateWithParentResolvesIdentifierBeforeMutation(t *testing.T) {
 	const teamID = "00000000-0000-0000-0000-000000000001"
 	var sawParentLookup bool
@@ -1616,6 +1647,36 @@ func TestIssuesEditDryRunWithParentOptionsDoesNotCallAPI(t *testing.T) {
 	}
 	if calls != 0 {
 		t.Fatalf("dry-runs made %d API calls", calls)
+	}
+}
+
+func TestIssuesEditDryRunWithBadParentValidatesLocally(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		http.Error(w, "dry-run should not call API", http.StatusInternalServerError)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "edit",
+		"MOB-124",
+		"--parent", "bad-format",
+		"--db", filepath.Join(t.TempDir(), "linear.db"),
+		"--dry-run",
+		"--agent")
+	if err == nil {
+		t.Fatalf("issues edit --parent bad-format --dry-run succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	if !strings.Contains(out, `"type":"usage"`) || !strings.Contains(out, "--parent expects an issue identifier") {
+		t.Fatalf("bad parent dry-run did not render usage envelope:\n%s", out)
+	}
+	if calls != 0 {
+		t.Fatalf("dry-run made %d API calls; output:\n%s", calls, out)
 	}
 }
 
