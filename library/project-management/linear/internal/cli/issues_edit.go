@@ -97,7 +97,7 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 			if descSet {
 				input["description"] = descBody
 			}
-			if len(input) == 0 && len(mediaFlag) == 0 {
+			if len(input) == 0 && len(mediaFlag) == 0 && stateNameFlag == "" && stateTypeFlag == "" {
 				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --state-name, --state-type, --project, --assignee, --priority, --label, --parent, or --no-parent"))
 			}
 			if flags.dryRun {

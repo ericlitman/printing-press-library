@@ -957,6 +957,10 @@ func executeRootForTest(args ...string) (string, error) {
 	return executeRootForTestWithInput("", args...)
 }
 
+func executeRootForTestWithRenderedError(args ...string) (string, error) {
+	return executeRootForTestWithInputAndRenderedError("", args...)
+}
+
 func executeRootForTestWithInput(input string, args ...string) (string, error) {
 	var flags rootFlags
 	cmd := newRootCmd(&flags)
@@ -1016,9 +1020,7 @@ func executeRootForTestWithInputAndRenderedError(input string, args ...string) (
 		if isCobraUsageError(cmdErr) {
 			cmdErr = usageErr(cmdErr)
 		}
-		if flags.asJSON && !flags.errorWritten {
-			writeCLIErrorEnvelope(&flags, cmdErr, ExitCode(cmdErr))
-		}
+		finalizeError(&flags, args, os.Stdout, &out, cmdErr)
 	}
 	_ = w.Close()
 	os.Stdout = stdout
