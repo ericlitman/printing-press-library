@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.17
+
+- Document Go 1.26.4 or newer as the direct `go install` floor so npm package guidance matches the vulnerability-clean Linear CLI module floor.
+
 ## 0.1.16
 
 - Default `install` to a per-user binary directory (`$HOME/.local/bin` on macOS/Linux, `%LOCALAPPDATA%\Programs\PrintingPress\bin` on Windows) instead of Go's `$GOPATH/bin`, so humans, agents, and gateway processes converge on the same install location.
