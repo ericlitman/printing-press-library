@@ -5709,6 +5709,51 @@
       }
     },
     {
+      "name": "grubhub",
+      "category": "commerce",
+      "api": "Grubhub",
+      "description": "Every Grubhub restaurant search, plus a sortable delivery-fee comparison board, a cross-restaurant deal radar, and offline menu-item search no Grubhub tool has.",
+      "search_terms": [
+        "grubhub",
+        "grubhub-pp-cli",
+        "Every Grubhub restaurant search, plus a sortable delivery-fee comparison board, a cross-restaurant deal radar, and offline menu-item search no Grubhub tool has.",
+        "Delivery comparison board",
+        "compare",
+        "See delivery fee, minimum, ETA, rating, and distance for every nearby restaurant side by side, sorted however you want.",
+        "Offline dish search",
+        "dish",
+        "Find which nearby restaurants carry a specific dish, with price, by full-text searching cached menus across the neighborhood.",
+        "Deal radar",
+        "deals",
+        "Rank every nearby restaurant currently running an offer, coupon, or promo code in one sweep.",
+        "Best-value picker",
+        "pick",
+        "Get one recommended restaurant from a transparent score over fee, rating, active deals, and ETA."
+      ],
+      "path": "library/commerce/grubhub",
+      "printer": "vcolombo",
+      "printer_name": "Vincent Colombo",
+      "creator": {
+        "handle": "vcolombo",
+        "name": "Vincent Colombo"
+      },
+      "mcp": {
+        "binary": "grubhub-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 4,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "GRUBHUB_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "gumroad",
       "category": "commerce",
       "api": "Gumroad",
