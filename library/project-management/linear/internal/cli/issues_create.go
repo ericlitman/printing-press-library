@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ import (
 // in init(). Calls Linear's issueCreate mutation and records the resulting issue
 // into the local pp_created ledger so pp-cleanup can find it later.
 func newIssuesCreateCmd(flags *rootFlags) *cobra.Command {
-	var titleFlag, teamFlag, descFlag, assigneeFlag, projectFlag, stateFlag, parentFlag string
+	var titleFlag, teamFlag, descFlag, assigneeFlag, projectFlag, projectNameFlag, stateFlag, parentFlag string
 	var stateNameFlag, stateTypeFlag string
 	var descFile string
 	var descStdin bool
@@ -131,8 +132,23 @@ sub-issue under an existing parent.`,
 			if assigneeFlag != "" {
 				input["assigneeId"] = assigneeFlag
 			}
-			if projectFlag != "" {
-				input["projectId"] = projectFlag
+			var c *client.Client
+			if projectFlag != "" || projectNameFlag != "" {
+				var projectClient graphqlQueryer
+				if projectNameFlag != "" && projectFlag == "" {
+					var err error
+					projectClient, err = newPortfolioLookupClient(flags)
+					if err != nil {
+						return err
+					}
+				}
+				projectID, err := resolveProjectFlag(projectClient, projectFlag, projectNameFlag, teamFlag, flags)
+				if err != nil {
+					return err
+				}
+				if projectID != "" {
+					input["projectId"] = projectID
+				}
 			}
 			if stateFlag != "" {
 				input["stateId"] = stateFlag
@@ -163,9 +179,12 @@ sub-issue under an existing parent.`,
 				return renderMutationDryRun(cmd, flags, "would_create_issue", "issueCreate", out)
 			}
 
-			c, err := flags.newClient()
-			if err != nil {
-				return err
+			if c == nil {
+				var err error
+				c, err = flags.newClient()
+				if err != nil {
+					return err
+				}
 			}
 			if parentFlag != "" {
 				parentID, err := resolveParentIssueID(c, parentRef)
@@ -370,6 +389,7 @@ sub-issue under an existing parent.`,
 	cmd.Flags().IntVar(&priorityFlag, "priority", 0, "Priority: 1=Urgent, 2=High, 3=Medium, 4=Low (0=None)")
 	cmd.Flags().StringVar(&assigneeFlag, "assignee", "", "Assignee user UUID")
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
+	cmd.Flags().StringVar(&projectNameFlag, "project-name", "", "Resolve and attach project by exact name")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID (see 'workflow-states list --team <key>'); use --state-name to set by name")
 	cmd.Flags().StringVar(&stateNameFlag, "state-name", "", "Workflow state name (e.g. \"In Progress\"); resolved against --team")
 	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled, duplicate); resolved against --team")

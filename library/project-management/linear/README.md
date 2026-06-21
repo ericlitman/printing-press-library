@@ -272,6 +272,20 @@ These capabilities aren't available in any other tool for this API.
   linear-pp-cli labels list --team ENG --agent --select id,name,global,team.key
   linear-pp-cli issues create --title "Title" --team ENG --label <global-or-eng-label-id> --agent
   ```
+- **Project and initiative name resolution** — Resolve portfolio objects by human name before writing issue relationships.
+
+  _Reach for this when a user gives an issue identifier plus a project or initiative name. `--project` is UUID-only; use `--project-name` when the input is a human project name._
+
+  ```bash
+  linear-pp-cli projects list --agent --select id,name,team.key,state,url
+  linear-pp-cli projects search "Autonomous Backlog Manager & Dispatch Governance" --team SYMPH --agent --select id,name,team.key,initiative.name,url
+  linear-pp-cli initiatives list --agent --select id,name,status,url
+  linear-pp-cli initiatives search "Dispatch Governance" --agent --select id,name,status,url
+  linear-pp-cli issues edit SYMPH-795 --project-name "Autonomous Backlog Manager & Dispatch Governance" --dry-run --agent
+  linear-pp-cli issues edit SYMPH-795 --project-name "Autonomous Backlog Manager & Dispatch Governance" --agent
+  ```
+
+  `--project-name` always performs a live Linear read to resolve the UUID, even when the surrounding issue write is a dry-run. Use `projects search` first when the name is partial; writes require a normalized exact project-name match.
 - **Shell-safe Linear writes with media** — Create and update issue descriptions, comments, and Linear docs without putting Markdown bodies on the shell command line.
 
   _Reach for this whenever a body contains newlines, quotes, backticks, `$()` expansions, shell commands, images, logs, or agent-generated Markdown._
@@ -351,6 +365,9 @@ Manage initiative-to-projects
 Manage initiatives
 
 - **`linear-pp-cli initiatives <id>`** - Get a single initiative
+- **`linear-pp-cli initiatives list`** - List Linear initiatives
+- **`linear-pp-cli initiatives search <query>`** - Search Linear initiatives by name
+- **`linear-pp-cli initiatives resolve <name>`** - Resolve one Linear initiative name to its UUID
 
 ### integrations
 
@@ -406,6 +423,9 @@ Manage project-statuses
 Manage projects
 
 - **`linear-pp-cli projects <id>`** - Get a single project
+- **`linear-pp-cli projects list`** - List Linear projects
+- **`linear-pp-cli projects search <query>`** - Search Linear projects by name
+- **`linear-pp-cli projects resolve <name>`** - Resolve one Linear project name to its UUID
 
 ### release-notes
 

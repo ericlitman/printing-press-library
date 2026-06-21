@@ -159,6 +159,9 @@ Highlights (not in the official API docs):
   • today   See all of your assigned issues across every team for today, ranked by priority and cycle deadline.
   • bottleneck   See which team members are overloaded and which issues are blocked before sprint planning.
   • projects burndown   Project a project's landing date by linear-regressing remaining estimate against the team's measured velocity.
+  • projects list   List Linear projects live, optionally scoped by team, before attaching or auditing portfolio work.
+  • projects search   Search Linear projects live by name with an optional team filter.
+  • projects resolve   Resolve one Linear project name to a UUID, preferring exact matches and supporting team scoping.
   • cycles compare   Side-by-side metrics between any two cycles: completion %, scope added, scope cut, carryover, average cycle time.
   • stale   Find issues that haven't been touched in N days, grouped by team and project.
   • slipped   Show what carried over from last cycle into this cycle, grouped by team and reason heuristic.
@@ -167,6 +170,9 @@ Highlights (not in the official API docs):
   • similar   Find issues that look like duplicates of a query string using offline FTS5 fuzzy matching.
   • velocity   Track sprint completion rates over the last N cycles to spot productivity trends.
   • initiatives health   Rolled-up portfolio view per initiative: child project progress, milestone target-vs-projected dates, slippage flags.
+  • initiatives list   List Linear initiatives live with their current status and URL.
+  • initiatives search   Search Linear initiatives live by name.
+  • initiatives resolve   Resolve one Linear initiative name to a UUID, preferring exact matches.
   • milestones at-risk   List portfolio milestones whose projected landing date has slipped past their target, ranked by slip magnitude.
   • pp-test list   List Linear issues this CLI created in the current or named session, then archive them with pp-cleanup.
   • issues create --trust-mode strict   Refuse mutations on Linear issues not in the local pp_created ledger when --trust-mode strict is set; works on create and any future mutation surface.
