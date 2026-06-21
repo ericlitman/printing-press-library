@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -215,7 +216,7 @@ func SearchFullText(ctx context.Context, essays []Essay, query string, timeout t
 			return fullTextMatch{Index: item.Index, Text: txt, Match: titleMatch || bodyMatch}, nil
 		}, cliutil.WithConcurrency(fullTextSearchConcurrency))
 		if len(errs) > 0 {
-			return nil, fmt.Errorf("full-text search %s: %w", errs[0].Source, errs[0].Err)
+			cliutil.FanoutReportErrors(os.Stderr, errs)
 		}
 
 		sort.SliceStable(results, func(i, j int) bool {

@@ -116,7 +116,10 @@ func newReadEssayCmd(flags *rootFlags) *cobra.Command {
 				return classifyAPIError(err, flags)
 			}
 			if maxChars > 0 && len(text.Text) > maxChars {
-				text.Text = strings.TrimSpace(text.Text[:maxChars]) + "..."
+				runes := []rune(text.Text)
+				if len(runes) > maxChars {
+					text.Text = strings.TrimSpace(string(runes[:maxChars])) + "..."
+				}
 			}
 			return printPGJSONOrText(cmd, flags, text, func() {
 				fmt.Fprintf(cmd.OutOrStdout(), "%s\n%s\n%d words\n\n%s\n", text.Title, text.URL, text.WordCount, text.Text)

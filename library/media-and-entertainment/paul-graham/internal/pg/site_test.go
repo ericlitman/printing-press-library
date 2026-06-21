@@ -100,6 +100,40 @@ func TestReadReturnsErrorWhenEssayBodyIsMissing(t *testing.T) {
 	}
 }
 
+func TestSearchFullTextKeepsPartialMatchesWhenOneEssayFails(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/match.html":
+			w.Header().Set("Content-Type", "text/html")
+			_, _ = w.Write([]byte(`<!doctype html><html><body><table><tr><td width="435">
+				Startup ideas are often hiding in ordinary work. This paragraph is long enough
+				to look like essay content and should be returned as a full text match.
+				It has additional ordinary prose so the extraction heuristic accepts the cell
+				as article content rather than rejecting a tiny fixture body.
+			</td></tr></table></body></html>`))
+		default:
+			http.Error(w, "temporarily unavailable", http.StatusTooManyRequests)
+		}
+	}))
+	defer srv.Close()
+
+	essays := []Essay{
+		{Title: "Broken Essay", Slug: "broken", URL: srv.URL + "/broken.html", Order: 1},
+		{Title: "Working Essay", Slug: "match", URL: srv.URL + "/match.html", Order: 2},
+	}
+
+	matches, err := SearchFullText(context.Background(), essays, "startup", time.Second, 10)
+	if err != nil {
+		t.Fatalf("SearchFullText() err = %v, want nil", err)
+	}
+	if len(matches) != 1 {
+		t.Fatalf("len(matches) = %d, want 1: %#v", len(matches), matches)
+	}
+	if matches[0].Slug != "match" {
+		t.Fatalf("match slug = %q, want match", matches[0].Slug)
+	}
+}
+
 func TestExcerptDoesNotSplitUTF8Runes(t *testing.T) {
 	got := excerpt("alpha beta café déjà vu résumé", 16)
 	if !utf8.ValidString(got) {
