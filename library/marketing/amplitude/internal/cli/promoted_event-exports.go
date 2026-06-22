@@ -64,8 +64,7 @@ func newEventExportsPromotedCmd(flags *rootFlags) *cobra.Command {
 			if flags.asJSON || flags.csv || flags.compact || flags.plain || flags.selectFields != "" {
 				return fmt.Errorf("binary response cannot be rendered as structured output; redirect stdout or use --deliver file:<path>")
 			}
-			_, err = cmd.OutOrStdout().Write(data)
-			return err
+			return writeRawResponse(cmd, data)
 		},
 	}
 	cmd.Flags().StringVar(&flagStart, "start", "", "Export start timestamp in Amplitude's compact UTC format.")
