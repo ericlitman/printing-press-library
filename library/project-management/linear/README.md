@@ -6,7 +6,7 @@ Pulls your workspace into a local SQLite store with FTS5 search and runs compoun
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
 
-Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman), [@tmchow](https://github.com/tmchow) (Trevin Chow).
 
 ## Install
 

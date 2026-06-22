@@ -194,7 +194,7 @@ func runIssuesGet(cmd *cobra.Command, flags *rootFlags, dbPath, identifier strin
 // number 1155, then filters. This avoids relying on Linear accepting the
 // identifier string in the top-level issue(id:) arg, which behaves
 // inconsistently across workspaces.
-func fetchIssueLive(c *client.Client, identifier string) (json.RawMessage, error) {
+func fetchIssueLive(c graphqlQueryer, identifier string) (json.RawMessage, error) {
 	if store.IsUUID(identifier) {
 		return fetchIssueByIDLive(c, identifier)
 	}
@@ -227,7 +227,7 @@ func fetchIssueLive(c *client.Client, identifier string) (json.RawMessage, error
 	return resp.Issues.Nodes[0], nil
 }
 
-func fetchIssueByIDLive(c *client.Client, id string) (json.RawMessage, error) {
+func fetchIssueByIDLive(c graphqlQueryer, id string) (json.RawMessage, error) {
 	query := `query($id: String!) {
 		issue(id: $id) {
 			id identifier title description priority estimate dueDate url updatedAt createdAt

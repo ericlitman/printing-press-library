@@ -114,8 +114,10 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 			var c *client.Client
 			if projectFlag != "" || projectNameFlag != "" {
 				issueTeamKey := ""
-				if teamKey, _, ok := parseIssueIdentifier(args[0]); ok {
-					issueTeamKey = teamKey
+				if !store.IsUUID(args[0]) {
+					if teamKey, _, ok := parseIssueIdentifier(args[0]); ok {
+						issueTeamKey = teamKey
+					}
 				}
 				var projectClient graphqlQueryer
 				if projectNameFlag != "" && projectFlag == "" {
@@ -123,6 +125,12 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 					projectClient, err = newPortfolioLookupClient(flags)
 					if err != nil {
 						return err
+					}
+					if issueTeamKey == "" {
+						issueTeamKey, err = fetchIssueTeamKeyLive(projectClient, args[0])
+						if err != nil {
+							return classifyLiveReadError(err, flags)
+						}
 					}
 				}
 				projectID, err := resolveProjectFlag(projectClient, projectFlag, projectNameFlag, issueTeamKey, flags)
@@ -294,4 +302,23 @@ func writeIssueBack(dbPath string, raw json.RawMessage) {
 	if err := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); err != nil {
 		fmt.Fprintf(os.Stderr, "warning: local store write-back failed: %v\n", err)
 	}
+}
+
+func fetchIssueTeamKeyLive(c graphqlQueryer, issueRef string) (string, error) {
+	raw, err := fetchIssueLive(c, issueRef)
+	if err != nil {
+		return "", err
+	}
+	var issue struct {
+		Team struct {
+			Key string `json:"key"`
+		} `json:"team"`
+	}
+	if err := json.Unmarshal(raw, &issue); err != nil {
+		return "", fmt.Errorf("parsing issue team: %w", err)
+	}
+	if issue.Team.Key == "" {
+		return "", fmt.Errorf("issue %q did not include a team key", issueRef)
+	}
+	return issue.Team.Key, nil
 }

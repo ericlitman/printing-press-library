@@ -193,8 +193,8 @@ func newInitiativesResolveCmd(flags *rootFlags) *cobra.Command {
 }
 
 func searchProjectsLive(c graphqlQueryer, query, team string) ([]portfolioProjectRef, error) {
-	const gql = `query($first: Int!, $after: String) {
-		projects(first: $first, after: $after) {
+	const gql = `query($first: Int!, $after: String, $filter: ProjectFilter) {
+		projects(first: $first, after: $after, filter: $filter) {
 			nodes {
 				id name state url
 				teams { nodes { id key name } }
@@ -205,6 +205,7 @@ func searchProjectsLive(c graphqlQueryer, query, team string) ([]portfolioProjec
 	}`
 	needle := normalizePortfolioName(query)
 	teamNeedle := normalizePortfolioName(team)
+	filter := portfolioNameContainsFilter(query)
 	var out []portfolioProjectRef
 	var after any
 	for {
@@ -225,7 +226,11 @@ func searchProjectsLive(c graphqlQueryer, query, team string) ([]portfolioProjec
 				PageInfo pageInfo `json:"pageInfo"`
 			} `json:"projects"`
 		}
-		if err := c.QueryInto(gql, map[string]any{"first": 100, "after": after}, &resp); err != nil {
+		vars := map[string]any{"first": 100, "after": after}
+		if filter != nil {
+			vars["filter"] = filter
+		}
+		if err := c.QueryInto(gql, vars, &resp); err != nil {
 			return nil, err
 		}
 		for _, p := range resp.Projects.Nodes {
@@ -257,8 +262,8 @@ func searchProjectsLive(c graphqlQueryer, query, team string) ([]portfolioProjec
 }
 
 func searchInitiativesLive(c graphqlQueryer, query string) ([]portfolioInitiativeRef, error) {
-	const gql = `query($first: Int!, $after: String) {
-		initiatives(first: $first, after: $after) {
+	const gql = `query($first: Int!, $after: String, $filter: InitiativeFilter) {
+		initiatives(first: $first, after: $after, filter: $filter) {
 			nodes {
 				id name status url
 			}
@@ -266,6 +271,7 @@ func searchInitiativesLive(c graphqlQueryer, query string) ([]portfolioInitiativ
 		}
 	}`
 	needle := normalizePortfolioName(query)
+	filter := portfolioNameContainsFilter(query)
 	var out []portfolioInitiativeRef
 	var after any
 	for {
@@ -280,7 +286,11 @@ func searchInitiativesLive(c graphqlQueryer, query string) ([]portfolioInitiativ
 				PageInfo pageInfo `json:"pageInfo"`
 			} `json:"initiatives"`
 		}
-		if err := c.QueryInto(gql, map[string]any{"first": 100, "after": after}, &resp); err != nil {
+		vars := map[string]any{"first": 100, "after": after}
+		if filter != nil {
+			vars["filter"] = filter
+		}
+		if err := c.QueryInto(gql, vars, &resp); err != nil {
 			return nil, err
 		}
 		for _, initiative := range resp.Initiatives.Nodes {
@@ -379,6 +389,9 @@ func resolveProjectFlag(c graphqlQueryer, projectID, projectName, team string, f
 	}
 	if projectName == "" {
 		return "", nil
+	}
+	if c == nil {
+		return "", fmt.Errorf("internal error: --project-name resolution requires a live Linear client")
 	}
 	project, err := resolveProjectNameForWriteLive(c, projectName, team, flags)
 	if err != nil {
@@ -500,4 +513,27 @@ func portfolioNameMatches(name, needle string) bool {
 
 func normalizePortfolioName(s string) string {
 	return strings.Join(strings.Fields(strings.ToLower(strings.TrimSpace(s))), " ")
+}
+
+func portfolioNameContainsFilter(query string) map[string]any {
+	terms := strings.Fields(normalizePortfolioName(query))
+	if len(terms) == 0 {
+		return nil
+	}
+	if len(terms) == 1 {
+		return portfolioNameTermFilter(terms[0])
+	}
+	filters := make([]map[string]any, 0, len(terms))
+	for _, term := range terms {
+		filters = append(filters, portfolioNameTermFilter(term))
+	}
+	return map[string]any{"and": filters}
+}
+
+func portfolioNameTermFilter(term string) map[string]any {
+	return map[string]any{
+		"name": map[string]any{
+			"containsIgnoreCase": term,
+		},
+	}
 }
