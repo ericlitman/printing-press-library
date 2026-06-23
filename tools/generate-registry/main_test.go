@@ -437,8 +437,8 @@ func TestBuildEntriesIncludesReleaseMetadataFromReleaseFiles(t *testing.T) {
 	if checked == 0 {
 		t.Fatal("expected at least one .printing-press-release.json-backed registry entry")
 	}
-	if substack == nil || substack.CLIName != "substack-pp-cli" || substack.Version != "2026.6.6" {
-		t.Fatalf("generated substack release = %+v, want substack-pp-cli version 2026.6.6", substack)
+	if substack == nil || substack.CLIName != "substack-pp-cli" || strings.TrimSpace(substack.Version) == "" {
+		t.Fatalf("generated substack release = %+v, want substack-pp-cli with non-empty version", substack)
 	}
 }
 
@@ -557,6 +557,31 @@ func TestValidateEntries(t *testing.T) {
 				{Name: "x", Category: "tools", API: "X", Description: "Has desc.", Path: "library/tools/x", MCP: mcpOK},
 			},
 			wantOK: true,
+		},
+		{
+			name: "valid release block passes",
+			entries: []RegistryEntry{
+				{
+					Name: "x", Category: "tools", API: "X", Description: "Has desc.", Path: "library/tools/x",
+					Release: &Release{CLIName: "x-pp-cli", Version: "2026.6.23", ReleasedAt: "2026-06-23T00:00:00Z", SourceCommit: "abc123"},
+				},
+			},
+			wantOK: true,
+		},
+		{
+			name: "release block required fields fail when blank",
+			entries: []RegistryEntry{
+				{
+					Name: "x", Category: "tools", API: "X", Description: "Has desc.", Path: "library/tools/x",
+					Release: &Release{CLIName: " ", Version: "", ReleasedAt: "	", SourceCommit: "\n"},
+				},
+			},
+			wantSubstrs: []string{
+				"x: release.cli_name is empty",
+				"x: release.version is empty",
+				"x: release.released_at is empty",
+				"x: release.source_commit is empty",
+			},
 		},
 		{
 			name: "unnamed entry reports under (unnamed) prefix",

@@ -463,16 +463,6 @@ func readRelease(path string) (*Release, error) {
 	return &release, nil
 }
 
-func releaseMetadataEqual(a, b *Release) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-	return a.CLIName == b.CLIName &&
-		a.Version == b.Version &&
-		a.ReleasedAt == b.ReleasedAt &&
-		a.SourceCommit == b.SourceCommit
-}
-
 func repairDuplicateAPIDisplayNames(entries []RegistryEntry) {
 	groups := make(map[string][]int)
 	for i, entry := range entries {
@@ -615,6 +605,20 @@ func validateEntries(entries []RegistryEntry) []string {
 			}
 			if isBlank(e.MCP.AuthType) {
 				errs = append(errs, fmt.Sprintf("%s: mcp.auth_type is empty", slug))
+			}
+		}
+		if e.Release != nil {
+			if isBlank(e.Release.CLIName) {
+				errs = append(errs, fmt.Sprintf("%s: release.cli_name is empty", slug))
+			}
+			if isBlank(e.Release.Version) {
+				errs = append(errs, fmt.Sprintf("%s: release.version is empty", slug))
+			}
+			if isBlank(e.Release.ReleasedAt) {
+				errs = append(errs, fmt.Sprintf("%s: release.released_at is empty", slug))
+			}
+			if isBlank(e.Release.SourceCommit) {
+				errs = append(errs, fmt.Sprintf("%s: release.source_commit is empty", slug))
 			}
 		}
 	}
