@@ -324,9 +324,9 @@ func resolveProjectNameLive(c graphqlQueryer, name, team string, flags *rootFlag
 		return exact[0], nil
 	}
 	if len(exact) > 1 {
-		return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, exact)
+		return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, exact, true)
 	}
-	return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, matches)
+	return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, matches, false)
 }
 
 func resolveProjectNameForWriteLive(c graphqlQueryer, name, preferredTeam string, flags *rootFlags) (portfolioProjectRef, error) {
@@ -341,7 +341,7 @@ func resolveProjectNameForWriteLive(c graphqlQueryer, name, preferredTeam string
 			return teamExact[0], nil
 		}
 		if len(teamExact) > 1 {
-			return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, teamExact)
+			return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, teamExact, true)
 		}
 		teamCandidates := filterProjectRefsByTeam(matches, preferredTeam)
 		if len(teamCandidates) > 0 {
@@ -357,9 +357,9 @@ func resolveProjectNameForWriteLive(c graphqlQueryer, name, preferredTeam string
 		return exact[0], nil
 	}
 	if len(exact) > 1 {
-		return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, exact)
+		return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, exact, true)
 	}
-	return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, matches)
+	return portfolioProjectRef{}, portfolioResolveErr(flags, "project", name, matches, false)
 }
 
 func resolveInitiativeNameLive(c graphqlQueryer, name string, flags *rootFlags) (portfolioInitiativeRef, error) {
@@ -372,9 +372,9 @@ func resolveInitiativeNameLive(c graphqlQueryer, name string, flags *rootFlags) 
 		return exact[0], nil
 	}
 	if len(exact) > 1 {
-		return portfolioInitiativeRef{}, portfolioResolveErr(flags, "initiative", name, exact)
+		return portfolioInitiativeRef{}, portfolioResolveErr(flags, "initiative", name, exact, true)
 	}
-	return portfolioInitiativeRef{}, portfolioResolveErr(flags, "initiative", name, matches)
+	return portfolioInitiativeRef{}, portfolioResolveErr(flags, "initiative", name, matches, false)
 }
 
 func resolveProjectFlag(c graphqlQueryer, projectID, projectName, team string, flags *rootFlags) (string, error) {
@@ -416,9 +416,9 @@ func portfolioUUIDUsageErr(flags *rootFlags, flag, value, hint string) error {
 	return err
 }
 
-func portfolioResolveErr[T any](flags *rootFlags, kind, name string, candidates []T) error {
+func portfolioResolveErr[T any](flags *rootFlags, kind, name string, candidates []T, ambiguous bool) error {
 	message := fmt.Sprintf("%s %q not found", kind, name)
-	if len(candidates) > 1 {
+	if ambiguous {
 		message = fmt.Sprintf("%s %q is ambiguous", kind, name)
 	}
 	err := usageErr(fmt.Errorf("%s", message))

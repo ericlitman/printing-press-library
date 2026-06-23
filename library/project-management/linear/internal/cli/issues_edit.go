@@ -52,9 +52,6 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 			if assigneeFlag != "" {
 				input["assigneeId"] = assigneeFlag
 			}
-			if projectFlag != "" {
-				input["projectId"] = projectFlag
-			}
 			stateSelectors := 0
 			for _, v := range []string{stateFlag, stateNameFlag, stateTypeFlag} {
 				if v != "" {
@@ -122,10 +119,12 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 				var projectClient graphqlQueryer
 				if projectNameFlag != "" && projectFlag == "" {
 					var err error
-					projectClient, err = newPortfolioLookupClient(flags)
+					lookupClient, err := newPortfolioLookupClient(flags)
 					if err != nil {
 						return err
 					}
+					c = lookupClient
+					projectClient = lookupClient
 					if issueTeamKey == "" {
 						issueTeamKey, err = fetchIssueTeamKeyLive(projectClient, args[0])
 						if err != nil {

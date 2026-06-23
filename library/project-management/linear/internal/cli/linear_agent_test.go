@@ -371,6 +371,37 @@ func TestProjectsResolveRejectsSingleFuzzyMatch(t *testing.T) {
 	}
 }
 
+func TestProjectsResolveRejectsMultipleFuzzyMatchesAsNotFound(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch Governance Alpha","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Dispatch Governance Beta","state":"planned","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("projects", "resolve", "Dispatch Governance", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("fuzzy project resolve succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                `json:"type"`
+		Error      string                `json:"error"`
+		Candidates []portfolioProjectRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("fuzzy project resolve output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found") || len(envelope.Candidates) != 2 {
+		t.Fatalf("unexpected fuzzy project resolve envelope: %s", out)
+	}
+}
+
 func TestInitiativesSearchFindsNamedInitiative(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req client.GraphQLRequest
@@ -946,11 +977,16 @@ func TestIssuesCreateProjectNameMutationUsesResolvedUUID(t *testing.T) {
 			fmt.Fprint(w, `{"data":{"projects":{"nodes":[
 				{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
 			],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "teams(filter"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
 		case strings.Contains(req.Query, "issueCreate"):
 			sawMutation = true
 			input, ok := req.Variables["input"].(map[string]any)
 			if !ok {
 				t.Fatalf("issueCreate input missing: %+v", req.Variables)
+			}
+			if got := input["teamId"]; got != "team-symph" {
+				t.Fatalf("issueCreate teamId = %v, want resolved team UUID", got)
 			}
 			if got := input["projectId"]; got != "11111111-1111-1111-1111-111111111111" {
 				t.Fatalf("issueCreate projectId = %v, want resolved UUID", got)
@@ -2050,6 +2086,8 @@ func TestIssueCreateRejectsCrossTeamLabelBeforeMutation(t *testing.T) {
 			return
 		}
 		switch {
+		case strings.Contains(req.Query, "teams(filter"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
 		case strings.Contains(req.Query, "issueLabels(filter"):
 			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
 		case strings.Contains(req.Query, "issueCreate"):
@@ -2775,12 +2813,16 @@ func TestIssuesCreateValidatesLabelsBeforeUploadingMedia(t *testing.T) {
 			http.Error(w, "bad request", http.StatusBadRequest)
 			return
 		}
-		if !strings.Contains(req.Query, "issueLabels(filter") {
-			t.Errorf("unexpected query before media upload: %s", req.Query)
-			http.Error(w, "unexpected query", http.StatusBadRequest)
+		if strings.Contains(req.Query, "teams(filter") {
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobile"}]}}}`)
 			return
 		}
-		fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
+		if strings.Contains(req.Query, "issueLabels(filter") {
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
+			return
+		}
+		t.Errorf("unexpected query before media upload: %s", req.Query)
+		http.Error(w, "unexpected query", http.StatusBadRequest)
 	}))
 	t.Cleanup(srv.Close)
 	t.Setenv("LINEAR_BASE_URL", srv.URL)

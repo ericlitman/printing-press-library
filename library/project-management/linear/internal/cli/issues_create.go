@@ -137,10 +137,12 @@ sub-issue under an existing parent.`,
 				var projectClient graphqlQueryer
 				if projectNameFlag != "" && projectFlag == "" {
 					var err error
-					projectClient, err = newPortfolioLookupClient(flags)
+					lookupClient, err := newPortfolioLookupClient(flags)
 					if err != nil {
 						return err
 					}
+					c = lookupClient
+					projectClient = lookupClient
 				}
 				projectID, err := resolveProjectFlag(projectClient, projectFlag, projectNameFlag, teamFlag, flags)
 				if err != nil {
