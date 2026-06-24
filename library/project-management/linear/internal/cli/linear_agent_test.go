@@ -129,6 +129,965 @@ func TestCommentsAddReadsBodyStdinLiterally(t *testing.T) {
 	}
 }
 
+func requirePortfolioNameFilter(t *testing.T, req client.GraphQLRequest, want string) {
+	t.Helper()
+	filter, ok := req.Variables["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("GraphQL variables missing portfolio filter: %+v", req.Variables)
+	}
+	wantTerms := strings.Fields(normalizePortfolioName(want))
+	gotTerms := collectPortfolioNameFilterTerms(filter)
+	if strings.Join(gotTerms, " ") != strings.Join(wantTerms, " ") {
+		t.Fatalf("name filter terms = %v, want %v; variables=%+v", gotTerms, wantTerms, req.Variables)
+	}
+}
+
+func requireNoPortfolioFilter(t *testing.T, req client.GraphQLRequest) {
+	t.Helper()
+	if filter, ok := req.Variables["filter"]; ok && filter != nil {
+		t.Fatalf("list query should not send a portfolio name filter: %+v", req.Variables)
+	}
+}
+
+func collectPortfolioNameFilterTerms(filter map[string]any) []string {
+	if name, ok := filter["name"].(map[string]any); ok {
+		if term, ok := name["containsIgnoreCase"].(string); ok {
+			return []string{term}
+		}
+	}
+	var terms []string
+	if and, ok := filter["and"].([]any); ok {
+		for _, item := range and {
+			if child, ok := item.(map[string]any); ok {
+				terms = append(terms, collectPortfolioNameFilterTerms(child)...)
+			}
+		}
+	}
+	return terms
+}
+
+func TestProjectsSearchFindsNamedProjectByTeam(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "projects(first") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		requirePortfolioNameFilter(t, req, "Autonomous Backlog Manager & Dispatch Governance")
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[{"id":"init-1","name":"Dispatch Governance"}]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[{"id":"init-2","name":"Other"}]}}
+		]}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("projects", "search", "Autonomous Backlog Manager & Dispatch Governance", "--team", "SYMPH", "--agent", "--data-source", "live", "--select", "id,name,team.key,url")
+	if err != nil {
+		t.Fatalf("projects search failed: %v\n%s", err, out)
+	}
+	var got []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		Team struct {
+			Key string `json:"key"`
+		} `json:"team"`
+		URL string `json:"url"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("projects search output is not JSON: %v\n%s", err, out)
+	}
+	if len(got) != 1 || got[0].ID != "11111111-1111-1111-1111-111111111111" || got[0].Team.Key != "SYMPH" {
+		t.Fatalf("unexpected project search results: %s", out)
+	}
+}
+
+func TestProjectsSearchServerFilterUsesNameTerms(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		requirePortfolioNameFilter(t, req, "Dispatch Governance")
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch   Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("projects", "search", "Dispatch Governance", "--agent", "--data-source", "live", "--select", "id,name")
+	if err != nil {
+		t.Fatalf("projects search failed: %v\n%s", err, out)
+	}
+	var got []portfolioProjectRef
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("projects search output is not JSON: %v\n%s", err, out)
+	}
+	if len(got) != 1 || got[0].Name != "Dispatch   Governance" {
+		t.Fatalf("unexpected normalized project search results: %s", out)
+	}
+}
+
+func TestProjectsListReturnsAllPages(t *testing.T) {
+	var calls int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "projects(first") || !strings.Contains(req.Query, "pageInfo") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		requireNoPortfolioFilter(t, req)
+		calls++
+		if calls == 1 {
+			fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+				{"id":"11111111-1111-1111-1111-111111111111","name":"Alpha","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+			],"pageInfo":{"hasNextPage":true,"endCursor":"cursor-1"}}}}`)
+			return
+		}
+		if got := req.Variables["after"]; got != "cursor-1" {
+			t.Errorf("second page after = %v, want cursor-1", got)
+		}
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Beta","state":"planned","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("projects", "list", "--agent", "--data-source", "live", "--select", "id,name,team.key")
+	if err != nil {
+		t.Fatalf("projects list failed: %v\n%s", err, out)
+	}
+	var got []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		Team struct {
+			Key string `json:"key"`
+		} `json:"team"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("projects list output is not JSON: %v\n%s", err, out)
+	}
+	if calls != 2 || len(got) != 2 || got[0].Name != "Alpha" || got[1].Team.Key != "MOB" {
+		t.Fatalf("unexpected projects list calls=%d results=%s", calls, out)
+	}
+}
+
+func TestProjectsListTeamFilterReturnsEmptyArray(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Alpha","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("projects", "list", "--team", "NOMATCH", "--agent", "--data-source", "live", "--select", "id,name")
+	if err != nil {
+		t.Fatalf("projects list empty team failed: %v\n%s", err, out)
+	}
+	var got []portfolioProjectRef
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("projects list empty team output is not JSON: %v\n%s", err, out)
+	}
+	if len(got) != 0 {
+		t.Fatalf("projects list empty team returned results: %s", out)
+	}
+}
+
+func TestProjectsResolvePrefersExactName(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch Governance Alpha","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Dispatch Governance","state":"planned","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("projects", "resolve", "Dispatch Governance", "--team", "SYMPH", "--agent", "--data-source", "live", "--select", "id,name")
+	if err != nil {
+		t.Fatalf("projects resolve failed: %v\n%s", err, out)
+	}
+	var got struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("projects resolve output is not JSON: %v\n%s", err, out)
+	}
+	if got.ID != "22222222-2222-2222-2222-222222222222" || got.Name != "Dispatch Governance" {
+		t.Fatalf("unexpected exact project resolve result: %s", out)
+	}
+}
+
+func TestProjectsResolveRejectsSingleFuzzyMatch(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch Governance Alpha","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("projects", "resolve", "Dispatch Governance", "--team", "SYMPH", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("fuzzy project resolve succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                `json:"type"`
+		Error      string                `json:"error"`
+		Candidates []portfolioProjectRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("fuzzy project resolve output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found") || len(envelope.Candidates) != 1 {
+		t.Fatalf("unexpected fuzzy project resolve envelope: %s", out)
+	}
+}
+
+func TestProjectsResolveRejectsMultipleFuzzyMatchesAsNotFound(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch Governance Alpha","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Dispatch Governance Beta","state":"planned","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("projects", "resolve", "Dispatch Governance", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("fuzzy project resolve succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                `json:"type"`
+		Error      string                `json:"error"`
+		Candidates []portfolioProjectRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("fuzzy project resolve output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found") || len(envelope.Candidates) != 2 {
+		t.Fatalf("unexpected fuzzy project resolve envelope: %s", out)
+	}
+}
+
+func TestInitiativesSearchFindsNamedInitiative(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "initiatives(first") || strings.Contains(req.Query, "projects(first") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		requirePortfolioNameFilter(t, req, "Dispatch Governance")
+		fmt.Fprint(w, `{"data":{"initiatives":{"nodes":[
+				{"id":"33333333-3333-3333-3333-333333333333","name":"Dispatch Governance","status":"onTrack","url":"https://linear.app/acme/initiative/one"}
+			]}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("initiatives", "search", "Dispatch Governance", "--agent", "--data-source", "live", "--select", "id,name,status,url")
+	if err != nil {
+		t.Fatalf("initiatives search failed: %v\n%s", err, out)
+	}
+	var got []struct {
+		ID     string `json:"id"`
+		Name   string `json:"name"`
+		Status string `json:"status"`
+		URL    string `json:"url"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("initiatives search output is not JSON: %v\n%s", err, out)
+	}
+	if len(got) != 1 || got[0].ID != "33333333-3333-3333-3333-333333333333" || got[0].URL == "" {
+		t.Fatalf("unexpected initiative search results: %s", out)
+	}
+}
+
+func TestInitiativesSearchEmptyResultsReturnsEmptyArray(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"initiatives":{"nodes":[
+			{"id":"33333333-3333-3333-3333-333333333333","name":"Dispatch Governance","status":"onTrack","url":"https://linear.app/acme/initiative/one"}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("initiatives", "search", "No Such Initiative", "--agent", "--data-source", "live", "--select", "id,name")
+	if err != nil {
+		t.Fatalf("initiatives search empty failed: %v\n%s", err, out)
+	}
+	var got []portfolioInitiativeRef
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("initiatives search empty output is not JSON: %v\n%s", err, out)
+	}
+	if len(got) != 0 {
+		t.Fatalf("initiatives search empty returned results: %s", out)
+	}
+}
+
+func TestInitiativesListReturnsNamedInitiatives(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "initiatives(first") || !strings.Contains(req.Query, "pageInfo") || strings.Contains(req.Query, "projects(first") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		requireNoPortfolioFilter(t, req)
+		fmt.Fprint(w, `{"data":{"initiatives":{"nodes":[
+			{"id":"33333333-3333-3333-3333-333333333333","name":"Dispatch Governance","status":"onTrack","url":"https://linear.app/acme/initiative/one"},
+			{"id":"44444444-4444-4444-4444-444444444444","name":"Backlog Cleanup","status":"planned","url":"https://linear.app/acme/initiative/two"}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("initiatives", "list", "--agent", "--data-source", "live", "--select", "id,name,status")
+	if err != nil {
+		t.Fatalf("initiatives list failed: %v\n%s", err, out)
+	}
+	var got []struct {
+		ID     string `json:"id"`
+		Name   string `json:"name"`
+		Status string `json:"status"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("initiatives list output is not JSON: %v\n%s", err, out)
+	}
+	if len(got) != 2 || got[0].Name != "Backlog Cleanup" || got[1].Name != "Dispatch Governance" {
+		t.Fatalf("unexpected initiative list results: %s", out)
+	}
+}
+
+func TestInitiativesResolveFindsNamedInitiative(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "initiatives(first") || strings.Contains(req.Query, "projects(first") {
+			t.Errorf("unexpected query: %s", req.Query)
+			http.Error(w, "unexpected query", http.StatusBadRequest)
+			return
+		}
+		fmt.Fprint(w, `{"data":{"initiatives":{"nodes":[
+			{"id":"33333333-3333-3333-3333-333333333333","name":"Dispatch Governance","status":"Active","url":"https://linear.app/acme/initiative/one"}
+		]}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("initiatives", "resolve", "Dispatch Governance", "--agent", "--data-source", "live", "--select", "id,name,status,url")
+	if err != nil {
+		t.Fatalf("initiatives resolve failed: %v\n%s", err, out)
+	}
+	var got struct {
+		ID     string `json:"id"`
+		Name   string `json:"name"`
+		Status string `json:"status"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("initiatives resolve output is not JSON: %v\n%s", err, out)
+	}
+	if got.ID != "33333333-3333-3333-3333-333333333333" || got.Name != "Dispatch Governance" || got.Status != "Active" {
+		t.Fatalf("unexpected initiative resolve result: %s", out)
+	}
+}
+
+func TestInitiativesResolveAmbiguousNameReturnsCandidates(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"initiatives":{"nodes":[
+			{"id":"33333333-3333-3333-3333-333333333333","name":"Dispatch Governance","status":"Active","url":"https://linear.app/acme/initiative/one"},
+			{"id":"44444444-4444-4444-4444-444444444444","name":"Dispatch Governance","status":"Active","url":"https://linear.app/acme/initiative/two"}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("initiatives", "resolve", "Dispatch Governance", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("ambiguous initiative resolve succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                   `json:"type"`
+		Error      string                   `json:"error"`
+		Candidates []portfolioInitiativeRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("ambiguous initiative resolve output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "ambiguous") || len(envelope.Candidates) != 2 {
+		t.Fatalf("unexpected ambiguous initiative envelope: %s", out)
+	}
+}
+
+func TestInitiativesResolveNotFoundReturnsEnvelope(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"initiatives":{"nodes":[],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("initiatives", "resolve", "Missing Initiative", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("missing initiative resolve succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                   `json:"type"`
+		Error      string                   `json:"error"`
+		Candidates []portfolioInitiativeRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("missing initiative resolve output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found") || len(envelope.Candidates) != 0 {
+		t.Fatalf("unexpected missing initiative envelope: %s", out)
+	}
+}
+
+func TestProjectsResolveAmbiguousNameReturnsCandidates(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[{"id":"init-1","name":"Portfolio"}]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Dispatch Governance","state":"planned","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[{"id":"init-2","name":"Portfolio"}]}}
+		]}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("projects", "resolve", "Dispatch Governance", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("ambiguous project resolve succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string `json:"type"`
+		Candidates []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+			Team struct {
+				Key string `json:"key"`
+			} `json:"team"`
+		} `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("ambiguous output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || len(envelope.Candidates) != 2 || envelope.Candidates[0].Team.Key == "" {
+		t.Fatalf("ambiguous envelope missing candidate data: %s", out)
+	}
+}
+
+func TestIssuesEditProjectNameDryRunUsesResolvedUUID(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if strings.Contains(req.Query, "issueUpdate") {
+			t.Fatalf("dry-run should not send issueUpdate")
+		}
+		requirePortfolioNameFilter(t, req, "Autonomous Backlog Manager & Dispatch Governance")
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[{"id":"init-1","name":"Portfolio"}]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[{"id":"init-2","name":"Portfolio"}]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "edit", "SYMPH-795", "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues edit --project-name --dry-run failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Event string `json:"event"`
+		Input struct {
+			ProjectID string `json:"projectId"`
+		} `json:"input"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("dry-run output is not JSON: %v\n%s", err, out)
+	}
+	if got.Input.ProjectID != "11111111-1111-1111-1111-111111111111" {
+		t.Fatalf("projectId = %q, want resolved UUID; output=%s", got.Input.ProjectID, out)
+	}
+}
+
+func TestIssuesEditProjectNameDryRunWithIssueUUIDUsesIssueTeam(t *testing.T) {
+	issueUUID := "aaaaaaaa-aaaa-aaaa-aaaa-000000000001"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "issue(id:"):
+			fmt.Fprint(w, `{"data":{"issue":{"id":"aaaaaaaa-aaaa-aaaa-aaaa-000000000001","identifier":"SYMPH-795","title":"Route ticket","description":"","priority":0,"estimate":0,"dueDate":null,"url":"https://linear.app/acme/issue/SYMPH-795","updatedAt":"2026-06-21T00:00:00Z","createdAt":"2026-06-21T00:00:00Z","state":{"id":"state-1","name":"Todo","type":"unstarted"},"team":{"id":"team-symph","key":"SYMPH","name":"Symphony"},"project":null,"assignee":null}}}`)
+		case strings.Contains(req.Query, "projects(first"):
+			requirePortfolioNameFilter(t, req, "Autonomous Backlog Manager & Dispatch Governance")
+			fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+				{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}},
+				{"id":"22222222-2222-2222-2222-222222222222","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+			],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		default:
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "edit", issueUUID, "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues edit UUID --project-name --dry-run failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Input struct {
+			ProjectID string `json:"projectId"`
+		} `json:"input"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("dry-run output is not JSON: %v\n%s", err, out)
+	}
+	if got.Input.ProjectID != "11111111-1111-1111-1111-111111111111" {
+		t.Fatalf("projectId = %q, want issue-team project; output=%s", got.Input.ProjectID, out)
+	}
+}
+
+func TestIssuesEditProjectNameRejectsExactProjectOutsideIssueTeam(t *testing.T) {
+	var projectQueries int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "projects(first") {
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+		projectQueries++
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "edit", "SYMPH-795", "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("cross-team project-name edit succeeded unexpectedly:\n%s", out)
+	}
+	if projectQueries != 1 {
+		t.Fatalf("project query count = %d, want one scan; output=%s", projectQueries, out)
+	}
+	var envelope struct {
+		Type       string                `json:"type"`
+		Error      string                `json:"error"`
+		Reason     string                `json:"reason"`
+		Candidates []portfolioProjectRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("cross-team project-name output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found in team SYMPH") || envelope.Reason != "not_found_in_team" || len(envelope.Candidates) != 1 || envelope.Candidates[0].Team.Key != "MOB" {
+		t.Fatalf("unexpected cross-team project-name envelope: %s", out)
+	}
+}
+
+func TestIssuesEditProjectNameMutationUsesResolvedUUID(t *testing.T) {
+	var sawMutation bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "projects(first"):
+			fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+				{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+			],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "issues(filter"):
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-1"}]}}}`)
+		case strings.Contains(req.Query, "issueUpdate"):
+			sawMutation = true
+			if got := req.Variables["id"]; got != "issue-1" {
+				t.Fatalf("issueUpdate id = %v, want issue-1", got)
+			}
+			input, ok := req.Variables["input"].(map[string]any)
+			if !ok {
+				t.Fatalf("issueUpdate input missing: %+v", req.Variables)
+			}
+			if got := input["projectId"]; got != "11111111-1111-1111-1111-111111111111" {
+				t.Fatalf("issueUpdate projectId = %v, want resolved UUID", got)
+			}
+			fmt.Fprint(w, `{"data":{"issueUpdate":{"success":true,"issue":{"id":"issue-1","identifier":"SYMPH-795","title":"Route ticket","description":"","url":"https://linear.app/acme/issue/SYMPH-795","priority":0,"estimate":0,"dueDate":null,"createdAt":"2026-06-21T00:00:00Z","updatedAt":"2026-06-21T00:00:00Z","state":{"id":"state-1","name":"Todo","type":"unstarted"},"team":{"id":"team-symph","key":"SYMPH","name":"Symphony"},"project":{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance"}}}}}`)
+		default:
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	out, err := executeRootForTest("issues", "--db", dbPath, "edit", "SYMPH-795", "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues edit --project-name failed: %v\n%s", err, out)
+	}
+	if !sawMutation {
+		t.Fatalf("issueUpdate mutation was not sent; output=%s", out)
+	}
+}
+
+func TestIssuesCreateProjectNameDryRunUsesResolvedUUID(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if strings.Contains(req.Query, "issueCreate") {
+			t.Fatalf("dry-run should not send issueCreate")
+		}
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "create", "--title", "Route ticket", "--team", "SYMPH", "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues create --project-name --dry-run failed: %v\n%s", err, out)
+	}
+	var got struct {
+		Event string `json:"event"`
+		Input struct {
+			ProjectID string `json:"projectId"`
+		} `json:"input"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("dry-run output is not JSON: %v\n%s", err, out)
+	}
+	if got.Input.ProjectID != "11111111-1111-1111-1111-111111111111" {
+		t.Fatalf("projectId = %q, want resolved UUID; output=%s", got.Input.ProjectID, out)
+	}
+}
+
+func TestIssuesCreateProjectNameRejectsExactProjectOutsideTeam(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "projects(first") {
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobilyze"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "create", "--title", "Route ticket", "--team", "SYMPH", "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("cross-team create --project-name succeeded unexpectedly:\n%s", out)
+	}
+	var envelope struct {
+		Type   string `json:"type"`
+		Error  string `json:"error"`
+		Reason string `json:"reason"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("cross-team create output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found in team SYMPH") || envelope.Reason != "not_found_in_team" {
+		t.Fatalf("unexpected cross-team create envelope: %s", out)
+	}
+}
+
+func TestIssuesCreateProjectNameAmbiguousReturnsCandidates(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "projects(first") {
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+		requirePortfolioNameFilter(t, req, "Dispatch Governance")
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+			{"id":"11111111-1111-1111-1111-111111111111","name":"Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}},
+			{"id":"22222222-2222-2222-2222-222222222222","name":"Dispatch Governance","state":"planned","url":"https://linear.app/acme/project/two","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+		],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "create", "--title", "Route ticket", "--team", "SYMPH", "--project-name", "Dispatch Governance", "--dry-run", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("ambiguous create --project-name succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                `json:"type"`
+		Error      string                `json:"error"`
+		Candidates []portfolioProjectRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("ambiguous create output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "ambiguous") || len(envelope.Candidates) != 2 {
+		t.Fatalf("unexpected ambiguous create envelope: %s", out)
+	}
+}
+
+func TestIssuesEditProjectNameNotFoundReturnsEnvelope(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		if !strings.Contains(req.Query, "projects(first") {
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+		requirePortfolioNameFilter(t, req, "Missing Project")
+		fmt.Fprint(w, `{"data":{"projects":{"nodes":[],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTestWithRenderedError("issues", "edit", "SYMPH-795", "--project-name", "Missing Project", "--dry-run", "--agent", "--data-source", "live")
+	if err == nil {
+		t.Fatalf("missing edit --project-name succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type       string                `json:"type"`
+		Error      string                `json:"error"`
+		Reason     string                `json:"reason"`
+		Candidates []portfolioProjectRef `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("missing edit output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(envelope.Error, "not found in team SYMPH") || envelope.Reason != "not_found_in_team" || len(envelope.Candidates) != 0 {
+		t.Fatalf("unexpected missing edit envelope: %s", out)
+	}
+}
+
+func TestIssuesCreateProjectNameMutationUsesResolvedUUID(t *testing.T) {
+	var sawMutation bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "projects(first"):
+			fmt.Fprint(w, `{"data":{"projects":{"nodes":[
+				{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance","state":"started","url":"https://linear.app/acme/project/one","teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]},"initiatives":{"nodes":[]}}
+			],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "teams(filter"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
+		case strings.Contains(req.Query, "issueCreate"):
+			sawMutation = true
+			input, ok := req.Variables["input"].(map[string]any)
+			if !ok {
+				t.Fatalf("issueCreate input missing: %+v", req.Variables)
+			}
+			if got := input["teamId"]; got != "team-symph" {
+				t.Fatalf("issueCreate teamId = %v, want resolved team UUID", got)
+			}
+			if got := input["projectId"]; got != "11111111-1111-1111-1111-111111111111" {
+				t.Fatalf("issueCreate projectId = %v, want resolved UUID", got)
+			}
+			fmt.Fprint(w, `{"data":{"issueCreate":{"success":true,"issue":{"id":"issue-1","identifier":"SYMPH-900","title":"Route ticket","description":"","url":"https://linear.app/acme/issue/SYMPH-900","priority":0,"createdAt":"2026-06-21T00:00:00Z","updatedAt":"2026-06-21T00:00:00Z","team":{"id":"team-symph","key":"SYMPH"},"state":{"id":"state-1","name":"Todo","type":"unstarted"},"project":{"id":"11111111-1111-1111-1111-111111111111","name":"Autonomous Backlog Manager & Dispatch Governance"}}}}}`)
+		default:
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	dbPath := filepath.Join(t.TempDir(), "linear.db")
+	out, err := executeRootForTest("issues", "create", "--title", "Route ticket", "--team", "SYMPH", "--project-name", "Autonomous Backlog Manager & Dispatch Governance", "--db", dbPath, "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues create --project-name failed: %v\n%s", err, out)
+	}
+	if !sawMutation {
+		t.Fatalf("issueCreate mutation was not sent; output=%s", out)
+	}
+}
+
+func TestIssuesEditProjectRejectsNonUUIDDryRun(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("issues", "edit", "SYMPH-795", "--project", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent")
+	if err == nil {
+		t.Fatalf("non-UUID --project succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type string `json:"type"`
+		Flag string `json:"flag"`
+		Hint string `json:"hint"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("non-UUID output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || envelope.Flag != "--project" || !strings.Contains(envelope.Hint, "--project-name") {
+		t.Fatalf("unexpected non-UUID envelope: %s", out)
+	}
+}
+
+func TestIssuesCreateProjectRejectsNonUUIDDryRun(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("issues", "create", "--title", "Route ticket", "--team", "SYMPH", "--project", "Autonomous Backlog Manager & Dispatch Governance", "--dry-run", "--agent")
+	if err == nil {
+		t.Fatalf("non-UUID create --project succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type string `json:"type"`
+		Flag string `json:"flag"`
+		Hint string `json:"hint"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("non-UUID create output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || envelope.Flag != "--project" || !strings.Contains(envelope.Hint, "--project-name") {
+		t.Fatalf("unexpected non-UUID create envelope: %s", out)
+	}
+}
+
+func TestIssuesProjectFlagsAreMutuallyExclusive(t *testing.T) {
+	out, err := executeRootForTestWithRenderedError("issues", "edit", "SYMPH-795", "--project", "11111111-1111-1111-1111-111111111111", "--project-name", "Dispatch Governance", "--dry-run", "--agent")
+	if err == nil {
+		t.Fatalf("mutually exclusive project flags succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	var envelope struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("mutual exclusion output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(out, "either --project") {
+		t.Fatalf("unexpected mutual exclusion envelope: %s", out)
+	}
+
+	out, err = executeRootForTestWithRenderedError("issues", "create", "--title", "Route ticket", "--team", "SYMPH", "--project", "11111111-1111-1111-1111-111111111111", "--project-name", "Dispatch Governance", "--dry-run", "--agent")
+	if err == nil {
+		t.Fatalf("mutually exclusive create project flags succeeded unexpectedly:\n%s", out)
+	}
+	if got := ExitCode(err); got != 2 {
+		t.Fatalf("create ExitCode() = %d, want 2; err=%v\n%s", got, err, out)
+	}
+	envelope = struct {
+		Type string `json:"type"`
+	}{}
+	if err := json.Unmarshal([]byte(out), &envelope); err != nil {
+		t.Fatalf("create mutual exclusion output is not JSON: %v\n%s", err, out)
+	}
+	if envelope.Type != "usage" || !strings.Contains(out, "either --project") {
+		t.Fatalf("unexpected create mutual exclusion envelope: %s", out)
+	}
+}
+
 func TestCommentsAddRejectsEmptyBodyStdin(t *testing.T) {
 	out, err := executeRootForTestWithInputAndRenderedError("", "comments", "add", "--issue", "MOB-99", "--body-stdin", "--agent")
 	if err == nil {
@@ -1127,6 +2086,8 @@ func TestIssueCreateRejectsCrossTeamLabelBeforeMutation(t *testing.T) {
 			return
 		}
 		switch {
+		case strings.Contains(req.Query, "teams(filter"):
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-symph","key":"SYMPH","name":"Symphony"}]}}}`)
 		case strings.Contains(req.Query, "issueLabels(filter"):
 			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-hsui","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
 		case strings.Contains(req.Query, "issueCreate"):
@@ -1852,12 +2813,16 @@ func TestIssuesCreateValidatesLabelsBeforeUploadingMedia(t *testing.T) {
 			http.Error(w, "bad request", http.StatusBadRequest)
 			return
 		}
-		if !strings.Contains(req.Query, "issueLabels(filter") {
-			t.Errorf("unexpected query before media upload: %s", req.Query)
-			http.Error(w, "unexpected query", http.StatusBadRequest)
+		if strings.Contains(req.Query, "teams(filter") {
+			fmt.Fprint(w, `{"data":{"teams":{"nodes":[{"id":"team-mob","key":"MOB","name":"Mobile"}]}}}`)
 			return
 		}
-		fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
+		if strings.Contains(req.Query, "issueLabels(filter") {
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-1","name":"area:protocols","color":"#333","team":{"id":"team-hsui","key":"HSUI","name":"HS UI"}}]}}}`)
+			return
+		}
+		t.Errorf("unexpected query before media upload: %s", req.Query)
+		http.Error(w, "unexpected query", http.StatusBadRequest)
 	}))
 	t.Cleanup(srv.Close)
 	t.Setenv("LINEAR_BASE_URL", srv.URL)

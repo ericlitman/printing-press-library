@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/client"
 	"github.com/mvanhorn/printing-press-library/library/project-management/linear/internal/store"
 
 	"github.com/spf13/cobra"
 )
 
 func newIssuesEditCmd(flags *rootFlags, dbPath *string) *cobra.Command {
-	var titleFlag, descFlag, descFile, assigneeFlag, projectFlag, stateFlag, parentFlag string
+	var titleFlag, descFlag, descFile, assigneeFlag, projectFlag, projectNameFlag, stateFlag, parentFlag string
 	var stateNameFlag, stateTypeFlag string
 	var descStdin bool
 	var noParentFlag bool
@@ -50,9 +51,6 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 			}
 			if assigneeFlag != "" {
 				input["assigneeId"] = assigneeFlag
-			}
-			if projectFlag != "" {
-				input["projectId"] = projectFlag
 			}
 			stateSelectors := 0
 			for _, v := range []string{stateFlag, stateNameFlag, stateTypeFlag} {
@@ -110,8 +108,40 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 			if descSet {
 				input["description"] = descBody
 			}
+			var c *client.Client
+			if projectFlag != "" || projectNameFlag != "" {
+				issueTeamKey := ""
+				if !store.IsUUID(args[0]) {
+					if teamKey, _, ok := parseIssueIdentifier(args[0]); ok {
+						issueTeamKey = teamKey
+					}
+				}
+				var projectClient graphqlQueryer
+				if projectNameFlag != "" && projectFlag == "" {
+					var err error
+					lookupClient, err := newPortfolioLookupClient(flags)
+					if err != nil {
+						return err
+					}
+					c = lookupClient
+					projectClient = lookupClient
+					if issueTeamKey == "" {
+						issueTeamKey, err = fetchIssueTeamKeyLive(projectClient, args[0])
+						if err != nil {
+							return classifyLiveReadError(err, flags)
+						}
+					}
+				}
+				projectID, err := resolveProjectFlag(projectClient, projectFlag, projectNameFlag, issueTeamKey, flags)
+				if err != nil {
+					return err
+				}
+				if projectID != "" {
+					input["projectId"] = projectID
+				}
+			}
 			if len(input) == 0 && len(mediaFlag) == 0 && stateNameFlag == "" && stateTypeFlag == "" {
-				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --state-name, --state-type, --project, --assignee, --priority, --label, --parent, or --no-parent"))
+				return usageErr(fmt.Errorf("no issue fields supplied; pass --title, --description-file, --media, --state, --state-name, --state-type, --project, --project-name, --assignee, --priority, --label, --parent, or --no-parent"))
 			}
 			if flags.dryRun {
 				out := map[string]any{"issue": args[0], "input": input}
@@ -127,9 +157,12 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 				}
 				return renderMutationDryRun(cmd, flags, "would_update_issue", "issueUpdate", out)
 			}
-			c, err := flags.newClient()
-			if err != nil {
-				return err
+			if c == nil {
+				var err error
+				c, err = flags.newClient()
+				if err != nil {
+					return err
+				}
 			}
 			if (len(mediaFlag) > 0 && !descSet) || len(labelsFlag) > 0 || stateNameFlag != "" || stateTypeFlag != "" {
 				existing, err := fetchIssueLive(c, args[0])
@@ -238,6 +271,7 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 	cmd.Flags().IntVar(&priorityFlag, "priority", 0, "Priority: 1=Urgent, 2=High, 3=Medium, 4=Low")
 	cmd.Flags().StringVar(&assigneeFlag, "assignee", "", "Assignee user UUID")
 	cmd.Flags().StringVar(&projectFlag, "project", "", "Project UUID")
+	cmd.Flags().StringVar(&projectNameFlag, "project-name", "", "Resolve and attach project by exact name")
 	cmd.Flags().StringVar(&stateFlag, "state", "", "Workflow state UUID (see 'workflow-states list --team <key>')")
 	cmd.Flags().StringVar(&stateNameFlag, "state-name", "", "Workflow state name (e.g. \"In Progress\"); resolved against the issue's team")
 	cmd.Flags().StringVar(&stateTypeFlag, "state-type", "", "Workflow state type (triage, backlog, unstarted, started, completed, canceled, duplicate); resolved against the issue's team")
@@ -267,4 +301,23 @@ func writeIssueBack(dbPath string, raw json.RawMessage) {
 	if err := db.UpsertIssue(issue.ID, issue.Identifier, issue.Title, raw); err != nil {
 		fmt.Fprintf(os.Stderr, "warning: local store write-back failed: %v\n", err)
 	}
+}
+
+func fetchIssueTeamKeyLive(c graphqlQueryer, issueRef string) (string, error) {
+	raw, err := fetchIssueLive(c, issueRef)
+	if err != nil {
+		return "", err
+	}
+	var issue struct {
+		Team struct {
+			Key string `json:"key"`
+		} `json:"team"`
+	}
+	if err := json.Unmarshal(raw, &issue); err != nil {
+		return "", fmt.Errorf("parsing issue team: %w", err)
+	}
+	if issue.Team.Key == "" {
+		return "", fmt.Errorf("issue %q did not include a team key", issueRef)
+	}
+	return issue.Team.Key, nil
 }
