@@ -3427,6 +3427,12 @@
         "CSV lead enrichment with per-row success/error output, provenance, resume/output support, rate-limit compatibility, and strict-mode opt-in."
       ],
       "path": "library/ai/context-dev",
+      "release": {
+        "cli_name": "context-dev-pp-cli",
+        "version": "2026.6.1",
+        "released_at": "2026-06-24T15:51:28Z",
+        "source_commit": "28b7a92c628453afa6f7221bd612d26ab5512390"
+      },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
       "creator": {
@@ -6011,6 +6017,50 @@
         "env_vars": [],
         "mcp_ready": "partial",
         "spec_format": "internal"
+      }
+    },
+    {
+      "name": "github-intel",
+      "category": "developer-tools",
+      "api": "Github Current Intelligence",
+      "description": "Public GitHub repository, release, search, and security advisory signals for agent research.",
+      "search_terms": [
+        "github-intel",
+        "Github Current Intelligence",
+        "github-intel-pp-cli",
+        "Public GitHub repository, release, search, and security advisory signals for agent research.",
+        "Repository trend discovery",
+        "trending",
+        "Find recently active repositories by language/topic using GitHub search qualifiers.",
+        "Release velocity",
+        "releases",
+        "List recent releases for an owner/repo with since filtering.",
+        "Advisory briefing",
+        "advisories",
+        "Brief security advisories by ecosystem, package, severity, and freshness.",
+        "Repository health comparison",
+        "compare",
+        "Compare repository adoption, activity, issue load, and latest release signals."
+      ],
+      "path": "library/developer-tools/github-intel",
+      "printer": "hnshah",
+      "printer_name": "Hiten Shah",
+      "creator": {
+        "handle": "hnshah",
+        "name": "Hiten Shah"
+      },
+      "mcp": {
+        "binary": "github-intel-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 4,
+        "public_tool_count": 4,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
       }
     },
     {
@@ -11279,9 +11329,9 @@
       "path": "library/project-management/plane",
       "release": {
         "cli_name": "plane-pp-cli",
-        "version": "2026.6.2",
-        "released_at": "2026-06-21T08:16:26Z",
-        "source_commit": "acb84091ff016c6e7aea5f8cf6956a694aa0d1c7"
+        "version": "2026.6.3",
+        "released_at": "2026-06-25T07:26:55Z",
+        "source_commit": "be3d60fb932b6e9b51c6ff9b8b933feaa454f816"
       },
       "printer": "sidorovanthon",
       "printer_name": "Anton Sidorov aka anticodeguy",
