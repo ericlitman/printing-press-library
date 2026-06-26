@@ -4,8 +4,8 @@
   "applied_at": "2026-06-26",
   "base_run_id": "2026-05-02T22:09:06.820184Z",
   "base_printing_press_version": "3.6.0",
-  "summary": "Retry transient Google Flights RPC code-13 envelopes before falling back, and harden the HTML fallback against ds:1 script and page-error variants.",
-  "reason": "Google's FlightsFrontendService can alternate between a valid response and HTTP 200 wrb.fr code-13 errors for the same request, so one blocked envelope should not immediately force the lower-fidelity HTML path. When fallback is needed, Google page data can appear as a direct script.ds:1 data payload or an embedded errorHasStatus page; both must be handled explicitly so usable page data is parsed and page-level errors are not reported as legitimate empty results.",
+  "summary": "Retry transient Google Flights RPC code-13 envelopes before falling back, and harden the HTML fallback against ds:1 script, malformed-script, and page-error variants.",
+  "reason": "Google's FlightsFrontendService can alternate between a valid response and HTTP 200 wrb.fr code-13 errors for the same request, so one blocked envelope should not immediately force the lower-fidelity HTML path. When fallback is needed, Google page data can appear as a direct script.ds:1 data payload, after unrelated malformed script blocks, or as an embedded errorHasStatus page; these cases must be handled explicitly so usable page data is parsed and page-level errors are not reported as legitimate empty results.",
   "files": [
     "internal/gflights/flights_native.go",
     "internal/gflights/dates_native.go",

@@ -186,6 +186,18 @@ func TestFlightsFromHTMLParsesStandaloneDS1ScriptPayload(t *testing.T) {
 	}
 }
 
+func TestFlightsFromHTMLSkipsUnclosedScriptBeforeDS1Payload(t *testing.T) {
+	html := `<!doctype html><html><body>
+<script class="decoy">var unfinished = true;
+<script class="ds:1">window._unused = {data:` + string(loadFixture(t, "aus_lax_embedded_ds1.json")) + `, sideChannel:{}};</script>
+</body></html>`
+
+	flights := flightsFromHTML(html, "USD")
+	if len(flights) == 0 {
+		t.Fatal("flightsFromHTML parsed 0 flights after unclosed decoy script")
+	}
+}
+
 func TestSortFlightsClientSide(t *testing.T) {
 	mk := func(price float64, duration int, dep, arr string) Flight {
 		return Flight{Price: price, DurationMinutes: duration, Legs: []Leg{{

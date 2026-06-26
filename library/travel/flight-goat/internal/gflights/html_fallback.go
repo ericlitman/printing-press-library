@@ -249,15 +249,19 @@ func extractDS1ScriptBlobs(html string) []string {
 		rest = rest[si+len(scriptMark):]
 		closeTag := strings.Index(rest, ">")
 		if closeTag < 0 {
-			break
+			continue
 		}
 		attrs := rest[:closeTag]
 		afterOpen := rest[closeTag+1:]
 		endTag := strings.Index(afterOpen, "</script>")
 		if endTag < 0 {
-			break
+			continue
 		}
 		body := afterOpen[:endTag]
+		if nested := strings.Index(body, scriptMark); nested >= 0 {
+			rest = afterOpen[nested:]
+			continue
+		}
 		rest = afterOpen[endTag+len("</script>"):]
 		if !strings.Contains(attrs, "ds:1") {
 			continue
