@@ -2,16 +2,16 @@
   "schema_version": 1,
   "slug": "flight-goat",
   "cli_name": "flight-goat-pp-cli",
-  "version": "2026.6.5",
-  "released_at": "2026-06-24T00:44:18Z",
-  "source_commit": "df8fb811194af726ca3206e4ff398c2ffd608223",
+  "version": "2026.6.6",
+  "released_at": "2026-06-26T05:27:33Z",
+  "source_commit": "829d3970d15a8105936255f3758d8b11675df0ce",
   "printing_press_version": "3.6.0",
   "changes": [
     {
-      "title": "feat(boardgamegeek): add boardgamegeek-pp-cli",
-      "pr": 1295,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/1295",
-      "commit": "df8fb811194af726ca3206e4ff398c2ffd608223"
+      "title": "fix(flight-goat): restore compact blocked fallback",
+      "pr": 1367,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/1367",
+      "commit": "829d3970d15a8105936255f3758d8b11675df0ce"
     }
   ]
 }
