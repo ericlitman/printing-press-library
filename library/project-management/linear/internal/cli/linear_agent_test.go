@@ -1090,6 +1090,150 @@ func TestIssuesEditLabelNameDryRunUsesResolvedUUID(t *testing.T) {
 	}
 }
 
+func TestIssuesEditLabelNameWithMediaPreservesDescription(t *testing.T) {
+	mediaPath := filepath.Join(t.TempDir(), "screenshot.png")
+	if err := os.WriteFile(mediaPath, []byte("image bytes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	const (
+		existingDescription = "Existing description before upload."
+		assetURL            = "https://asset.example/screenshot.png"
+	)
+	var sawMutation bool
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut && r.URL.Path == "/upload" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "issues(filter"):
+			fmt.Fprintf(w, `{"data":{"issues":{"nodes":[{"id":"issue-1","identifier":"MOB-340","title":"Existing","description":%q,"priority":0,"estimate":0,"dueDate":null,"url":"https://linear.app/acme/issue/MOB-340","updatedAt":"2026-06-30T00:00:00Z","createdAt":"2026-06-30T00:00:00Z","state":{"id":"state-1","name":"Todo","type":"unstarted"},"team":{"id":"team-mob","key":"MOB","name":"Mobilyze"},"project":null,"assignee":null}]}}}`, existingDescription)
+		case strings.Contains(req.Query, "issueLabels(first"):
+			requirePortfolioNameFilter(t, req, "area:review-tooling")
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-area-review-tooling","name":"area:review-tooling","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "issueLabels(filter"):
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-area-review-tooling","name":"area:review-tooling","color":"#123456","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"}}]}}}`)
+		case strings.Contains(req.Query, "fileUpload"):
+			if err := json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"fileUpload": map[string]any{
+						"success": true,
+						"uploadFile": map[string]any{
+							"uploadUrl": srv.URL + "/upload",
+							"assetUrl":  assetURL,
+							"headers":   []map[string]string{},
+						},
+					},
+				},
+			}); err != nil {
+				t.Errorf("encode fileUpload response: %v", err)
+			}
+		case strings.Contains(req.Query, "issueUpdate"):
+			sawMutation = true
+			if got := req.Variables["id"]; got != "issue-1" {
+				t.Fatalf("issueUpdate id = %v, want issue-1", got)
+			}
+			input, ok := req.Variables["input"].(map[string]any)
+			if !ok {
+				t.Fatalf("issueUpdate input missing: %+v", req.Variables)
+			}
+			desc, ok := input["description"].(string)
+			if !ok {
+				t.Fatalf("issueUpdate description missing from input: %+v", input)
+			}
+			if !strings.Contains(desc, existingDescription) {
+				t.Fatalf("description dropped existing body: %q", desc)
+			}
+			if !strings.Contains(desc, "![screenshot.png]("+assetURL+")") {
+				t.Fatalf("description missing media markdown: %q", desc)
+			}
+			labels, ok := input["labelIds"].([]any)
+			if !ok || len(labels) != 1 || labels[0] != "label-area-review-tooling" {
+				t.Fatalf("labelIds = %#v, want resolved label UUID", input["labelIds"])
+			}
+			fmt.Fprintf(w, `{"data":{"issueUpdate":{"success":true,"issue":{"id":"issue-1","identifier":"MOB-340","title":"Existing","description":%q,"url":"https://linear.app/acme/issue/MOB-340","priority":0,"estimate":0,"dueDate":null,"createdAt":"2026-06-30T00:00:00Z","updatedAt":"2026-06-30T00:00:00Z","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"},"state":{"id":"state-1","name":"Todo","type":"unstarted"},"project":null,"assignee":null,"parent":null,"children":{"nodes":[]}}}}}`, desc)
+		default:
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "edit", "MOB-340", "--label-name", "area:review-tooling", "--media", mediaPath, "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues edit --label-name --media failed: %v\n%s", err, out)
+	}
+	if !sawMutation {
+		t.Fatalf("issueUpdate mutation was not sent; output=%s", out)
+	}
+}
+
+func TestIssuesEditLabelNameMergeDedupesWithoutRedundantMetadataFetch(t *testing.T) {
+	issueFetchCalls := 0
+	labelLookupCalls := 0
+	var sawMutation bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req client.GraphQLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+		switch {
+		case strings.Contains(req.Query, "issues(filter"):
+			issueFetchCalls++
+			fmt.Fprint(w, `{"data":{"issues":{"nodes":[{"id":"issue-1","identifier":"MOB-340","title":"Existing","description":"","priority":0,"estimate":0,"dueDate":null,"url":"https://linear.app/acme/issue/MOB-340","updatedAt":"2026-06-30T00:00:00Z","createdAt":"2026-06-30T00:00:00Z","state":{"id":"state-1","name":"Todo","type":"unstarted"},"team":{"id":"team-mob","key":"MOB","name":"Mobilyze"},"project":null,"assignee":null}]}}}`)
+		case strings.Contains(req.Query, "issueLabels(first"):
+			labelLookupCalls++
+			requirePortfolioNameFilter(t, req, "area:review-tooling")
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-area-review-tooling","name":"area:review-tooling","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
+		case strings.Contains(req.Query, "issueLabels(filter"):
+			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-area-review-tooling","name":"area:review-tooling","color":"#123456","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"}}]}}}`)
+		case strings.Contains(req.Query, "issueUpdate"):
+			sawMutation = true
+			if got := req.Variables["id"]; got != "issue-1" {
+				t.Fatalf("issueUpdate id = %v, want issue-1", got)
+			}
+			input, ok := req.Variables["input"].(map[string]any)
+			if !ok {
+				t.Fatalf("issueUpdate input missing: %+v", req.Variables)
+			}
+			labels, ok := input["labelIds"].([]any)
+			if !ok || len(labels) != 1 || labels[0] != "label-area-review-tooling" {
+				t.Fatalf("labelIds = %#v, want one de-duped resolved label UUID", input["labelIds"])
+			}
+			fmt.Fprint(w, `{"data":{"issueUpdate":{"success":true,"issue":{"id":"issue-1","identifier":"MOB-340","title":"Existing","description":"","url":"https://linear.app/acme/issue/MOB-340","priority":0,"estimate":0,"dueDate":null,"createdAt":"2026-06-30T00:00:00Z","updatedAt":"2026-06-30T00:00:00Z","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"},"state":{"id":"state-1","name":"Todo","type":"unstarted"},"project":null,"assignee":null,"parent":null,"children":{"nodes":[]}}}}}`)
+		default:
+			t.Fatalf("unexpected query: %s", req.Query)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Setenv("LINEAR_BASE_URL", srv.URL)
+	t.Setenv("LINEAR_API_KEY", "test-token")
+
+	out, err := executeRootForTest("issues", "edit", "MOB-340", "--label-name", "area:review-tooling", "--label-name", " AREA:REVIEW-TOOLING ", "--agent", "--data-source", "live")
+	if err != nil {
+		t.Fatalf("issues edit duplicate --label-name failed: %v\n%s", err, out)
+	}
+	if !sawMutation {
+		t.Fatalf("issueUpdate mutation was not sent; output=%s", out)
+	}
+	if labelLookupCalls != 1 {
+		t.Fatalf("resolved duplicate --label-name values with %d lookups, want 1", labelLookupCalls)
+	}
+	if issueFetchCalls != 1 {
+		t.Fatalf("fetched issue metadata %d times, want 1", issueFetchCalls)
+	}
+}
+
 func TestIssuesCreateLabelNameAmbiguousReturnsCandidates(t *testing.T) {
 	createCalled := false
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1224,6 +1368,7 @@ func TestIssuesCreateGlobalLabelNameDryRunResolvesWithTeam(t *testing.T) {
 }
 
 func TestIssuesCreateLabelAndLabelNameMergeDedupes(t *testing.T) {
+	labelLookupCalls := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req client.GraphQLRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -1233,6 +1378,7 @@ func TestIssuesCreateLabelAndLabelNameMergeDedupes(t *testing.T) {
 		}
 		switch {
 		case strings.Contains(req.Query, "issueLabels(first"):
+			labelLookupCalls++
 			requirePortfolioNameFilter(t, req, "kind:bug")
 			fmt.Fprint(w, `{"data":{"issueLabels":{"nodes":[{"id":"label-kind-bug","name":"kind:bug","team":{"id":"team-mob","key":"MOB","name":"Mobilyze"}}],"pageInfo":{"hasNextPage":false,"endCursor":""}}}}`)
 		case strings.Contains(req.Query, "issueCreate"):
@@ -1245,9 +1391,12 @@ func TestIssuesCreateLabelAndLabelNameMergeDedupes(t *testing.T) {
 	t.Setenv("LINEAR_BASE_URL", srv.URL)
 	t.Setenv("LINEAR_API_KEY", "test-token")
 
-	out, err := executeRootForTest("issues", "create", "--title", "Labeled ticket", "--team", "MOB", "--label", "label-kind-bug", "--label", "label-manual", "--label-name", "kind:bug", "--dry-run", "--agent", "--data-source", "live")
+	out, err := executeRootForTest("issues", "create", "--title", "Labeled ticket", "--team", "MOB", "--label", "label-kind-bug", "--label", "label-manual", "--label-name", "kind:bug", "--label-name", " KIND:BUG ", "--dry-run", "--agent", "--data-source", "live")
 	if err != nil {
 		t.Fatalf("issues create --label + --label-name --dry-run failed: %v\n%s", err, out)
+	}
+	if labelLookupCalls != 1 {
+		t.Fatalf("resolved duplicate --label-name values with %d lookups, want 1", labelLookupCalls)
 	}
 	var got struct {
 		Input struct {

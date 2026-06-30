@@ -91,17 +91,23 @@ func resolveLabelNamesForWriteLive(c graphqlQueryer, names []string, team string
 		return nil, internalLabelResolveClientErr()
 	}
 	resolved := make([]string, 0, len(names))
-	seen := make(map[string]bool, len(names))
+	seenNames := make(map[string]bool, len(names))
+	seenIDs := make(map[string]bool, len(names))
 	for _, name := range names {
+		nameKey := normalizePortfolioName(name)
+		if seenNames[nameKey] {
+			continue
+		}
+		seenNames[nameKey] = true
 		id, err := resolveLabelNameForWriteLive(c, name, team, flags)
 		if err != nil {
 			return nil, err
 		}
 		key := strings.ToLower(strings.TrimSpace(id))
-		if key == "" || seen[key] {
+		if key == "" || seenIDs[key] {
 			continue
 		}
-		seen[key] = true
+		seenIDs[key] = true
 		resolved = append(resolved, id)
 	}
 	return resolved, nil
