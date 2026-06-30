@@ -189,15 +189,17 @@ Use --parent with an issue identifier or UUID to set/change parentage. Use
 					return err
 				}
 			}
-			if (len(mediaFlag) > 0 && !descSet) || len(labelsFlag) > 0 || stateNameFlag != "" || stateTypeFlag != "" {
+			needsExistingDescription := len(mediaFlag) > 0 && !descSet
+			needsIssueMetadata := !issueMetaLoaded && (len(labelsFlag) > 0 || stateNameFlag != "" || stateTypeFlag != "")
+			if needsExistingDescription || needsIssueMetadata {
 				existing, err := fetchIssueLive(c, args[0])
 				if err != nil {
 					return classifyLiveReadError(err, flags)
 				}
-				if err := parseIssueEditMetadata(args[0], existing, &issueID, &issueTeam, &issueMetaLoaded, &descBody, &descSet, len(mediaFlag) > 0 && !descSet); err != nil {
+				if err := parseIssueEditMetadata(args[0], existing, &issueID, &issueTeam, &issueMetaLoaded, &descBody, &descSet, needsExistingDescription); err != nil {
 					return err
 				}
-			} else {
+			} else if !issueMetaLoaded {
 				var err error
 				issueID, err = resolveIssueID(c, args[0])
 				if err != nil {
