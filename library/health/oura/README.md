@@ -68,6 +68,7 @@ When a `429 Too Many Requests` response is returned, five headers are included t
 Learn more at [Oura](https://cloud.ouraring.com/v2/docs).
 
 Created by [@coopdogGGs](https://github.com/coopdogGGs) (ryanc00per).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

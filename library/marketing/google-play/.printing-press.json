@@ -59,5 +59,11 @@
       "command": "compare",
       "description": "Fetch details for several apps and lay their key fields side by side in one table."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

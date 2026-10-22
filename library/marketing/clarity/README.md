@@ -7,6 +7,7 @@ Microsoft Clarity's client API is made of JavaScript calls and HTML attributes, 
 Learn more at [PP Clarity](https://clarity.microsoft.com).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

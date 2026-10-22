@@ -69,5 +69,11 @@
       "command": "scout",
       "description": "Pull top trends in a category, score each by relevance to a business profile, optionally route the scoring through a local LLM."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

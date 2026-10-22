@@ -56,5 +56,11 @@
       "command": "articles for-recipe",
       "description": "Find synced articles that mention a given recipe in their relatedReading."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

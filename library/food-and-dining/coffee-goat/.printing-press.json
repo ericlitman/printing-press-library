@@ -162,5 +162,11 @@
       "description": "Inspect recent multi-source sync runs from coffee_sync_state. `list` shows per-source last status, item count, and last-synced timestamp; `show <source>` zooms one source (shopify, coffee-review, youtube). Useful for diagnosing 'why is search returning stale data' before re-running sync."
     }
   ],
-  "owner_name": "Justin Fu"
+  "owner_name": "Justin Fu",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

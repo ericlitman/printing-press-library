@@ -13,5 +13,11 @@
   "spec_source": "internal-yaml",
   "scorecard_total": 82,
   "verify_pass_rate": null,
-  "novel_features_built": 6
+  "novel_features_built": 6,
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

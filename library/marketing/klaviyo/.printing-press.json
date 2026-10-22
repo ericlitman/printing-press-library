@@ -75,5 +75,11 @@
       "description": "Run a launch-readiness checklist for links, offers, dates, timezone, fallback tokens, compliance, and deliverability flags."
     }
   ],
-  "catalog_description": "Work with Klaviyo profiles, events, campaigns, flows, segments, templates, and local performance analytics for marketing automation."
+  "catalog_description": "Work with Klaviyo profiles, events, campaigns, flows, segments, templates, and local performance analytics for marketing automation.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

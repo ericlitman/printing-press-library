@@ -21,7 +21,7 @@
   "mcp_ready": "partial",
   "api_version": "0.1.0",
   "auth_type": "cookie",
-  "auth_description": "OrderToGo authenticates via Firebase phone-OTP on the web. The CLI does not implement\nphone OTP \u2014 instead, `auth login --chrome` imports your existing OrderToGo session\ncookies from your local Chrome profile. After import, every command travels with the\ncookie. Re-run `auth login --chrome` if your session expires.\n",
+  "auth_description": "OrderToGo authenticates via Firebase phone-OTP on the web. The CLI does not implement\nphone OTP — instead, `auth login --chrome` imports your existing OrderToGo session\ncookies from your local Chrome profile. After import, every command travels with the\ncookie. Re-run `auth login --chrome` if your session expires.\n",
   "novel_features": [
     {
       "name": "Reuse-last with budget gate",
@@ -41,7 +41,7 @@
     {
       "name": "Spending analytics",
       "command": "spending",
-      "description": "Total spent, average order, days since last order, top items, and weekly cadence \u2014 all from local order history with one SQL query."
+      "description": "Total spent, average order, days since last order, top items, and weekly cadence — all from local order history with one SQL query."
     },
     {
       "name": "Auto-tip from history",
@@ -69,6 +69,10 @@
     {
       "handle": "tmchow",
       "name": "Trevin Chow"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

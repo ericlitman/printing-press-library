@@ -54,5 +54,11 @@
       "command": "reputation product",
       "description": "Fetches product-level count/histogram evidence when product ID is known and widget availability/byte evidence for handles or external IDs."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

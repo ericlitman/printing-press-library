@@ -7,6 +7,7 @@ This printed CLI wraps Klaviyo's JSON:API surface for profiles, events, campaign
 Learn more at [Klaviyo](https://developers.klaviyo.com).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

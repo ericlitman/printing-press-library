@@ -27,27 +27,27 @@
     {
       "name": "Restaurants diff",
       "command": "restaurants diff",
-      "description": "See newcomers and closures in any city + cuisine between two snapshots \u2014 answers \"what's new in Roma Norte sushi this week\" in one command."
+      "description": "See newcomers and closures in any city + cuisine between two snapshots — answers \"what's new in Roma Norte sushi this week\" in one command."
     },
     {
       "name": "Restaurants top",
       "command": "restaurants top",
-      "description": "Top-rated restaurants with both a minimum rating AND a minimum review-count floor \u2014 the listicle-grade filter Rappi UI hides."
+      "description": "Top-rated restaurants with both a minimum rating AND a minimum review-count floor — the listicle-grade filter Rappi UI hides."
     },
     {
       "name": "Store coverage matrix",
       "command": "stores coverage",
-      "description": "Cross-city, cross-store-type coverage matrix (CDMX \u00d7 markets \u00d7 pharmacies \u00d7 liquor \u00d7 express, all in one table) for the cities you sync."
+      "description": "Cross-city, cross-store-type coverage matrix (CDMX × markets × pharmacies × liquor × express, all in one table) for the cities you sync."
     },
     {
       "name": "Coverage delta",
       "command": "stores coverage-diff",
-      "description": "Delta-vs-last-snapshot of the (city, store_type) coverage matrix \u2014 see store openings and store-type expansions over time."
+      "description": "Delta-vs-last-snapshot of the (city, store_type) coverage matrix — see store openings and store-type expansions over time."
     },
     {
       "name": "Open at time",
       "command": "restaurants open",
-      "description": "Restaurants open at an arbitrary local time (e.g., \"23:30 on Sunday\") parsed from schema.org openingHours \u2014 beyond Rappi's \"open now\" view."
+      "description": "Restaurants open at an arbitrary local time (e.g., \"23:30 on Sunday\") parsed from schema.org openingHours — beyond Rappi's \"open now\" view."
     },
     {
       "name": "Cuisine by neighborhood",
@@ -57,23 +57,29 @@
     {
       "name": "Multi-category overlap",
       "command": "restaurants multi-category",
-      "description": "Restaurants listed under two or more cuisine categories \u2014 surfaces fusion places and mis-categorized spots in one query."
+      "description": "Restaurants listed under two or more cuisine categories — surfaces fusion places and mis-categorized spots in one query."
     },
     {
       "name": "Geo-radius restaurants",
       "command": "restaurants near",
-      "description": "Restaurants within a Haversine radius of a lat/lng with optional category filter \u2014 sorted by distance."
+      "description": "Restaurants within a Haversine radius of a lat/lng with optional category filter — sorted by distance."
     },
     {
       "name": "Brand presence matrix",
       "command": "restaurants brand",
-      "description": "Find every city \u00d7 category where a restaurant brand (e.g., \"Sushi Itto\") appears in the synced catalog."
+      "description": "Find every city × category where a restaurant brand (e.g., \"Sushi Itto\") appears in the synced catalog."
     },
     {
       "name": "Pharmacy near supermarket adjacency",
       "command": "stores adjacency",
-      "description": "Stores of type A within a Haversine radius of stores of type B (e.g., pharmacies within 1km of supermarkets) \u2014 for concierge-style \"one-stop trip\" planning."
+      "description": "Stores of type A within a Haversine radius of stores of type B (e.g., pharmacies within 1km of supermarkets) — for concierge-style \"one-stop trip\" planning."
     }
   ],
-  "category": "food-and-dining"
+  "category": "food-and-dining",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

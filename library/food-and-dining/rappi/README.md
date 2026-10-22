@@ -7,6 +7,7 @@ Browse restaurants and stores across every Mexican city Rappi serves, snapshot t
 Learn more at [Rappi (Mexico)](https://www.rappi.com.mx).
 
 Created by [@bobeglz](https://github.com/bobeglz) (bobe).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

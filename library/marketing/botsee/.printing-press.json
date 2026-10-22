@@ -40,12 +40,18 @@
     {
       "name": "Site config tree",
       "command": "site-config",
-      "description": "Print the full customer-types -\u003e personas -\u003e questions tree for a site, with UUIDs and the actual edit commands users can copy-paste to add, update, or remove any node."
+      "description": "Print the full customer-types -> personas -> questions tree for a site, with UUIDs and the actual edit commands users can copy-paste to add, update, or remove any node."
     },
     {
       "name": "Cross-site sources rollup",
       "command": "sites-summary",
       "description": "Aggregate cited sources across every synced site, grouped by domain, with citation count, distinct sites citing each domain, and first-seen timestamp."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

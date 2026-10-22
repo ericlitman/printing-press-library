@@ -7,6 +7,7 @@ dub-pp-cli covers all 53 Dub API operations as typed commands, then transcends w
 Learn more at [Dub](https://dub.co/support).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

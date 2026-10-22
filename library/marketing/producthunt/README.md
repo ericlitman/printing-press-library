@@ -7,6 +7,7 @@ A two-tier CLI for Product Hunt. The public Atom feed works with zero setup. A s
 Learn more at [Product Hunt](https://www.producthunt.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

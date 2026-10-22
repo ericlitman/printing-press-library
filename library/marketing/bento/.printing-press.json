@@ -33,21 +33,21 @@
       "kind": "per_call",
       "required": true,
       "sensitive": false,
-      "description": "Basic auth username. Starts with pk_. Available in your Bento dashboard under Settings -\u003e API Keys."
+      "description": "Basic auth username. Starts with pk_. Available in your Bento dashboard under Settings -> API Keys."
     },
     {
       "name": "BENTO_SECRET_KEY",
       "kind": "per_call",
       "required": true,
       "sensitive": true,
-      "description": "Basic auth password. Starts with sk_. Available in your Bento dashboard under Settings -\u003e API Keys. Never expose client-side."
+      "description": "Basic auth password. Starts with sk_. Available in your Bento dashboard under Settings -> API Keys. Never expose client-side."
     },
     {
       "name": "BENTO_SITE_UUID",
       "kind": "per_call",
       "required": true,
       "sensitive": false,
-      "description": "Bento site identifier. Attached to every request as ?site_uuid= on GETs and in the JSON body on POSTs. Available in your Bento dashboard under Account -\u003e Site Settings."
+      "description": "Bento site identifier. Attached to every request as ?site_uuid= on GETs and in the JSON body on POSTs. Available in your Bento dashboard under Account -> Site Settings."
     }
   ],
   "novel_features": [
@@ -110,6 +110,12 @@
       "name": "Cohort FTS",
       "command": "subscribers find",
       "description": "Full-text search subscriber notes/fields plus structured filters in one query, exportable as CSV."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

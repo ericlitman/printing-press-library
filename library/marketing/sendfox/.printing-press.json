@@ -106,5 +106,11 @@
     }
   ],
   "printer": "cathrynlavery",
-  "catalog_entry": "sendfox"
+  "catalog_entry": "sendfox",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

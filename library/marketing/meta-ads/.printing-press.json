@@ -42,7 +42,7 @@
     {
       "name": "Learning-Phase Forensics",
       "command": "learning",
-      "description": "Surface adsets stuck in algorithmic learning \u003eN days with root-cause hint (budget too low, audience too narrow, events too sparse)."
+      "description": "Surface adsets stuck in algorithmic learning >N days with root-cause hint (budget too low, audience too narrow, events too sparse)."
     },
     {
       "name": "Spend Reconciliation",
@@ -63,6 +63,12 @@
       "name": "Account Inventory Roll-up",
       "command": "inventory",
       "description": "Group every ad in an account by effective_status, surface ads where configured status='ACTIVE' but effective_status='WITH_ISSUES' or 'DISAPPROVED'."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

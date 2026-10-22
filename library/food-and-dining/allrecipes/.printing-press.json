@@ -63,5 +63,11 @@
       "command": "doctor",
       "description": "Health check that names the Cloudflare 'Just a moment...' interstitial by inspecting the response body, then advises the browser-chrome transport."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -87,5 +87,11 @@
       "command": "context",
       "description": "Returns a single JSON blob covering top posts in a window, top comments, topic followers, and your viewer status. One call answers 'what's the state of this topic right now' for an agent."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

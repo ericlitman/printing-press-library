@@ -2,6 +2,8 @@
 
 Operate SendFox contacts, lists, campaign reads, audience hygiene, CSV reconciliation, launch checklists, signup-form handoffs, webhook setup packets, and public API capability checks from the terminal.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `sendfox-pp-cli` binary and the `pp-sendfox` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

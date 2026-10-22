@@ -7,6 +7,7 @@ Every recipe and article on Food52, queryable without a browser. Ships with `pan
 Learn more at [Food52](https://food52.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

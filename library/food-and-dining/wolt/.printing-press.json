@@ -47,5 +47,11 @@
       "command": "track",
       "description": "Parse a Wolt order share URL and extract the order id. Stub — live JSON tracking endpoint not yet reverse-engineered."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

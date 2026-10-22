@@ -7,6 +7,7 @@ KDP Niche Finder is a click-to-browse web tool that shows one curated niche buck
 Learn more at [KDP Niche Finder](https://kdpnichefinder.com).
 
 Created by [@vcolombo](https://github.com/vcolombo) (Vincent Colombo).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

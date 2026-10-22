@@ -43,5 +43,11 @@
       "command": "stale-campaigns",
       "description": "Find active campaigns with zero delivery in the last N days."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

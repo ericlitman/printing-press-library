@@ -1,6 +1,7 @@
 # Beehiiv CLI
 
 Created by [@kjmagnan1s](https://github.com/kjmagnan1s) (Kevin Magnan).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

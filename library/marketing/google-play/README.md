@@ -7,6 +7,7 @@ Pull app details, top charts, search, reviews, similar apps, developer portfolio
 Learn more at [Google Play](https://play.google.com).
 
 Created by [@qazmataz](https://github.com/qazmataz) (Hamza Qazi).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

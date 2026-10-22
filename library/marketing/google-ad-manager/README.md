@@ -7,6 +7,7 @@ Wraps the Ad Manager REST v1 API with a local SQLite mirror, offline full-text s
 Learn more at [Google Ad Manager](https://google.com).
 
 Created by [@stellato](https://github.com/stellato) (Greg Stellato).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -17,6 +17,7 @@ GET https://app.judge.me/oauth/authorize?client_id=[your_client_id]&redirect_uri
 ```
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
