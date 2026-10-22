@@ -7,6 +7,7 @@ Zoho ships autoscan; this CLI ships everything that comes after — receipt dedu
 Learn more at [Zoho Expense](https://www.zoho.com/in/expense/).
 
 Created by [@amitav13](https://github.com/amitav13) (Amitav Khandelwal).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

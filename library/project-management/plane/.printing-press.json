@@ -19,7 +19,7 @@
   "run_id": "20260602-073610",
   "catalog_entry": "plane",
   "category": "project-management",
-  "description": "Open-source project management \u0432\u0402\u201d issues, cycles, modules, sub-issues, and workspaces. A self-hostable Jira/Linear/ClickUp alternative.",
+  "description": "Open-source project management вЂ” issues, cycles, modules, sub-issues, and workspaces. A self-hostable Jira/Linear/ClickUp alternative.",
   "mcp_binary": "plane-pp-mcp",
   "mcp_tool_count": 125,
   "mcp_ready": "full",
@@ -45,6 +45,12 @@
       "name": "Module Membership & Sync Enrichment",
       "command": "module",
       "description": "Manage an issue's module membership (of/create-issue/sync) and auto-enrich issue module_ids during sync (on by default), since Plane's issue API never returns module membership."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

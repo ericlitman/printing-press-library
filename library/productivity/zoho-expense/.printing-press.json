@@ -94,5 +94,11 @@
     }
   ],
   "printer": "amitav13",
-  "printer_name": "Amitav Khandelwal"
+  "printer_name": "Amitav Khandelwal",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

@@ -32,7 +32,7 @@
     {
       "name": "Cross-event delivery trace",
       "command": "emails timeline",
-      "description": "Collapsed event chain for a single email: sent \u2192 delivered \u2192 opened \u2192 clicked \u2192 bounced, in one ordered table."
+      "description": "Collapsed event chain for a single email: sent → delivered → opened → clicked → bounced, in one ordered table."
     },
     {
       "name": "Audience inventory rollup",
@@ -65,5 +65,11 @@
       "description": "API keys sorted by age + last-used timestamp (joined from logs); flags stale keys older than N days."
     }
   ],
-  "category": "productivity"
+  "category": "productivity",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

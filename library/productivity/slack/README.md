@@ -3,6 +3,7 @@
 Send messages, search conversations, monitor channels, and manage your Slack workspace from the terminal
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

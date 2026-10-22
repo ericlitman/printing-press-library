@@ -80,5 +80,11 @@
       "command": "convo thread",
       "description": "Reconstruct a chronological SMS+email+call thread for a single contact from the local messages table."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

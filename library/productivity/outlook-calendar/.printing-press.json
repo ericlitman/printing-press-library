@@ -66,5 +66,11 @@
       "command": "tz-audit",
       "description": "Surface events whose start time-zone differs from the calendar's default or from their own end-time TZ — likely-broken displays on other devices."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

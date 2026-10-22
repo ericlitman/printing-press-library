@@ -26,5 +26,11 @@
   "mcp_public_tool_count": 7,
   "mcp_ready": "full",
   "api_version": "0.1.0",
-  "auth_type": "none"
+  "auth_type": "none",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

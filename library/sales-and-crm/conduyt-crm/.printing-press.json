@@ -41,9 +41,15 @@
     {
       "name": "Email Stats",
       "command": "email-stats",
-      "description": "Email performance analytics \u2014 open rates, click rates, reply rates, and per-template breakdown"
+      "description": "Email performance analytics — open rates, click rates, reply rates, and per-template breakdown"
     }
   ],
   "printer": "ptaramona",
-  "printer_name": "Conduyt"
+  "printer_name": "Conduyt",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

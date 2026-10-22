@@ -60,7 +60,7 @@
     {
       "name": "Warranty attribution lint",
       "command": "warranty-lint",
-      "description": "Flag equipment whose warranty text is not prefixed Manufacturer's, or that is missing JKA's 1-year parts \u0026 labor line."
+      "description": "Flag equipment whose warranty text is not prefixed Manufacturer's, or that is missing JKA's 1-year parts & labor line."
     },
     {
       "name": "Orphan SKU finder",
@@ -101,6 +101,12 @@
       "name": "Natural-language part finder",
       "command": "find",
       "description": "Forgiving ranked search over synced SKUs tuned for describing a part you do not know the code for."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

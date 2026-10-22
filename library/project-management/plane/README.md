@@ -9,6 +9,7 @@ Visit the quick start guide and full API documentation at [developers.plane.so](
 Learn more at [Plane](https://plane.so).
 
 Created by [@sidorovanthon](https://github.com/sidorovanthon) (Anton Sidorov aka anticodeguy).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

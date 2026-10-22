@@ -5,6 +5,7 @@
 Drives your personal Microsoft 365 calendar from scripts and agents. OAuth 2.0 device-code flow against the /common tenant, so personal MSAs work alongside work accounts. A local SQLite store synced through events/delta unlocks `conflicts`, `freetime`, `review`, `pending`, `recurring-drift`, and `prep` — workflows no other Outlook CLI exposes because they require persisted state.
 
 Created by [@brennaman](https://github.com/brennaman) (Paul Brennaman).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

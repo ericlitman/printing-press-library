@@ -4,6 +4,8 @@
 
 Toodledo caps you at 100 API calls per access token, so a naive wrapper is unusable. toodledo-pp-cli mirrors your whole task universe into local SQLite, then runs GTD next-actions, weekly review, stalled-project detection, goal rollups, and full-text search entirely offline — with JSON on every command and a complete agent-native MCP surface. sync-cost tells you what a refresh will spend before you spend it.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `toodledo-pp-cli` binary and the `pp-toodledo` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

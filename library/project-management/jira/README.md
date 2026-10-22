@@ -5,6 +5,7 @@ Jira Cloud Platform REST API documentation
 Learn more at [Jira Cloud Platform](http://www.atlassian.com).
 
 Created by [@neektza](https://github.com/neektza) (Nikica Jokic).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

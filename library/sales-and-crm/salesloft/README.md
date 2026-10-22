@@ -3,6 +3,7 @@
 Read-first Salesloft API surface for agent workflows, based on the public Salesloft v2 developer documentation.
 
 Created by [@debgotwired](https://github.com/debgotwired) (Deb Mukherjee).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

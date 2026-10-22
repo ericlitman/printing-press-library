@@ -2,6 +2,8 @@
 
 `safari-history-pp-cli` — a local-first Safari history CLI. It reads `~/Library/Safari/History.db`, snapshots to `~/.cache/safari-history/`, builds an offline FTS index, and answers queries with zero network usage.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Platform Support
 
 **macOS only** — and macOS-exclusive by nature: Safari does not exist on Linux or Windows, so there is no equivalent history DB to read there. Requires macOS Full Disk Access to read `~/Library/Safari/History.db` (see Access & Permissions below).

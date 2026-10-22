@@ -3,6 +3,7 @@
 Read-first Help Scout Inbox API surface for support operations and agent workflows.
 
 Created by [@debgotwired](https://github.com/debgotwired) (Deb Mukherjee).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

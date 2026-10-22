@@ -91,5 +91,11 @@
       "command": "oncall-gap",
       "description": "Identifies time windows where high-severity tickets arrived but no agent in the group acknowledged within SLA — surfaces staffing gaps in on-call rotations."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

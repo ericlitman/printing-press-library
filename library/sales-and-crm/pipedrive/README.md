@@ -5,6 +5,7 @@
 Learn more at [Pipedrive](https://developers.pipedrive.com).
 
 Created by [@debgotwired](https://github.com/debgotwired) (Deb Mukherjee).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

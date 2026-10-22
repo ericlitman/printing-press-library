@@ -65,5 +65,11 @@
       "command": "segments kom-gap",
       "description": "See exactly how far you are from the KOM on each starred segment, ranked by the gap you're most likely to close."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }
