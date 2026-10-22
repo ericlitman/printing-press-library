@@ -50,7 +50,7 @@
     {
       "name": "Command audit + replay",
       "command": "command-log",
-      "description": "Every Set* command issued via this CLI is logged with who/when/what/result. --replay \u003cid\u003e re-issues a prior command for quick undo or redo."
+      "description": "Every Set* command issued via this CLI is logged with who/when/what/result. --replay <id> re-issues a prior command for quick undo or redo."
     },
     {
       "name": "Why isn't this running?",
@@ -66,6 +66,12 @@
       "name": "Multi-site morning sweep",
       "command": "sweep",
       "description": "Across every site in the account, surface active alarms, out-of-range chemistry, and offline controllers in a single report — built for pool-service businesses doing route planning."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

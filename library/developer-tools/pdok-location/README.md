@@ -20,6 +20,7 @@ Each is incomplete without the other:
 Combining them lets a single sync warm a shared local cache, a single config covers both, and `doctor` distinguishes which upstream is up. Future PDOK siblings (BAG, BRK direct, BGT, roads, etc.) will ship as separate `pdok-<name>-pp-cli` binaries to keep this CLI focused on "find a Dutch location → get full geometry".
 
 Created by [@markvandeven](https://github.com/markvandeven) (markvandeven).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

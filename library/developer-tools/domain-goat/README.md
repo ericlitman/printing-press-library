@@ -5,6 +5,7 @@
 domain-goat absorbs everything dnstwist, openrdap, whois, and the abandoned domainr-cli ever did, then transcends with a local SQLite shortlist that knows your scores, your notes, your watch list, and 5-year renewal cost for every TLD — so you can find domains worth registering instead of just typing names into instant-domain-search.com five at a time.
 
 Created by [@mitch-nick](https://github.com/mitch-nick) (Mitch Nick).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

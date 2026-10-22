@@ -64,7 +64,13 @@
     {
       "name": "TRQL recipe library",
       "command": "query recipes",
-      "description": "Curated TRQL one-liners for the common analytics questions (failed-last-hour, cost-by-model-7d, oncall-deploy-window) — list them with `query recipes`, run them parameterized with `query run \u003crecipe\u003e`."
+      "description": "Curated TRQL one-liners for the common analytics questions (failed-last-hour, cost-by-model-7d, oncall-deploy-window) — list them with `query recipes`, run them parameterized with `query run <recipe>`."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

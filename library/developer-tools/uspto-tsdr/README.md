@@ -7,6 +7,7 @@ Beginning on October 2, 2020, you will need an API key to access the TSDR REST A
  This uses the uspto's swagger object with a number of changes.  The uspto's api does not allow browser request (CORS issues) so requests from this page will not actually work.  The generated curl commands will work and the modified swagger object can be imported into postman.
 
 Created by [@H179922](https://github.com/H179922) (H179922).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

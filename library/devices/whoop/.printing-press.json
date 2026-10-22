@@ -75,11 +75,15 @@
   "contributors": [
     {
       "handle": "bobeglz",
-      "name": "Roberto Gonz\u00e1lez Grajeda"
+      "name": "Roberto González Grajeda"
     },
     {
       "handle": "tmchow",
       "name": "Trevin Chow"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

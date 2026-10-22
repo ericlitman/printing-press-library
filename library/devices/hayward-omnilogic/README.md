@@ -5,6 +5,7 @@
 Drives the same partner API the Hayward mobile app and Home Assistant integration use, but adds the historical chemistry log, the equipment diagnostic the cloud refuses to compute, the schedule-change detector for service techs, and the multi-site alarm sweep pool-service businesses ask for. Agent-native JSON throughout, with a local SQLite store that turns single-shot cloud reads into compound answers.
 
 Created by [@rob-coco](https://github.com/rob-coco) (Rob Zehner).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

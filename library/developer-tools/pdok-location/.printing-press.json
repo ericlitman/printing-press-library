@@ -16,37 +16,37 @@
     {
       "name": "Batch CSV geocode",
       "command": "batch geocode",
-      "description": "Geocode an entire CSV of Dutch addresses in one command \u2014 outputs lat/lon, RD X/Y, match score, and an error column for failed rows."
+      "description": "Geocode an entire CSV of Dutch addresses in one command — outputs lat/lon, RD X/Y, match score, and an error column for failed rows."
     },
     {
       "name": "Suggest+lookup one-shot",
       "command": "resolve",
-      "description": "Type a partial address, get the canonical match with full GeoJSON geometry \u2014 the suggest\u2192lookup chain collapsed into a single command."
+      "description": "Type a partial address, get the canonical match with full GeoJSON geometry — the suggest→lookup chain collapsed into a single command."
     },
     {
       "name": "Cross-source nearest",
       "command": "nearest",
-      "description": "From any lat/lon or RD coordinate, return the nearest address, nearest parcel, nearest hectometer marker, and the gemeente/provincie containing the point \u2014 all in one call."
+      "description": "From any lat/lon or RD coordinate, return the nearest address, nearest parcel, nearest hectometer marker, and the gemeente/provincie containing the point — all in one call."
     },
     {
-      "name": "RD \u2194 WGS84 coordinate conversion",
+      "name": "RD ↔ WGS84 coordinate conversion",
       "command": "convert rd-to-ll",
-      "description": "Convert Dutch RD (EPSG:28992) coordinates to WGS84 lat/lon and back, with pure-math precision \u2014 no API call needed."
+      "description": "Convert Dutch RD (EPSG:28992) coordinates to WGS84 lat/lon and back, with pure-math precision — no API call needed."
     },
     {
-      "name": "WKT \u2194 GeoJSON conversion",
+      "name": "WKT ↔ GeoJSON conversion",
       "command": "convert wkt-to-geojson",
-      "description": "Take any WKT geometry (POINT, POLYGON, MULTIPOLYGON, MULTILINESTRING) and emit GeoJSON \u2014 or convert GeoJSON back to WKT."
+      "description": "Take any WKT geometry (POINT, POLYGON, MULTIPOLYGON, MULTILINESTRING) and emit GeoJSON — or convert GeoJSON back to WKT."
     },
     {
       "name": "Offline gemeente / provincie gazetteer",
       "command": "gemeente get",
-      "description": "After a one-time sync, look up any of the 342 Dutch gemeenten or 12 provincies fully offline \u2014 name, centroid, codes, parent provincie."
+      "description": "After a one-time sync, look up any of the 342 Dutch gemeenten or 12 provincies fully offline — name, centroid, codes, parent provincie."
     },
     {
       "name": "Local FTS over cached results",
       "command": "search",
-      "description": "Full-text search across every address, gemeente, and lookup you've previously fetched \u2014 finds matches locally before falling back to the API."
+      "description": "Full-text search across every address, gemeente, and lookup you've previously fetched — finds matches locally before falling back to the API."
     },
     {
       "name": "Multi-collection OGC search with optional bbox",
@@ -56,7 +56,7 @@
     {
       "name": "Confidence-gated best match",
       "command": "top",
-      "description": "Return the single best match for a query if (and only if) the Solr score clears a threshold \u2014 exits non-zero when no match clears the bar."
+      "description": "Return the single best match for a query if (and only if) the Solr score clears a threshold — exits non-zero when no match clears the bar."
     },
     {
       "name": "Perceel by kadastrale aanduiding",
@@ -66,10 +66,16 @@
     {
       "name": "Gemeente containing a point",
       "command": "gemeente of-point",
-      "description": "Given any lat/lon or RD coordinate, return which gemeente and provincie contain it \u2014 using the offline gazetteer with an API fallback."
+      "description": "Given any lat/lon or RD coordinate, return which gemeente and provincie contain it — using the offline gazetteer with an API fallback."
     }
   ],
   "printer": "markvandeven",
   "printer_name": "markvandeven",
-  "category": "developer-tools"
+  "category": "developer-tools",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

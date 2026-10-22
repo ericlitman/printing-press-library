@@ -171,6 +171,7 @@ NTSB only publishes their accident database in Microsoft Access binary format. T
 ---
 
 Created by [@ChrisDrit](https://github.com/ChrisDrit) (Chris Drit).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

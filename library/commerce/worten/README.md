@@ -5,6 +5,7 @@ This does not claim to describe the full Worten platform.
 It only captures the load-bearing endpoints currently used by the housebuy operator.
 
 Created by [@asantos00](https://github.com/asantos00) (Alexandre Santos).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

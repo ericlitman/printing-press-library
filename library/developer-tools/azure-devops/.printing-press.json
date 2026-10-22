@@ -8,6 +8,10 @@
     {
       "handle": "davbebawy",
       "name": "David Bebawy"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ],
   "printer": "davbebawy",
@@ -22,17 +26,17 @@
     {
       "name": "Daily Standup Digest",
       "command": "standup",
-      "description": "See your PRs awaiting review, in-progress work items, and newly failed builds in one command \u2014 ready before the standup meeting."
+      "description": "See your PRs awaiting review, in-progress work items, and newly failed builds in one command — ready before the standup meeting."
     },
     {
       "name": "PR Review Readiness Queue",
       "command": "pr review-queue",
-      "description": "See only the PRs where you are a required reviewer, the build is passing, and no other required reviewer has voted yet \u2014 ordered by readiness."
+      "description": "See only the PRs where you are a required reviewer, the build is passing, and no other required reviewer has voted yet — ordered by readiness."
     },
     {
       "name": "Sprint Velocity Trend",
       "command": "velocity",
-      "description": "See sprint-over-sprint velocity with trend line for the current team \u2014 points completed vs committed, across the last N sprints."
+      "description": "See sprint-over-sprint velocity with trend line for the current team — points completed vs committed, across the last N sprints."
     },
     {
       "name": "Sprint Scope Creep Detector",
@@ -42,7 +46,7 @@
     {
       "name": "Sprint Rollover Counter",
       "command": "work rollover",
-      "description": "Find work items that have been moved to a new sprint more than once \u2014 the chronic blockers that keep slipping through sprint planning."
+      "description": "Find work items that have been moved to a new sprint more than once — the chronic blockers that keep slipping through sprint planning."
     },
     {
       "name": "Cross-Pipeline Pending Approvals",
@@ -52,17 +56,17 @@
     {
       "name": "Work Item Revision Diff",
       "command": "work diff",
-      "description": "Show exactly which fields changed between two revisions of a work item \u2014 a git-style diff for specification and acceptance criteria."
+      "description": "Show exactly which fields changed between two revisions of a work item — a git-style diff for specification and acceptance criteria."
     },
     {
       "name": "Pipeline Flakiness Score",
       "command": "pipeline flaky",
-      "description": "Identify build stages with the highest intermittent failure rate over the last N runs \u2014 the stages that fail and then pass without code changes."
+      "description": "Identify build stages with the highest intermittent failure rate over the last N runs — the stages that fail and then pass without code changes."
     },
     {
       "name": "Work Item Cycle Time",
       "command": "wit cycle-time",
-      "description": "Measure average time from Active to Done per work item type over a date range \u2014 the team's true delivery throughput."
+      "description": "Measure average time from Active to Done per work item type over a date range — the team's true delivery throughput."
     },
     {
       "name": "Commit-to-Build Traceability",
@@ -72,17 +76,17 @@
     {
       "name": "Cross-Repo Branch Health",
       "command": "git branch-health",
-      "description": "See a health dashboard for every repo in the project: default branch build status, last commit age, and open PR count \u2014 in one table."
+      "description": "See a health dashboard for every repo in the project: default branch build status, last commit age, and open PR count — in one table."
     },
     {
       "name": "Area Path Work Item Load",
       "command": "work area-load",
-      "description": "See open work item counts and total story points grouped by area path \u2014 to spot overloaded teams or abandoned backlogs."
+      "description": "See open work item counts and total story points grouped by area path — to spot overloaded teams or abandoned backlogs."
     },
     {
       "name": "PR Aging Report",
       "command": "pr aging",
-      "description": "Find pull requests with no reviewer activity for N or more days, grouped by author \u2014 to surface forgotten PRs before they go stale."
+      "description": "Find pull requests with no reviewer activity for N or more days, grouped by author — to surface forgotten PRs before they go stale."
     },
     {
       "name": "Branch Stale Cleanup Plan",
@@ -92,7 +96,7 @@
     {
       "name": "Build Cost Trend",
       "command": "builds cost",
-      "description": "See agent minutes consumed per pipeline per week over the last N weeks \u2014 to find pipelines that are growing in CI cost."
+      "description": "See agent minutes consumed per pipeline per week over the last N weeks — to find pipelines that are growing in CI cost."
     }
   ]
 }

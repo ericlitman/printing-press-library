@@ -7,6 +7,7 @@ Every other way to script a WalkingPad lives inside a phone app or a Home Assist
 It is **device-native**: commands map to BLE device capabilities, not HTTP endpoints. By default it runs replay-backed and never opens a connection, so reading, history, and analytics commands work anywhere and verification never actuates real hardware. Controlling a physical belt requires a binary built with `-tags ble_live` plus the `--live` flag — see [Live device control](#live-device-control-ble).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

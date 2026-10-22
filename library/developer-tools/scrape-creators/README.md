@@ -7,6 +7,7 @@ Wrap all 114 Scrape Creators endpoints across 23 platforms — TikTok, Instagram
 Learn more at [Scrape Creators](https://scrapecreators.com).
 
 Created by [@adrianhorning08](https://github.com/adrianhorning08) (Adrian Horning).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

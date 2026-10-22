@@ -2,7 +2,12 @@
   "api_name": "walkingpad",
   "category": "devices",
   "cli_name": "walkingpad-pp-cli",
-  "contributors": [],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ],
   "creator": {
     "handle": "tmchow",
     "name": "Trevin Chow"

@@ -60,5 +60,11 @@
       "command": "bundle",
       "description": "Bundle a symbol's Markdown plus its depth-1 See-Also pages into a single token-budgeted blob, ready to paste into an agent prompt."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

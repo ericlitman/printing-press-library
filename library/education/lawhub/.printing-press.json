@@ -13,6 +13,10 @@
     {
       "handle": "tmchow",
       "name": "Trevin Chow"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ],
   "description": "Local-first LSAT practice analytics from authenticated LawHub score metadata, with SQLite, weakness reports, question notes, and safe review links back to LawHub.",

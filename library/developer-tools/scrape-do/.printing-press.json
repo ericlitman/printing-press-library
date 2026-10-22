@@ -52,5 +52,11 @@
       "command": "movers",
       "description": "Scan every tracked query's latest-versus-previous SERP snapshot and surface only the queries whose top positions moved past a threshold."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -36,5 +36,11 @@
       "command": "site",
       "description": "Use site, website, pages, and store-pages aliases over the generated Commerce API website profile and store pages endpoints."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

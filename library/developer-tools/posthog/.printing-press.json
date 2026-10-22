@@ -67,5 +67,11 @@
       "command": "dashboard health",
       "description": "Find broken dashboards before a stakeholder meeting does — stale data, deleted cohorts, archived flags."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

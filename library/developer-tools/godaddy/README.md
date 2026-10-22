@@ -3,6 +3,7 @@
 Combined CLI for multiple API services
 
 Created by [@zaydiscold](https://github.com/zaydiscold) (zaydiscold).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

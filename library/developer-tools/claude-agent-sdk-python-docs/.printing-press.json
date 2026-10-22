@@ -60,5 +60,11 @@
       "command": "audit-links",
       "description": "Validate internal anchors, guide links, and section references in the fetched docs corpus."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

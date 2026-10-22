@@ -4,6 +4,8 @@
 
 Pulls your weight/body-composition, activity, sleep, heart/ECG and workouts from the official Withings API into a local SQLite store you can search, query with SQL, and export as JSON or CSV. On top of that it adds local-join analytics — `recomp`, `recovery`, `bp-report`, `sleep debt`, `digest`, `correlate` — that no single API call can produce.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `withings-pp-cli` binary and the `pp-withings` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

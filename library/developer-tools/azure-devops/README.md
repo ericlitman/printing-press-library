@@ -4,6 +4,8 @@
 
 azure-devops-pp-cli syncs your work items, builds, and PRs to a local SQLite mirror and lets you query them with SQL or structured --agent output. It matches everything `az devops` and the Microsoft MCP server can do, then adds fifteen cross-entity analytics commands that require no live API calls — sprint velocity, PR review queues, scope creep detection, cycle time analysis, and more.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `azure-devops-pp-cli` binary and the `pp-azure-devops` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

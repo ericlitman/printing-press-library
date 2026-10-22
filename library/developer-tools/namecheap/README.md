@@ -7,6 +7,7 @@ Generation uses command-shaped pseudo paths that are normalized back to `/xml.re
 by the Namecheap printed CLI patch layer.
 
 Created by [@cathryn-lavery](https://github.com/cathryn-lavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

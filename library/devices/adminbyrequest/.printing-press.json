@@ -60,5 +60,11 @@
       "command": "inventory risk-score",
       "description": "Score each endpoint by elevation frequency, local-admin count, and AbR client version recency."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

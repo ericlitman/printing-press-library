@@ -5,6 +5,7 @@
 Pull audit log, events, inventory and requests into a local store with one sync, then approve or deny elevations, generate offline PIN codes, and answer cross-resource questions (repeat requestors, agent-version drift, audit/event correlation) the portal does not surface.
 
 Created by [@joltsconsulting](https://github.com/joltsconsulting) (joltsconsulting).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

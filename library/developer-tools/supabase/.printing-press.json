@@ -64,5 +64,11 @@
       "command": "auth-admin recent",
       "description": "Iterate synced projects, call Auth Admin per project, aggregate users created within the window into one table."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -3,6 +3,7 @@
 Squarespace Commerce API coverage plus browser-backed account dashboard reads for domains, DNS records, email forwarding, Google Workspace pricing, and domain billing metadata.
 
 Created by [@zaydiscold](https://github.com/zaydiscold) (Zayd).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

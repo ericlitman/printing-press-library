@@ -16,7 +16,7 @@
     {
       "name": "Delivery Spike Detector",
       "command": "delivery-spike",
-      "description": "Flags stocks where today's delivery-to-traded ratio is significantly above their 20-session rolling average \u2014 early signal of institutional accumulation."
+      "description": "Flags stocks where today's delivery-to-traded ratio is significantly above their 20-session rolling average — early signal of institutional accumulation."
     },
     {
       "name": "Pre-Market IEP Drift Analyzer",
@@ -26,17 +26,17 @@
     {
       "name": "Announcement Flood Detector",
       "command": "announcement-flood",
-      "description": "Surfaces companies whose filing cadence has spiked above their own historical baseline \u2014 a leading indicator of imminent corporate actions like rights issues or mergers."
+      "description": "Surfaces companies whose filing cadence has spiked above their own historical baseline — a leading indicator of imminent corporate actions like rights issues or mergers."
     },
     {
       "name": "Sector Breadth Analyzer",
       "command": "sector-breadth",
-      "description": "Computes advance/decline ratio, median pChange, and delivery breadth for every constituent of a named index \u2014 far richer than the index headline number."
+      "description": "Computes advance/decline ratio, median pChange, and delivery breadth for every constituent of a named index — far richer than the index headline number."
     },
     {
       "name": "Index Basket Contributor",
       "command": "index-driver",
-      "description": "Decomposes any day's index move into per-stock point contributions \u2014 identifies the 3-5 stocks driving 80%+ of the index change."
+      "description": "Decomposes any day's index move into per-stock point contributions — identifies the 3-5 stocks driving 80%+ of the index change."
     },
     {
       "name": "Portfolio P&L Tracker",
@@ -46,15 +46,21 @@
     {
       "name": "Portfolio Margin Health Dashboard",
       "command": "portfolio margin-health",
-      "description": "Aggregates VaR margin, extreme loss margin, and adhoc margin across a full portfolio \u2014 shows total margin-at-risk and which holdings are the biggest margin consumers."
+      "description": "Aggregates VaR margin, extreme loss margin, and adhoc margin across a full portfolio — shows total margin-at-risk and which holdings are the biggest margin consumers."
     },
     {
       "name": "Delivery-Price Divergence Scanner",
       "command": "delivery-divergence",
-      "description": "Detects when price is rising but delivery % is falling (distribution signal) or price falling while delivery is rising (accumulation signal) \u2014 separates smart money from retail."
+      "description": "Detects when price is rising but delivery % is falling (distribution signal) or price falling while delivery is rising (accumulation signal) — separates smart money from retail."
     }
   ],
   "category": "developer-tools",
   "printer": "lavs9",
-  "printer_name": "Mayank Lavania"
+  "printer_name": "Mayank Lavania",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

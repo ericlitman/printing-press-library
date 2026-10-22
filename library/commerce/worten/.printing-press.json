@@ -45,5 +45,11 @@
   "schema_version": 1,
   "spec_checksum": "sha256:7bc0265f483455b86c859cea553ec1941d177818e0aa31bd475e61209ef16236",
   "spec_format": "openapi3",
-  "spec_path": "worten-openapi.yaml"
+  "spec_path": "worten-openapi.yaml",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

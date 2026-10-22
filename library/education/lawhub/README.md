@@ -34,6 +34,7 @@ Not stored:
 Use `review open` to view official content in LawHub.
 
 Created by [@nolan](https://github.com/nolan) (Nolan McCafferty).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

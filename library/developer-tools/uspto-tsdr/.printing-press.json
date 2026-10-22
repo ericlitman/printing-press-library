@@ -56,5 +56,11 @@
       "command": "trademark docs",
       "description": "List all documents in the prosecution file — office actions, responses, specimens, registration certificates — with type and date filtering"
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

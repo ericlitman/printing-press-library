@@ -5,6 +5,7 @@ API for interacting with Firecrawl services to perform web scraping and crawling
 Learn more at [Firecrawl](https://firecrawl.dev/support).
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
