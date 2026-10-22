@@ -57,5 +57,11 @@
       "command": "insights subscriber-lookup",
       "description": "Find one subscriber by email or subscription ID and return a compact subscriber record."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

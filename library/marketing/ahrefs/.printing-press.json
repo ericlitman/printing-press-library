@@ -55,5 +55,11 @@
       "description": "Compare keyword search volume across countries from Ahrefs Keywords Explorer."
     }
   ],
-  "catalog_description": "Explore Ahrefs SEO data from the terminal: backlinks, keywords, rank tracking, site audits, SERPs, usage limits, and crawler IP ranges."
+  "catalog_description": "Explore Ahrefs SEO data from the terminal: backlinks, keywords, rank tracking, site audits, SERPs, usage limits, and crawler IP ranges.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

@@ -62,5 +62,11 @@
       "command": "orders plan",
       "description": "Given the number of people and a saved address, suggest a complete order plan: best store, delivery slot, sized cart contents, and the optimal discount stack."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

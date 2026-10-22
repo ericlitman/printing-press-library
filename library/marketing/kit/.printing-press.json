@@ -56,5 +56,11 @@
       "description": "Read-only subscriber dossier by email or id with profile, custom fields, tags, attribution, and email stats."
     }
   ],
-  "catalog_description": "Operate Kit email marketing from the terminal: subscribers, tags, forms, sequences, broadcasts, purchases, snapshots, and audience health."
+  "catalog_description": "Operate Kit email marketing from the terminal: subscribers, tags, forms, sequences, broadcasts, purchases, snapshots, and audience health.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

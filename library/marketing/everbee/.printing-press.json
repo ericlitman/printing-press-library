@@ -67,5 +67,11 @@
       "command": "listing audit",
       "description": "Audit a listing's keyword and tag fit using EverBee-derived product and keyword context."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

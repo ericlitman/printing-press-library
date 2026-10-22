@@ -84,5 +84,11 @@
       "command": "category-top",
       "description": "Ranks the companies in a Trustpilot category by TrustScore (with an optional minimum-review floor)."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -3,6 +3,7 @@
 Read-first Braze REST API surface for marketing analytics, campaign inspection, content assets, and catalog lookup.
 
 Created by [@debgotwired](https://github.com/debgotwired) (Deb Mukherjee).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -7,6 +7,7 @@ Search Allrecipes' 250k-recipe corpus from the command line, fetch a full recipe
 Learn more at [Allrecipes](https://www.allrecipes.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

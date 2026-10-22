@@ -64,5 +64,11 @@
       "command": "deliveries triage",
       "description": "Filter live + local deliveries by template + status + window, write a self-contained bundle (summary.md with SQL group-by error reasons, deliveries.jsonl, recipients.txt) ready to paste into an incident doc."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

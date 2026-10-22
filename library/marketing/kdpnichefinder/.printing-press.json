@@ -59,5 +59,11 @@
       "command": "keywords",
       "description": "Tokenize synced book titles and count keyword frequency to surface hot terms for a niche."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -7,6 +7,7 @@ Built on Wolt's unauthenticated consumer endpoints discovered via reverse
 engineering (OzTamir gist + live browser-sniff). No login, no cart, no orders.
 
 Created by [@Amit-Tabibi](https://github.com/Amit-Tabibi) (Amit).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

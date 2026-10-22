@@ -5,6 +5,7 @@ SEO and competitive intelligence API for backlinks, keywords, rank tracking, sit
 Learn more at [Ahrefs](https://docs.ahrefs.com/docs/api/reference/introduction).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

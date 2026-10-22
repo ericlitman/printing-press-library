@@ -11,6 +11,7 @@ A standalone cafe locator and a few editorial-overlay commands remain Phase 3 fo
 Learn more at [Coffee GOAT](https://github.com/mvanhorn/printing-press-library).
 
 Created by [@justinwfu](https://github.com/justinwfu) (Justin Fu).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

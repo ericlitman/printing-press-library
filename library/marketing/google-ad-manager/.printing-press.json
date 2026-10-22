@@ -67,5 +67,11 @@
       "command": "lineitem pace",
       "description": "Join read-only line-item goals against a delivery report to show each line item's pace versus goal, ranked by risk."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

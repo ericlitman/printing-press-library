@@ -7,6 +7,7 @@ EverBee is strongest inside an interactive browser. This CLI turns captured prod
 Learn more at [EverBee](https://api.everbee.com).
 
 Created by [@horknfbr](https://github.com/horknfbr) (horknfbr).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -43,5 +43,11 @@
     }
   ],
   "printer": "pejmanjohn",
-  "owner_name": "Pejman Pour-Moezzi"
+  "owner_name": "Pejman Pour-Moezzi",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

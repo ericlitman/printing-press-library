@@ -51,5 +51,11 @@
       "command": "workflow",
       "description": "Chain multiple Oura API operations into one agent-friendly command"
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

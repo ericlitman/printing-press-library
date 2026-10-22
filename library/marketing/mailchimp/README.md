@@ -7,6 +7,7 @@ Mailchimp's REST API has 291 endpoints and an SDK in every language, but compose
 Learn more at [Mailchimp](https://mailchimp.com/developer/marketing/).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -7,6 +7,7 @@ Pulls public Trustpilot reviews into a local SQLite store with FTS5 over titles,
 Learn more at [Trustpilot](https://www.trustpilot.com).
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

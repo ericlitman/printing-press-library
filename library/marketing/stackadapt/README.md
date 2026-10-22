@@ -5,6 +5,7 @@
 StackAdapt is a programmatic advertising platform. This read-only CLI queries your advertisers, campaigns, ads, audiences, and delivery reporting straight from the StackAdapt GraphQL API and answers questions the dashboard shows one screen at a time and the warehouse connectors only dump raw rows for: which campaigns are under-pacing, whose CTR has drifted, where budget is being wasted. It does not change anything in StackAdapt (read-only); it tells you what your campaigns are doing.
 
 Created by [@sdhilip200](https://github.com/sdhilip200) (Dhilip Subramanian).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

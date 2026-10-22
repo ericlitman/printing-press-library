@@ -7,6 +7,7 @@ trendhunter-pp-cli scrapes the free public TrendHunter surface (RSS feed, sitema
 Learn more at [Trend Hunter](https://www.trendhunter.com).
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

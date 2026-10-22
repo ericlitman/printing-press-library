@@ -43,7 +43,7 @@
     {
       "name": "Coverage drift",
       "command": "coverage-drift",
-      "description": "URLs whose inspection state flipped (indexed \u2192 not indexed, robots changed, canonical changed) within a window."
+      "description": "URLs whose inspection state flipped (indexed → not indexed, robots changed, canonical changed) within a window."
     },
     {
       "name": "Historical query (>16 months)",
@@ -63,7 +63,7 @@
     {
       "name": "Decaying pages",
       "command": "decaying",
-      "description": "Pages with monotonic click decline over a rolling window, ranked by total impressions \u00d7 negative slope -- the content-refresh queue."
+      "description": "Pages with monotonic click decline over a rolling window, ranked by total impressions × negative slope -- the content-refresh queue."
     },
     {
       "name": "New queries arriving",
@@ -76,5 +76,11 @@
   "owner": "bossriceshark",
   "category": "marketing",
   "description": "Every Google Search Console feature you'd reach for, plus an offline SQLite cache that powers quick-wins, cannibalization, period compare, and historical queries beyond the 16-month API window.",
-  "spec_url": "https://searchconsole.googleapis.com/$discovery/rest?version=v1"
+  "spec_url": "https://searchconsole.googleapis.com/$discovery/rest?version=v1",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

@@ -9,7 +9,7 @@
   "printer": "mvanhorn",
   "printer_name": "Matt Van Horn",
   "display_name": "Domino's",
-  "description": "Order pizza, browse menus, optimize deals, and track delivery from your terminal \u2014 with a local SQLite store that powers reorder, price comparison, and deal stacking no other Domino's tool offers.",
+  "description": "Order pizza, browse menus, optimize deals, and track delivery from your terminal — with a local SQLite store that powers reorder, price comparison, and deal stacking no other Domino's tool offers.",
   "category": "food-and-dining",
   "generated_at": "2026-05-06T04:28:29Z",
   "run_id": "20260505-175548",
@@ -54,7 +54,7 @@
     {
       "name": "Named order templates",
       "command": "template save",
-      "description": "Save your usual order \u2014 store, address, items, toppings, payment ref \u2014 and replay it with one command.",
+      "description": "Save your usual order — store, address, items, toppings, payment ref — and replay it with one command.",
       "rationale": "Requires SQLite-persisted templates that survive across sessions; no existing wrapper persists named orders.",
       "example": "dominos-pp-cli template save friday-night --from-cart && dominos-pp-cli template order friday-night --eta-watch --json",
       "why_it_matters": "Reach for this when an agent or user wants a one-command repeat of a known-good order without rebuilding the cart from scratch.",
@@ -64,7 +64,7 @@
       "name": "Smart reorder with substitution",
       "command": "reorder",
       "description": "Replay your last order against today's menu; FTS-substitute items the menu rotated out so the order still goes through.",
-      "rationale": "Joins synced order history with the current menu's FTS5 index \u2014 neither piece exists in any wrapper alone.",
+      "rationale": "Joins synced order history with the current menu's FTS5 index — neither piece exists in any wrapper alone.",
       "example": "dominos-pp-cli reorder --last --substitute-unavailable --dry-run --json",
       "why_it_matters": "Reach for this when a saved-order-style replay must survive Domino's menu rotation; substitution avoids the 'this item is no longer available' failure.",
       "group": "Local state that compounds"
@@ -90,7 +90,7 @@
     {
       "name": "Multi-store wait-time scoreboard",
       "command": "stores wait",
-      "description": "Pull CartEtaMinutes for every store in radius and rank by ETA \u2014 the unique GraphQL BFF op every other wrapper ignores.",
+      "description": "Pull CartEtaMinutes for every store in radius and rank by ETA — the unique GraphQL BFF op every other wrapper ignores.",
       "rationale": "CartEtaMinutes is reverse-engineered and absent from every existing wrapper; combining it across stores is novel.",
       "example": "dominos-pp-cli stores wait --address \"421 N 63rd St\" --city \"Seattle WA\" --agent",
       "why_it_matters": "Reach for this when busy-hour delivery decisions need accurate wait estimates rather than a phone call to the store.",
@@ -99,7 +99,7 @@
     {
       "name": "Live delivery tracker with polling",
       "command": "track",
-      "description": "Stream Domino's tracker stages \u2014 placed \u2192 prep \u2192 bake \u2192 quality check \u2192 out \u2192 delivered \u2014 until the order arrives.",
+      "description": "Stream Domino's tracker stages — placed → prep → bake → quality check → out → delivered — until the order arrives.",
       "rationale": "node-dominos has single-shot tracker only; status-transition streaming requires interval polling and state diffing.",
       "example": "dominos-pp-cli track --phone 2065551234 --watch --interval 30s --agent",
       "why_it_matters": "Reach for this when an agent or user wants to know precisely when a placed order changes stage without holding open a browser tab.",
@@ -108,7 +108,7 @@
     {
       "name": "One-shot agent order",
       "command": "order-quick",
-      "description": "Replay a template, validate, price, place (with --confirm), and tail the tracker \u2014 all in one command emitting a final JSON envelope.",
+      "description": "Replay a template, validate, price, place (with --confirm), and tail the tracker — all in one command emitting a final JSON envelope.",
       "rationale": "Composes existing primitives into the single agent-shaped affordance Ace persona explicitly asked for.",
       "example": "dominos-pp-cli order-quick --template friday-night --confirm --eta-watch --json",
       "why_it_matters": "Reach for this when an agent or automation wants to trigger an order and exit cleanly with structured `{order_id, eta_min, total, tracker_phone}` output.",
@@ -137,7 +137,7 @@
     {
       "name": "Named order templates",
       "command": "template save",
-      "description": "Save your usual order \u2014 store, address, items, toppings, payment ref \u2014 and replay it with one command.",
+      "description": "Save your usual order — store, address, items, toppings, payment ref — and replay it with one command.",
       "rationale": "Requires SQLite-persisted templates that survive across sessions; no existing wrapper persists named orders.",
       "example": "dominos-pp-cli template save friday-night --from-cart && dominos-pp-cli template order friday-night --eta-watch --json",
       "why_it_matters": "Reach for this when an agent or user wants a one-command repeat of a known-good order without rebuilding the cart from scratch.",
@@ -147,7 +147,7 @@
       "name": "Smart reorder with substitution",
       "command": "reorder",
       "description": "Replay your last order against today's menu; FTS-substitute items the menu rotated out so the order still goes through.",
-      "rationale": "Joins synced order history with the current menu's FTS5 index \u2014 neither piece exists in any wrapper alone.",
+      "rationale": "Joins synced order history with the current menu's FTS5 index — neither piece exists in any wrapper alone.",
       "example": "dominos-pp-cli reorder --last --substitute-unavailable --dry-run --json",
       "why_it_matters": "Reach for this when a saved-order-style replay must survive Domino's menu rotation; substitution avoids the 'this item is no longer available' failure.",
       "group": "Local state that compounds"
@@ -173,7 +173,7 @@
     {
       "name": "Multi-store wait-time scoreboard",
       "command": "stores wait",
-      "description": "Pull CartEtaMinutes for every store in radius and rank by ETA \u2014 the unique GraphQL BFF op every other wrapper ignores.",
+      "description": "Pull CartEtaMinutes for every store in radius and rank by ETA — the unique GraphQL BFF op every other wrapper ignores.",
       "rationale": "CartEtaMinutes is reverse-engineered and absent from every existing wrapper; combining it across stores is novel.",
       "example": "dominos-pp-cli stores wait --address \"421 N 63rd St\" --city \"Seattle WA\" --agent",
       "why_it_matters": "Reach for this when busy-hour delivery decisions need accurate wait estimates rather than a phone call to the store.",
@@ -182,7 +182,7 @@
     {
       "name": "Live delivery tracker with polling",
       "command": "track",
-      "description": "Stream Domino's tracker stages \u2014 placed \u2192 prep \u2192 bake \u2192 quality check \u2192 out \u2192 delivered \u2014 until the order arrives.",
+      "description": "Stream Domino's tracker stages — placed → prep → bake → quality check → out → delivered — until the order arrives.",
       "rationale": "node-dominos has single-shot tracker only; status-transition streaming requires interval polling and state diffing.",
       "example": "dominos-pp-cli track --phone 2065551234 --watch --interval 30s --agent",
       "why_it_matters": "Reach for this when an agent or user wants to know precisely when a placed order changes stage without holding open a browser tab.",
@@ -191,7 +191,7 @@
     {
       "name": "One-shot agent order",
       "command": "order-quick",
-      "description": "Replay a template, validate, price, place (with --confirm), and tail the tracker \u2014 all in one command emitting a final JSON envelope.",
+      "description": "Replay a template, validate, price, place (with --confirm), and tail the tracker — all in one command emitting a final JSON envelope.",
       "rationale": "Composes existing primitives into the single agent-shaped affordance Ace persona explicitly asked for.",
       "example": "dominos-pp-cli order-quick --template friday-night --confirm --eta-watch --json",
       "why_it_matters": "Reach for this when an agent or automation wants to trigger an order and exit cleanly with structured `{order_id, eta_min, total, tracker_phone}` output.",
@@ -214,6 +214,12 @@
       "example": "dominos-pp-cli analytics --period 90d --group-by item --agent",
       "why_it_matters": "Reach for this when 'how much have I spent on pizza this quarter' or 'what are my top 3 items' is the question. Powered entirely by the local SQLite order history.",
       "group": "Local state that compounds"
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

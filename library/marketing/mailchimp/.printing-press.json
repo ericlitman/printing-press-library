@@ -38,7 +38,7 @@
     {
       "name": "Campaign performance digest (single + rollup)",
       "command": "digest",
-      "description": "Single-campaign mode (digest \u003cid\u003e) joins report + email-activity + ecommerce-product-activity into one summary with opens/clicks/bounces/revenue + top-clicked links + top-converted products. Rollup mode (digest --last N or --week) renders a multi-campaign summary table with aggregate stats. --md renders either as paste-ready markdown."
+      "description": "Single-campaign mode (digest <id>) joins report + email-activity + ecommerce-product-activity into one summary with opens/clicks/bounces/revenue + top-clicked links + top-converted products. Rollup mode (digest --last N or --week) renders a multi-campaign summary table with aggregate stats. --md renders either as paste-ready markdown."
     },
     {
       "name": "Segment health audit",
@@ -64,6 +64,12 @@
       "name": "Head-to-head campaign comparison",
       "command": "compare",
       "description": "Side-by-side metric diff for two campaigns. Fetches both campaigns' report + email-activity in parallel, renders open rate / CTR / click-to-open / bounces / unsubscribes / revenue with a winner per metric, computes delta, and surfaces top differences (subject line, send time, audience size). --md renders as paste-ready markdown."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

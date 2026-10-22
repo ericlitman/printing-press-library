@@ -67,5 +67,11 @@
       "command": "automations trigger-batch",
       "description": "Queue an automation for many contacts from stdin or CSV, paced under the rate limit with retry on 429."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }
