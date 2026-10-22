@@ -7,6 +7,7 @@ Every Spotify Web API endpoint is reachable from one static binary with --json a
 Learn more at [Spotify](https://github.com/sonallux/spotify-web-api).
 
 Created by [@rob-coco](https://github.com/rob-coco) (Rob Zehner).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

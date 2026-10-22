@@ -35,5 +35,11 @@
       "command": "watch",
       "description": "Polling periodico dello stato scrutini per tutti i comuni, con alert su avanzamento."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

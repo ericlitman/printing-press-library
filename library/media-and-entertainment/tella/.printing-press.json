@@ -13,6 +13,10 @@
     {
       "handle": "cathrynlavery",
       "name": "Cathryn Lavery"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ],
   "owner": "",
@@ -44,7 +48,7 @@
     {
       "name": "Webhook tail + replay",
       "command": "webhooks tail",
-      "description": "Stream new webhook events from the inbox to stdout, and replay any prior message to a local URL with valid HMAC headers \u2014 no public tunnel needed."
+      "description": "Stream new webhook events from the inbox to stdout, and replay any prior message to a local URL with valid HMAC headers — no public tunnel needed."
     },
     {
       "name": "Bulk standard edit pass",

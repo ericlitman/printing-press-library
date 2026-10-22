@@ -9,6 +9,7 @@ Learn more at [YouTube Data API v3](https://developers.google.com/youtube/v3).
 **Sample use case:** [justinwfu/pictovideo](https://github.com/justinwfu/pictovideo) — photo-keywords → candidate-video → embedded blog draft pipeline using this CLI.
 
 Created by [@justinwfu](https://github.com/justinwfu) (Justin).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

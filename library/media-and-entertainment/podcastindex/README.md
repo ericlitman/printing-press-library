@@ -7,6 +7,7 @@ Every existing PodcastIndex tool is a language SDK that mirrors the endpoints an
 Learn more at [PodcastIndex](https://podcastindex.org/).
 
 Created by [@adbonnet](https://github.com/adbonnet).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

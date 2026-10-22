@@ -78,5 +78,11 @@
       "command": "play-trend",
       "description": "Show concurrent-player count over time for one app as a sparkline plus min/max/last over a rolling window — value scales with how often you sample."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

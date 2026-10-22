@@ -21,6 +21,7 @@ query shape and is intentionally left as a follow-up.
 Learn more at [Metacritic](https://www.metacritic.com).
 
 Created by [@coopdogGGs](https://github.com/coopdogGGs) (Ryan Cooper).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

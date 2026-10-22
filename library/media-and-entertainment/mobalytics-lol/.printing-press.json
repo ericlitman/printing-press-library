@@ -13,17 +13,17 @@
     {
       "name": "Counter-pool analysis",
       "command": "counter-pool",
-      "description": "Given our champion pool and the enemy pool, return the full matchup matrix ranked by WR delta with sample-size floor \u2014 the SQL coaches do in their head."
+      "description": "Given our champion pool and the enemy pool, return the full matchup matrix ranked by WR delta with sample-size floor — the SQL coaches do in their head."
     },
     {
       "name": "Patch meta-shift",
       "command": "meta-shift",
-      "description": "Diff two tier_snapshots and list champions that gained or lost \u22651 tier or \u22652% WR since a prior patch, with sample-size guard."
+      "description": "Diff two tier_snapshots and list champions that gained or lost ≥1 tier or ≥2% WR since a prior patch, with sample-size guard."
     },
     {
       "name": "Head-to-head champion compare",
       "command": "compare",
-      "description": "Side-by-side join across tier, build, counters, and matchups for two champions \u2014 including item-overlap percentage."
+      "description": "Side-by-side join across tier, build, counters, and matchups for two champions — including item-overlap percentage."
     },
     {
       "name": "ARAM batch item-set export",
@@ -33,30 +33,36 @@
     {
       "name": "Duo-finder with candidate-pool filter",
       "command": "duo-finder",
-      "description": "Best support pairings for a given ADC, restricted to a candidate support pool \u2014 coaches' player pools are fixed."
+      "description": "Best support pairings for a given ADC, restricted to a candidate support pool — coaches' player pools are fixed."
     },
     {
       "name": "Personal pool tier digest",
       "command": "pool-digest",
-      "description": "For each champion in your pool: current tier, WR delta since last patch, top-1 counter, top-1 synergy \u2014 all in one composite query."
+      "description": "For each champion in your pool: current tier, WR delta since last patch, top-1 counter, top-1 synergy — all in one composite query."
     },
     {
       "name": "Power-spike phase filter",
       "command": "power-spike",
-      "description": "List champions ranked by early/mid/late spike strength for a chosen role \u2014 inverts Mobalytics's per-champion data into a leaderboard."
+      "description": "List champions ranked by early/mid/late spike strength for a chosen role — inverts Mobalytics's per-champion data into a leaderboard."
     },
     {
       "name": "Flex-pick detector",
       "command": "flex",
-      "description": "Champions that are \u2265A-tier in 2+ roles for the same patch and rank \u2014 the SQL no aggregator surfaces because they index by role first."
+      "description": "Champions that are ≥A-tier in 2+ roles for the same patch and rank — the SQL no aggregator surfaces because they index by role first."
     },
     {
       "name": "Region-split tier compare",
       "command": "tier-list",
-      "description": "Same patch, same rank \u2014 three regions side-by-side. Surfaces pick-priority drift between KR/EUW/NA that no aggregator defaults to."
+      "description": "Same patch, same rank — three regions side-by-side. Surfaces pick-priority drift between KR/EUW/NA that no aggregator defaults to."
     }
   ],
   "category": "media-and-entertainment",
   "printer": "QuantumGlitch",
-  "printer_name": "QuantumGlitch"
+  "printer_name": "QuantumGlitch",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

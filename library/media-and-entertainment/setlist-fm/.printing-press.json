@@ -16,6 +16,10 @@
     {
       "handle": "mvanhorn",
       "name": "Matt Van Horn"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ],
   "spec_format": "openapi3",
@@ -101,7 +105,7 @@
     {
       "name": "Spotify playlist export",
       "command": "playlist",
-      "description": "Generate a Spotify playlist from an artist's most recent setlist (or merged last N setlists) \u2014 output as CSV, M3U, or Spotify-search URIs, or use the Spotify Web API to create the playlist directly."
+      "description": "Generate a Spotify playlist from an artist's most recent setlist (or merged last N setlists) — output as CSV, M3U, or Spotify-search URIs, or use the Spotify Web API to create the playlist directly."
     }
   ],
   "run_id": "20260520-142155",

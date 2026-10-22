@@ -38,5 +38,11 @@
       "description": "List the active LLM model names available through Sentry Seer."
     }
   ],
-  "catalog_description": "Inspect Sentry organizations, projects, issues, events, releases, and Seer metadata for error tracking and performance monitoring."
+  "catalog_description": "Inspect Sentry organizations, projects, issues, events, releases, and Seer metadata for error tracking and performance monitoring.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

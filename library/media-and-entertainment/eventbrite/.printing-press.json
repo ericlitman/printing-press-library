@@ -71,5 +71,11 @@
       "command": "fan-export",
       "description": "Exports unique attendee contacts (email, name, events attended, check-in status), deduped across all your events and filterable by event."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

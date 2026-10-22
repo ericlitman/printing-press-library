@@ -42,5 +42,11 @@
       "description": "Search across synced DefiLlama data or live API resources from one command."
     }
   ],
-  "spec_source": "official"
+  "spec_source": "official",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

@@ -5,6 +5,7 @@
 Setlist.fm rate-limits to 2 requests per second and 1,440 per day, which makes any real analytics workflow impossible against the live API. This CLI syncs an artist's full setlist history to a local SQLite store once, then runs every transcendence query — predict, overdue, tour shape, song gap, covers, attended stats — instantly and offline. Six SDK wrappers exist across five languages; none of them store anything. This one does.
 
 Created by [@davemorin](https://github.com/davemorin) (Dave Morin).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

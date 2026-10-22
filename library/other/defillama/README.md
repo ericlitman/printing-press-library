@@ -41,6 +41,7 @@ protocols = client.tvl.getProtocols()
 ```
 
 Created by [@kierandotai](https://github.com/kierandotai) (kierandotai).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

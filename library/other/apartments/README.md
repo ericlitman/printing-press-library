@@ -7,6 +7,7 @@ Search every Apartments.com listing path-slug from the terminal, sync results to
 Learn more at [Apartments.com](https://www.apartments.com).
 
 Created by [@rderwin](https://github.com/rderwin) (rderwin).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

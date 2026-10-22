@@ -81,5 +81,11 @@
       "command": "collaborators",
       "description": "List people who appear in 2+ of a person's credits, with count and titles."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

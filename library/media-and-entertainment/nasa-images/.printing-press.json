@@ -68,5 +68,11 @@
       "command": "citation",
       "description": "Generates a ready-to-paste citation string (APA / MLA / Chicago) from cached metadata (photographer, date, center, nasa_id, URL)."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

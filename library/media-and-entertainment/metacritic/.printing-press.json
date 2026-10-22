@@ -43,5 +43,11 @@
       "command": "workflow",
       "description": "Chain multiple API operations (browse, detail, reviews) into one agent-friendly command."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

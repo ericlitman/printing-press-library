@@ -7,6 +7,7 @@ Most PokéAPI clients cache one request at a time. This CLI syncs the entire dat
 Learn more at [PokéAPI](https://pokeapi.co/docs/v2).
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

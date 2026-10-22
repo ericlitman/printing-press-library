@@ -15,6 +15,7 @@ or raw Kindle highlight text.
 Learn more at [Goodreads](https://www.goodreads.com).
 
 Created by [@zaydiscold](https://github.com/zaydiscold) (zaydiscold).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

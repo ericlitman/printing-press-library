@@ -42,5 +42,11 @@
       "command": "categories",
       "description": "Summarize category counts in the current feed for quick topical orientation."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

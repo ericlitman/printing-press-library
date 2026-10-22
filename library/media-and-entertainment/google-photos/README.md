@@ -5,6 +5,7 @@ Google Photos Library and Picker APIs for app-created media, albums, uploads, an
 Learn more at [Google Photos](https://developers.google.com/photos).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

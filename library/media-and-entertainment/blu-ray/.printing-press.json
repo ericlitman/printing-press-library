@@ -50,5 +50,11 @@
   "schema_version": 1,
   "spec_checksum": "sha256:67dbbf5c18ff5633f7336cca68fa0edb47e9afe64af0c91a1e578784b584c7bf",
   "spec_format": "internal",
-  "spec_path": "blu-ray-spec.yaml"
+  "spec_path": "blu-ray-spec.yaml",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

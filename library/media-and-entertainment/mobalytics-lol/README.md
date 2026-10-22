@@ -7,6 +7,7 @@ mobalytics-lol-pp-cli pulls champion data, builds, runes, counters, and tier rat
 Learn more at [Mobalytics LoL](https://mobalytics.gg/lol).
 
 Created by [@QuantumGlitch](https://github.com/QuantumGlitch) (QuantumGlitch).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

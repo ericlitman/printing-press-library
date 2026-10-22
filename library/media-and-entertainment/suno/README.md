@@ -5,6 +5,7 @@
 Suno has no official API and every reverse-engineered client is abandoned and wrong in ways that matter today: broken pagination, broken cover, stale pre-2026 auth, no local persistence. This CLI is built from the current contract. It walks the real opaque feed cursor, sends the now-required cover title, tolerates the drifted billing schema, authenticates against the current auth.suno.com Clerk flow via your logged-in browser, and persists your whole library to local SQLite for offline grep, SQL, lineage, and analytics. Generate, extend, cover, remaster, stems, lyrics, WAV download, and workspaces, all with --json, --select, --dry-run, and typed exit codes.
 
 Printed by [@horknfbr](https://github.com/horknfbr) (horknfbr).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

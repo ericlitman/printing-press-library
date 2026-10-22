@@ -59,5 +59,11 @@
       "command": "tail",
       "description": "Stream live data changes by polling the API at configurable intervals, emitting NDJSON to stdout"
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

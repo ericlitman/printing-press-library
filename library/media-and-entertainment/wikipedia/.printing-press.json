@@ -32,5 +32,11 @@
       "command": "feed",
       "description": "Explore on-this-day events as a ready-made discovery workflow."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

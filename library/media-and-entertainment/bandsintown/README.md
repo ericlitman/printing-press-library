@@ -7,6 +7,7 @@ Every existing Bandsintown wrapper is a 10-year-old language binding for the sam
 Learn more at [Bandsintown](https://bandsintown.com/).
 
 Created by [@4.5.2](https://github.com/4.5.2) (printing-press).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
