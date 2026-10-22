@@ -5,6 +5,7 @@ Look up and manage Delta Air Lines trips by confirmation number — view all fli
 Learn more at [Delta Trip](https://www.delta.com).
 
 Created by [@paulbockewitz](https://github.com/paulbockewitz) (Paul Bockewitz).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

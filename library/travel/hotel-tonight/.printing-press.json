@@ -54,5 +54,11 @@
       "command": "daily-drop",
       "description": "Reveal today's Daily Drop hotel and its real discounted price for a market (the app hides it behind a slide-to-unlock gate), and with --history read the recorded run of past Daily Drops."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

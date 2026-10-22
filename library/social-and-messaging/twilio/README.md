@@ -7,6 +7,7 @@ Twilio's official CLI is a thin Node wrapper with 1–3 second cold start and no
 Learn more at [Twilio](https://support.twilio.com).
 
 Created by [@CleverAI-ZH](https://github.com/CleverAI-ZH) (Stephan Stoeber).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

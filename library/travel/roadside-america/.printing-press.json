@@ -26,7 +26,7 @@
   "auth_type": "none",
   "novel_features": [
     {
-      "name": "Superlative \u0026 keyword categories",
+      "name": "Superlative & keyword categories",
       "command": "category",
       "description": "Find the biggest, smallest, tallest, or weird-food attractions (and more) by classifying cached attractions locally."
     },
@@ -49,6 +49,12 @@
       "name": "State quirk comparison",
       "command": "compare",
       "description": "Compare two states by offbeat-attraction count and surface a few top picks from each."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

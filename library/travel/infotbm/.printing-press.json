@@ -64,5 +64,11 @@
       "description": "Compute average headways per hour from the SIRI estimated timetable"
     }
   ],
-  "printer_name": "pawlclawbot"
+  "printer_name": "pawlclawbot",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

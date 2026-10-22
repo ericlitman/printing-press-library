@@ -4,6 +4,8 @@
 
 RoadsideAmerica.com is the web's best catalog of quirky US & Canada tourist attractions, but it has no API and a paywalled app. This CLI turns it into an agent-native, pipe-friendly tool: find what's near a place or coordinates, browse a whole state, pull the full writeup, and slice by superlative categories like biggest/smallest/tallest/weird-food. Everything is cached locally (fresh-on-read), every record links back to its source, and the scraper stays a polite, attributing, user-initiated citizen of the site.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `roadside-america-pp-cli` binary and the `pp-roadside-america` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

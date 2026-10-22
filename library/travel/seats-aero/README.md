@@ -3,6 +3,7 @@
 Seats.aero Partner API for award travel availability, cached search, route lists, and trip revalidation details.
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

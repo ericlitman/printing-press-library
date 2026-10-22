@@ -28,5 +28,11 @@
       "command": "trip layover",
       "description": "Score every layover in a trip as OK, TIGHT, or HIGH with a per-connection recommended action — in one command, without parsing the full flights table."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

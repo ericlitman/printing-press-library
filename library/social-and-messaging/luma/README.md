@@ -7,6 +7,7 @@ luma reads Luma's public discovery surface (api.luma.com) to list events by city
 Learn more at [Luma](https://api.luma.com).
 
 Created by [@richardadonnell](https://github.com/richardadonnell) (richardadonnell).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

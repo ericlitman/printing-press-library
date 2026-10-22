@@ -48,5 +48,11 @@
       "command": "inbox sync",
       "description": "Download Open Client messages into local SQLite before optional server-side delete-through."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

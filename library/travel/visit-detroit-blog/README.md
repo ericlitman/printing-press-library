@@ -5,6 +5,7 @@
 Inside the D CLI mirrors Visit Detroit's editorial blog into a local SQLite store, so you can full-text search every article body offline and then slice it by category, neighborhood, and date in a single query (blogs list) — something the site's single-facet instant-search can't do. blogs related surfaces articles that share the most topics and neighborhoods; blogs coverage maps where the blog is dense or thin; blogs reading-list exports a neutral, sponsored-free reading list for a team.
 
 Created by [@stanrails](https://github.com/stanrails) (stanrails).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

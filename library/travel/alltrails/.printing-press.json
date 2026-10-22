@@ -44,5 +44,11 @@
       "command": "agent-context",
       "description": "Publish bearer/cookie auth requirements, MCP read/write risk metadata, and route annotations so agents can distinguish safe reads from live account mutations."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

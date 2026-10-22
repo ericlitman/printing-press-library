@@ -76,5 +76,11 @@
       "command": "compliance auto-block",
       "description": "Scan local inbound messages for STOP-keyword fires within a time window; emit a CSV ready for bulk-add (or apply directly)."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

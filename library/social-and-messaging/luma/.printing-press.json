@@ -49,5 +49,11 @@
       "command": "calendars compare",
       "description": "Side-by-side upcoming-event counts and total guest counts across several calendars (communities)."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -43,5 +43,11 @@
   ],
   "printer": "stanrails",
   "printer_name": "stanrails",
-  "category": "travel"
+  "category": "travel",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }
