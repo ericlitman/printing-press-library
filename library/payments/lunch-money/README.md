@@ -5,6 +5,7 @@
 Built on Lunch Money's published v2 alpha spec for forward compatibility — every endpoint exposed as a Cobra subcommand with --json, --select dotted-paths, --csv, --dry-run, and typed exit codes. Local SQLite store powers offline search, history queries, and joins (net worth at any date, stale balance audit, duplicate detection, subscription detective) that single API calls can't answer. A companion `lunch-money-pp-mcp` binary ships alongside for Claude Desktop / Claude Code MCP integration.
 
 Created by [@salmonumbrella](https://github.com/salmonumbrella) (salmonumbrella).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

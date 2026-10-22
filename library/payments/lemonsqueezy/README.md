@@ -5,6 +5,7 @@
 Lemon Squeezy's official SDKs are libraries, not CLIs, and the dashboard is a click-walk per store. This CLI mirrors all 19 LS resources to local SQLite with offline FTS5 and cross-entity SQL, then layers transcendence commands — `revenue-snapshot`, `mrr-trend`, `churn-watch`, `dunning-alert`, `license-rollup`, `refund-cascade`, `campaign-watch`, `webhook-audit` — that combine entities no single endpoint returns. Built for indie SaaS founders and license-key sellers who live in the LS state machine.
 
 Created by [@jcastillo725](https://github.com/jcastillo725) (Joseph Alvin Castillo).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

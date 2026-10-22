@@ -7,6 +7,7 @@ cal-com-pp-cli wraps the entire Cal.com v2 API and adds a local SQLite store of 
 Learn more at [Cal.com](https://cal.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

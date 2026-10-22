@@ -73,5 +73,11 @@
     }
   ],
   "auth_key_url": "https://breezedoc.com/integrations/api",
-  "catalog_description": "Manage BreezeDoc e-signature and invoicing workflows across documents, templates, recipients, teams, invoices, and follow-ups."
+  "catalog_description": "Manage BreezeDoc e-signature and invoicing workflows across documents, templates, recipients, teams, invoices, and follow-ups.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

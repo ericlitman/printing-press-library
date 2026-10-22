@@ -44,5 +44,11 @@
       "command": "stories dossier",
       "description": "Emit Markdown or JSON research dossiers combining narrative clusters, related figures, search prompts, and ranked item candidates."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

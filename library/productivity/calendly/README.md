@@ -3,6 +3,7 @@
 Read-first Calendly API surface for scheduling, availability, event, invitee, and webhook inspection.
 
 Created by [@debgotwired](https://github.com/debgotwired) (Deb Mukherjee).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -59,5 +59,11 @@
   ],
   "category": "other",
   "printer": "markvandeven",
-  "printer_name": "markvandeven"
+  "printer_name": "markvandeven",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

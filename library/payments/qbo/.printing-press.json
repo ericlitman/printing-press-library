@@ -49,5 +49,11 @@
       "command": "net-worth",
       "description": "Calculate net worth from asset and liability accounts using offline SQLite mirrors."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

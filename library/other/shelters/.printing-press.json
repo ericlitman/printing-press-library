@@ -50,5 +50,11 @@
       "description": "Full detail for one shelter joined on the stable shelter_id rather than the churning objectid, with unreported fields as explicit null."
     }
   ],
-  "printer": "abe238"
+  "printer": "abe238",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

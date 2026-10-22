@@ -64,5 +64,11 @@
       "command": "decode-id",
       "description": "Parse a USGS event ID into its source network code, sequence, and operator name. Joins the cached contributors dictionary for the network display name."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

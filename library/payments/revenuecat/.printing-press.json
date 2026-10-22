@@ -82,5 +82,11 @@
       "command": "webhook-audit",
       "description": "Lists configured webhook integrations grouped by destination host, flagging duplicate or stale destinations."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

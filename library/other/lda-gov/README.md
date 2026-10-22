@@ -7,6 +7,7 @@ Search the official Lobbying Disclosure Act API, sync public filings into SQLite
 Learn more at [LDA.gov](https://www.senate.gov/legislative/opr.htm).
 
 Created by [@mherzog4](https://github.com/mherzog4) (Mherzog4).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

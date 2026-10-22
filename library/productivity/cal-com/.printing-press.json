@@ -96,5 +96,11 @@
       "command": "ooo list",
       "description": "List your active and upcoming out-of-office entries, sorted by start time."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

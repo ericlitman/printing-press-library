@@ -7,6 +7,7 @@ Search homes for sale via Redfin's internal Stingray endpoints from the terminal
 Learn more at [Redfin](https://www.redfin.com).
 
 Created by [@rderwin](https://github.com/rderwin) (rderwin).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

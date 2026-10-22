@@ -4,6 +4,8 @@
 
 Search and pull U.S. and global economic time series from the St. Louis Fed's FRED API. Beyond mirroring every endpoint, it adds a macro dashboard, multi-series compare, a latest-value shortcut, a persistent watchlist that reports what changed, and a release calendar — all agent-native with --json and --select.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `fred-pp-cli` binary and the `pp-fred` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

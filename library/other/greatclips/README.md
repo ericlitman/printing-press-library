@@ -39,6 +39,7 @@ fixed in v0.3, every stylewaretouch endpoint should light up immediately.
 Learn more at [Great Clips](https://webservices.greatclips.com).
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

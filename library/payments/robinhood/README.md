@@ -547,6 +547,7 @@ Here's a sample error response where the `client_order_id` field in the payload 
 | 503 | Service unavailable |
 
 Created by [@zaydiscold](https://github.com/zaydiscold) (zaydiscold).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

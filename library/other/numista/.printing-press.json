@@ -74,5 +74,11 @@
       "command": "users collections hydrate",
       "description": "Given a collection-folder-id, fan out get-item for every item, optionally fan out get-prices, and persist everything to the local store. Refuses to start when remaining quota is less than the item count."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

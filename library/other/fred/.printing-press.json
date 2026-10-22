@@ -51,5 +51,11 @@
       "command": "release calendar",
       "description": "Recent and upcoming economic data release dates within a day window, aggregated across all releases."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

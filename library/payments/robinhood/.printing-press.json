@@ -39,5 +39,11 @@
       "command": "brokerage browser-routes",
       "description": "Ship the sanitized CDP route templates captured across ticker, option-chain, portfolio, account, settings, documents, transfer, market, and crypto pages for downstream agent routing."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

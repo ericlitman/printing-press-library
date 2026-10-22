@@ -29,7 +29,7 @@
     {
       "name": "Cross-snapshot ship history (flag-hop detector)",
       "command": "ship history",
-      "description": "Show how a vessel's particulars have changed across snapshots \u2014 flag, name, owner, operator, classification society, status."
+      "description": "Show how a vessel's particulars have changed across snapshots — flag, name, owner, operator, classification society, status."
     },
     {
       "name": "Stale-cache report",
@@ -60,6 +60,10 @@
     {
       "handle": "tmchow",
       "name": "Trevin Chow"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

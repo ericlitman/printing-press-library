@@ -4,6 +4,8 @@
 
 Every Dutch ECLI from data.rechtspraak.nl, indexed locally so include/exclude/phrase/regex narrowing cuts a 1000-result topic down to a usable set — the upstream API has no free-text search, so this is the only place that workflow exists. Walks the cassation chain in one command, exports vindplaatsen as BibTeX, and exposes every command as an MCP tool — the first MCP server for Dutch case law.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `rechtspraak-pp-cli` binary and the `pp-rechtspraak` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

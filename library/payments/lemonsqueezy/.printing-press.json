@@ -61,12 +61,18 @@
     {
       "name": "Campaign watch",
       "command": "campaign-watch",
-      "description": "Per discount code: redemptions used vs cap, redemption velocity over last 24h, projected sellout time at current pace (needs \u003e=6h of redemption activity to stabilise)."
+      "description": "Per discount code: redemptions used vs cap, redemption velocity over last 24h, projected sellout time at current pace (needs >=6h of redemption activity to stabilise)."
     },
     {
       "name": "Webhook audit",
       "command": "webhook-audit",
       "description": "Cross-store webhook coverage matrix grouped by URL host, flagging stale destinations (localhost, ngrok, *.test, *.local)."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

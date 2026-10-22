@@ -60,5 +60,11 @@
       "command": "lobbyists covered-positions",
       "description": "List lobbyists' covered government positions connected to clients, registrants, and filing periods."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

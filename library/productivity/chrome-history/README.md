@@ -2,6 +2,8 @@
 
 `chrome-history-pp-cli` — every insight from your browsing history, without it ever leaving your machine. The local-first data source that feeds your private AI, vault, and dashboards.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Platform Support
 
 **macOS only.** The Chrome history DB path (`~/Library/Application Support/Google/Chrome/Default/History`) and the Full-Disk-Access model are macOS-specific. Linux (`~/.config/google-chrome/Default/History`) and Windows (`%LOCALAPPDATA%\Google\Chrome\User Data\Default\History`) use different paths and permission models — **not yet supported.** Cross-platform support requires per-OS path resolution in the source adapter and is tracked as future work.

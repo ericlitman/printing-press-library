@@ -7,7 +7,7 @@ Gravitus has no API and no data export. gravitus-pp-cli handles the session auth
 Learn more at [Gravitus](https://gravitus.com).
 
 Created by [@azaaron](https://github.com/azaaron) (mvanhorn).
-Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow), [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

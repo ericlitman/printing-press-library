@@ -4,6 +4,8 @@
 
 Gives agents and people the most credible open-shelter picture straight from FEMA's National Shelter System (NSS) OpenShelters feed: open shelters across all states and territories, who takes pets, who is wheelchair / ADA accessible, and who is filling up. It answers the questions people actually ask in a disaster, like 'the closest open shelter to me that allows pets' and 'which shelters are at capacity', geocoding addresses when the feed omits coordinates and never inventing a number it does not have. Deep thanks to all first responders, emergency management practitioners, and relief nonprofit organizations for the work you do in communities when disaster strikes. This is an unofficial tool; in a life-threatening emergency call 911 and follow the official guidance and evacuation orders from FEMA, your local emergency management, and your local authorities.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install from source
 
 This repository builds with the Go toolchain (1.26.4 or newer):

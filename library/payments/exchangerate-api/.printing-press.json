@@ -76,5 +76,11 @@
       "command": "mcp serve",
       "description": "Every user-facing command is exposed as an MCP tool with read-only annotations on safe queries."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

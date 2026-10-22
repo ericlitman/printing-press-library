@@ -7,6 +7,7 @@ This CLI is the offline-first, agent-native Figma operator. It absorbs every RES
 Learn more at [Figma](https://developers.figma.com/docs/rest-api/).
 
 Created by [@giacaglia](https://github.com/giacaglia) (Giuliano Giacaglia).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

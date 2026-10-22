@@ -4,6 +4,8 @@
 
 Sync your activities, wellness, calendar, workouts and gear into local SQLite, then search, run SQL, and compute fitness/form trends offline. Wraps the full intervals.icu REST API for live reads and writes, and adds analytics every existing MCP server and wrapper leaves on the table.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `intervals-icu-pp-cli` binary and the `pp-intervals-icu` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:
