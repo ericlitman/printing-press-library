@@ -90,5 +90,11 @@
       "description": "Search inside actual episode transcripts, not just titles and descriptions."
     }
   ],
-  "printer_name": "adbonnet"
+  "printer_name": "adbonnet",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

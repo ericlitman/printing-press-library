@@ -7,6 +7,7 @@ Sostituisce le 12 maschere JSP del portale ufficiale con una CLI agent-native. S
 Learn more at [ARS Sicilia](https://dati.ars.sicilia.it).
 
 Created by [@aborruso](https://github.com/aborruso) (aborruso).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

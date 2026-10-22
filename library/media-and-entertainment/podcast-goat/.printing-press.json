@@ -26,7 +26,7 @@
     "DEEPGRAM_API_KEY",
     "ELEVENLABS_API_KEY"
   ],
-  "auth_description": "Cookie chain for the four bundled member publishers (set via\n`auth login --chrome --service <huberman|acquired|founders|peterattia>`),\nplus optional api_key vars for paid fallbacks. No credential required for the\nfree Dwarkesh / RSS / yt-dlp tier \u2014 that's the default dispatch.\n",
+  "auth_description": "Cookie chain for the four bundled member publishers (set via\n`auth login --chrome --service <huberman|acquired|founders|peterattia>`),\nplus optional api_key vars for paid fallbacks. No credential required for the\nfree Dwarkesh / RSS / yt-dlp tier — that's the default dispatch.\n",
   "novel_features": [
     {
       "name": "Topic bundle for one-shot agent runs",
@@ -78,6 +78,10 @@
     {
       "handle": "tmchow",
       "name": "Trevin Chow"
+    },
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

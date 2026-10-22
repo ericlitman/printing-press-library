@@ -72,5 +72,11 @@
       "command": "sync",
       "description": "Pull top/new/best/show/ask/job lists and recently-changed items into local SQLite for offline use and snapshot history."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

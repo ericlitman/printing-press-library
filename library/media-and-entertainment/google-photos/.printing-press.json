@@ -39,5 +39,11 @@
       "description": "Poll Picker sessions until mediaItemsSet is true, using Google's returned polling interval and timeout guidance when present."
     }
   ],
-  "catalog_description": "Manage Google Photos app-created albums and media, upload files, and handle Picker sessions from terminal-friendly commands."
+  "catalog_description": "Manage Google Photos app-created albums and media, upload files, and handle Picker sessions from terminal-friendly commands.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

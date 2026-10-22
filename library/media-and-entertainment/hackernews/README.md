@@ -7,6 +7,7 @@ Combines the Firebase real-time API and the Algolia search API in one CLI. Sync 
 Learn more at [Hacker News](https://news.ycombinator.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

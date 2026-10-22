@@ -37,12 +37,12 @@
     {
       "name": "Multi-venue watchlist sweep",
       "command": "events upcoming",
-      "description": "Fan out across a venue ID file or list and return one merged, deduplicated, date-sorted event list \u2014 the watchlist primitive behind any curated 'what's on at my venues' workflow."
+      "description": "Fan out across a venue ID file or list and return one merged, deduplicated, date-sorted event list — the watchlist primitive behind any curated 'what's on at my venues' workflow."
     },
     {
       "name": "Residency collapse",
       "command": "events residency",
-      "description": "Collapse runs of same-name + same-venue events into one row per residency with first_date, last_date, night_count, and id_list \u2014 so a 16-night opera season shows as one entry, not 16."
+      "description": "Collapse runs of same-name + same-venue events into one row per residency with first_date, last_date, night_count, and id_list — so a 16-night opera season shows as one entry, not 16."
     },
     {
       "name": "Attraction tour view with on-sale flag",
@@ -52,27 +52,27 @@
     {
       "name": "On-sale-soon scanner",
       "command": "events on-sale-soon",
-      "description": "Local query for events whose public on-sale falls in the next N days, sorted ascending \u2014 the canonical 'presale watch' view that no API endpoint provides."
+      "description": "Local query for events whose public on-sale falls in the next N days, sorted ascending — the canonical 'presale watch' view that no API endpoint provides."
     },
     {
       "name": "Classification bucketing",
       "command": "events by-classification",
-      "description": "Local join of events \u00d7 classifications, grouped by segment and genre, with event count and three example events per leaf \u2014 the bucketed view newsletter authors and local-scene trackers reach for."
+      "description": "Local join of events × classifications, grouped by segment and genre, with event count and three example events per leaf — the bucketed view newsletter authors and local-scene trackers reach for."
     },
     {
       "name": "Named persistent watchlists",
       "command": "events watchlist",
-      "description": "Save, list, run, and remove named filter sets (venue IDs, attraction IDs, segments, DMA IDs) that persist across runs in the local SQLite store \u2014 the generic primitive any curated 'my venues' workflow composes from."
+      "description": "Save, list, run, and remove named filter sets (venue IDs, attraction IDs, segments, DMA IDs) that persist across runs in the local SQLite store — the generic primitive any curated 'my venues' workflow composes from."
     },
     {
       "name": "Stream-shaped dedup",
       "command": "events dedup",
-      "description": "Read an event JSON array from stdin or the local store, apply a deduplication strategy (name+venue+date, or tour-leg), and write the deduped stream to stdout \u2014 composes with any upstream command."
+      "description": "Read an event JSON array from stdin or the local store, apply a deduplication strategy (name+venue+date, or tour-leg), and write the deduped stream to stdout — composes with any upstream command."
     },
     {
       "name": "Markdown what's-on brief",
       "command": "events brief",
-      "description": "Render a markdown 'what's on' report grouped by night \u2192 venue \u2192 events with classification labels and price bands, suitable for newsletter, Obsidian, iMessage, or agent context."
+      "description": "Render a markdown 'what's on' report grouped by night → venue → events with classification labels and price bands, suitable for newsletter, Obsidian, iMessage, or agent context."
     },
     {
       "name": "Price-band distribution",
@@ -80,5 +80,11 @@
       "description": "Bucket events by priceRanges.min into <$50 / $50-100 / $100-200 / $200+ bands and report count + sample events per band, grouped by classification."
     }
   ],
-  "category": "media-and-entertainment"
+  "category": "media-and-entertainment",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

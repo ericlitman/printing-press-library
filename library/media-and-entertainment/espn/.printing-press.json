@@ -15,5 +15,11 @@
   "mcp_binary": "espn-pp-mcp",
   "mcp_tool_count": 7,
   "mcp_ready": "full",
-  "auth_type": "none"
+  "auth_type": "none",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

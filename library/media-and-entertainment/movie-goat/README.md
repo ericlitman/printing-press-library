@@ -7,6 +7,7 @@ Movie Goat unifies the workflows that today require four browser tabs: discovery
 Learn more at [Movie Goat](https://www.themoviedb.org).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

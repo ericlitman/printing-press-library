@@ -93,5 +93,11 @@
       "command": "pipeline status",
       "description": "One-screen view of /api/trending/status: isFetching, nextFetchAt, storiesToday, clustersToday, last 5 events."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

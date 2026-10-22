@@ -14,6 +14,7 @@ A command-line interface for [AdGuard Home](https://github.com/AdguardTeam/AdGua
 - **Agent-ready** — `--agent` flag sets JSON output, compact mode, no-color, and no-prompts in one flag for AI agent workflows
 
 Created by [@e-jung](https://github.com/e-jung) (Eric Jung).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

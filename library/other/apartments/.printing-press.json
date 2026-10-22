@@ -90,5 +90,11 @@
       "command": "shortlist",
       "description": "Tag-based local shortlist table; add/show/remove listings with notes and tags."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

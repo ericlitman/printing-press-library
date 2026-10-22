@@ -5,6 +5,7 @@ and access on-this-day events. No authentication required.
 Uses a polite User-Agent header.
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

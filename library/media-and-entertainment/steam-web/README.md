@@ -7,6 +7,7 @@ Mirrors all 169 documented Steam Web API endpoints (and the undocumented store e
 Learn more at [Steam Web](https://store.steampowered.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

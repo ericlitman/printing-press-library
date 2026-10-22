@@ -46,5 +46,11 @@
       "description": "FTS5 over your reflection history. Surfaces every past sit whose text matches the query."
     }
   ],
-  "owner_name": "justinwfu"
+  "owner_name": "justinwfu",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

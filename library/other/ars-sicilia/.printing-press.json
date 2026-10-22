@@ -50,5 +50,11 @@
   ],
   "printer": "aborruso",
   "printer_name": "aborruso",
-  "category": "other"
+  "category": "other",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

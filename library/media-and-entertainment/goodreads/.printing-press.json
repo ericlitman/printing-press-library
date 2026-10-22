@@ -37,5 +37,11 @@
       "command": "notes share update",
       "description": "Model real Goodreads account actions such as Kindle note publicizing, shelf edits, message marks, and review updates with dry-run previews and the GOODREADS_PP_ALLOW_WRITES=1 gate before PP-side live writes."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

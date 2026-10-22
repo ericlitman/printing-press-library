@@ -5,6 +5,7 @@
 Built for a Claude Code agent doing conviction research on public-company filings. Compound commands collapse a ticker's full primary-source pull into one structured response; insider-summary distinguishes discretionary code-S sales from RSU-tax code-F noise and flags senior officers separately. Local SQLite cache with tiered TTLs makes re-reads near-free; FTS5 over cached bodies eliminates re-hitting EDGAR for the same query.
 
 Created by [@magoo242](https://github.com/magoo242) (magoo242).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -7,6 +7,7 @@ This CLI is the first single-binary tool for the Ticketmaster Discovery API. It 
 Learn more at [Ticketmaster](http://developer.ticketmaster.com/support/contact-us/).
 
 Created by [@omarshahine](https://github.com/omarshahine) (Omar Shahine).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

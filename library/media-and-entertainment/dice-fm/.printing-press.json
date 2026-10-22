@@ -92,5 +92,11 @@
       "command": "normalize recommend",
       "description": "Profile the local store and emit a starter normalization config — a ready-to-edit recommendation of which entities and shapes to wire."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -69,5 +69,11 @@
       "command": "companies cohorts",
       "description": "Bucket companies by founded_year (default 5-year buckets) with company counts and the top-3 sectors per cohort."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

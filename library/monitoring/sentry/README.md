@@ -7,6 +7,7 @@ Use Sentry from scripts and agents without memorizing endpoint shapes. The CLI w
 Learn more at [Sentry](https://sentry.io).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

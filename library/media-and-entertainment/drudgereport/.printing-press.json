@@ -73,5 +73,11 @@
       "command": "digest",
       "description": "One-pager: splash count, longest-tenured splash, top 5 outbound domains, biggest red-surge stories over the week."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

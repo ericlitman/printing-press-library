@@ -26,7 +26,7 @@
     {
       "name": "Tour-routing feasibility",
       "command": "route",
-      "description": "Find which tracked artists already have shows near a target city within a date window \u2014 feasibility-ranked routing candidates for booking."
+      "description": "Find which tracked artists already have shows near a target city within a date window — feasibility-ranked routing candidates for booking."
     },
     {
       "name": "Calendar-gap detection",
@@ -60,5 +60,11 @@
     }
   ],
   "category": "media-and-entertainment",
-  "catalog_entry": "bandsintown"
+  "catalog_entry": "bandsintown",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

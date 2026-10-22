@@ -5,6 +5,7 @@
 The official NASA Image and Video Library exposes five endpoints but no Go CLI covers all of them, and none of the existing wrappers go past returning JSON. nasa-images-pp-cli adds a local SQLite mirror with FTS5 search, byte-range resumable album downloads, caption text extraction (not just URLs), deterministic best-variant picking for agents, and a typed MCP server — every command works offline once synced, and every command pipes cleanly to jq.
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
