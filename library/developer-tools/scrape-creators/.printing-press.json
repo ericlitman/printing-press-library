@@ -88,5 +88,11 @@
       "command": "account budget",
       "description": "See how fast you're spending API credits and how many days remain at current pace, fused with the API's own usage history."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -48,5 +48,11 @@
   ],
   "category": "developer-tools",
   "printer": "CarlF01",
-  "printer_name": "CFinney"
+  "printer_name": "CFinney",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

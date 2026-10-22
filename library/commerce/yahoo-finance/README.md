@@ -5,6 +5,7 @@
 yahoo-finance-pp-cli matches yfinance and yahoo-finance2 for raw endpoint coverage, then adds the things only a local store + agent-shaped CLI can do: cost-basis-aware portfolio performance, dividend income with yield-on-cost, a SQL-backed fundamentals screener, options moneyness + DTE filtering, and an `auth login --chrome` cookie escape hatch when Yahoo blocks your IP.
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

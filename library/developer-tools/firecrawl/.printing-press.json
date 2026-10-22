@@ -49,5 +49,11 @@
       "command": "extract data",
       "description": "Run Firecrawl extraction over URLs with prompt-driven structured data options."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -4,6 +4,8 @@
 
 Pangolin is the open-source, self-hosted alternative to Cloudflare Tunnels. This CLI exposes all 157 integration-API endpoints with --json, --select, --csv, and --dry-run, mirrors the full configuration into a local SQLite store, and adds commands that span orgs — audit, cert-watch, access-graph, backup, restore, expose — that no Pangolin tool offers today.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `pangolin-pp-cli` binary and the `pp-pangolin` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

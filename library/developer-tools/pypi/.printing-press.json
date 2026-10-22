@@ -37,5 +37,11 @@
       "command": "rss newest-packages",
       "description": "Watch newest PyPI packages through the RSS API for ecosystem discovery."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -7,6 +7,7 @@ Postman's API Network is the world's largest public API directory, but discovery
 Learn more at [Postman Explore](https://www.postman.com/explore).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

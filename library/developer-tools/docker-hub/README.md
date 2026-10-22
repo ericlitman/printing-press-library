@@ -5,6 +5,7 @@ inspect Dockerfiles, and explore the world's largest container registry.
 No authentication required for public repositories (rate limited to ~18 req/min).
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

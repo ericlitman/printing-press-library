@@ -75,5 +75,11 @@
       "command": "watchlist correlate",
       "description": "Pairwise Pearson correlation across the symbols in a named watchlist over a date range."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

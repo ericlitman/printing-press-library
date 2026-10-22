@@ -37,5 +37,11 @@
       "command": "workflow archive",
       "description": "Archive vulnerability data locally for repeatable security research and offline analysis."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

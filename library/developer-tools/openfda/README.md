@@ -3,6 +3,7 @@
 The FDA safety data terminal. Every drug adverse event, device recall, food contamination, and product label the FDA publishes — synced locally, searchable offline, with trend analysis no other tool offers.
 
 Created by [@H179922](https://github.com/H179922) (H179922).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

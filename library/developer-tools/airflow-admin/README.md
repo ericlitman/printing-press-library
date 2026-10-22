@@ -5,6 +5,7 @@ Apache Airflow is an open-source workflow orchestrator used by data teams to sch
 This CLI gives engineers and agents a read-first way to inspect an Airflow environment from the terminal. It can list DAGs, inspect recent DAG runs, check task instance failures, review pools, verify Airflow health, and sync useful metadata into a local SQLite store for search and analysis. It is not a replacement for the Airflow UI; it is a compact operations surface for answering questions such as "what failed overnight?", "which tasks are still retrying?", and "is the scheduler healthy?" without opening the browser.
 
 Printed by [@sdhilip200](https://github.com/sdhilip200) (Dhilip Subramanian).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

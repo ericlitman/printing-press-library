@@ -7,6 +7,7 @@ The Tesla owner-API as JSON-first commands, with a local SQLite that remembers e
 Learn more at [Tesla](https://owner-api.teslamotors.com).
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

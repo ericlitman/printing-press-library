@@ -4,6 +4,8 @@
 
 Fetch the raw Claude Code docs index, search the Python Agent SDK reference, and extract exact symbols, examples, and citations. Novel verification and context commands help agents use the SDK without guessing.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `claude-agent-sdk-python-docs-pp-cli` binary and the `pp-claude-agent-sdk-python-docs` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

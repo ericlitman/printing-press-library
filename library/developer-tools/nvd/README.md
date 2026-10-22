@@ -5,6 +5,7 @@ Search CVEs by keyword, product (CPE name), CVE ID, or date range. Get CVSS scor
 affected versions, references, and severity ratings. No API key required (optional for higher rate limits).
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

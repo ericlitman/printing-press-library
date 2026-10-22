@@ -7,6 +7,7 @@ trigger-dev-pp-cli wraps the full v3 management API (47 endpoints across runs, s
 Learn more at [Trigger.dev](https://trigger.dev).
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -74,5 +74,11 @@
       "command": "ownership",
       "description": "Resolve a ticker, name, or CIK, find the latest DEF 14A proxy, fetch the document, and extract the \"Security Ownership of Certain Beneficial Owners\" section as readable text."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

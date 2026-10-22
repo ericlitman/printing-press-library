@@ -72,5 +72,11 @@
       "command": "category landscape",
       "description": "For a category slug, return: total entity counts per type, top 5 publishers by aggregate fork count, and top 5 entities by viewCount. One command, one structured payload."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -5,6 +5,7 @@ and vulnerability data. Browse recent updates and newest packages via RSS feeds.
 No authentication required — all endpoints are public.
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

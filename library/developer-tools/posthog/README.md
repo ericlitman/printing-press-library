@@ -5,6 +5,7 @@
 posthog-pp-cli syncs your flags, insights, experiments, persons, errors, and LLM traces to a local SQLite store. Query anything offline, run compound analytics across resources the UI keeps separate, and pipe results directly to agents or scripts.
 
 Created by [@riteshtiwari](https://github.com/riteshtiwari) (riteshtiwari).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

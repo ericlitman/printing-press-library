@@ -76,5 +76,11 @@
       "command": "digest --offline",
       "description": "Run queries and template renders against the local SQLite copy of past datasets without hitting the API."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -50,12 +50,18 @@
     {
       "name": "Since-time health digest",
       "command": "digest",
-      "description": "One structured 'what changed since \u003ctime\u003e across all my metrics' snapshot — built for piping into an agent."
+      "description": "One structured 'what changed since <time> across all my metrics' snapshot — built for piping into an agent."
     },
     {
       "name": "Multi-metric correlation",
       "command": "correlate",
       "description": "Pearson + best-lag correlation between any two daily metrics (weight vs sleep score, steps vs resting HR)."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

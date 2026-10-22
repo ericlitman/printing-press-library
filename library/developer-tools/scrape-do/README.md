@@ -4,6 +4,8 @@
 
 Every Scrape.do surface — the core scraper plus the whole Google family (search, maps, news, shopping, flights, hotels, trends) — wrapped with an offline SQLite history. The governor estimates credit cost before every call with `cost`, debits a local ledger from the authoritative cost header with `budget`, and gates concurrent requests against your plan's live ceiling so an agent swarm never 429s itself or burns the monthly budget. SERPs become queryable history: `drift` and `movers` surface rank changes offline with no re-spend.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `scrape-do-pp-cli` binary and the `pp-scrape-do` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

@@ -26,7 +26,7 @@
     {
       "name": "Scope drift report",
       "command": "programs scope-drift",
-      "description": "See what changed in any program's scope this week \u2014 assets added, removed, or modified, with first-seen dates."
+      "description": "See what changed in any program's scope this week — assets added, removed, or modified, with first-seen dates."
     },
     {
       "name": "Cross-program shared assets",
@@ -41,7 +41,7 @@
     {
       "name": "Pre-submit dedupe",
       "command": "report dedupe",
-      "description": "FTS5 search over the public hacktivity feed plus your own reports for title, asset, or CWE overlap \u2014 exits 2 if a high-confidence collision exists."
+      "description": "FTS5 search over the public hacktivity feed plus your own reports for title, asset, or CWE overlap — exits 2 if a high-confidence collision exists."
     },
     {
       "name": "Program fit ranker",
@@ -79,5 +79,11 @@
       "description": "Filtered slice of disclosed reports for a program and CWE - top N by bounty, with severity and writeup links, in pipe-friendly JSON."
     }
   ],
-  "category": "developer-tools"
+  "category": "developer-tools",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

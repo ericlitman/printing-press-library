@@ -49,5 +49,11 @@
       "command": "search",
       "description": "Porter-stemmed FTS5 search across NTSB narratives and FAA owner names with snippet highlighting. Surfaces patterns like icing-related accidents or CAPS-deployment events that structured queries can't reach."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

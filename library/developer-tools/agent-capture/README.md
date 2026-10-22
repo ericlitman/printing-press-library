@@ -6,6 +6,8 @@ Record, screenshot, and convert macOS windows and screens for AI agent evidence.
 
 Consolidates macOS screen capture, window recording, GIF conversion, frame stitching, and styled code screenshots into one agent-native CLI. Built on ScreenCaptureKit via Swift CoreGraphics bridge.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Quick Start
 
 ```bash

@@ -35,5 +35,11 @@
       "command": "domains records",
       "description": "Classify GoDaddy writes by risk, keep dry-run previews available, and require the package write barrier before live DNS, purchase, transfer, cancellation, or account-changing requests."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

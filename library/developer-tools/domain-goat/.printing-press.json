@@ -63,5 +63,11 @@
       "command": "tld-affinity",
       "description": "Given a seed keyword, rank TLDs by suffix-semantics fit, historical availability rate in local history, and price tier."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

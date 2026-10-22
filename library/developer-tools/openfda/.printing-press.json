@@ -61,5 +61,11 @@
       "command": "manufacturer dossier",
       "description": "Build a cross-domain intelligence dossier for any manufacturer — recalls, adverse events, 510(k) clearances, and PMA approvals aggregated in one view"
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

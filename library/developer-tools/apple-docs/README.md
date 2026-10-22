@@ -5,6 +5,7 @@
 apple-docs-pp-cli mirrors developer.apple.com's DocC JSON into a local SQLite store you can grep across every framework, diff between releases, and project down to just the fields an agent needs. Ships with offline FTS, a cross-platform 'port-to' walker, a deprecation-cliff report, and an MCP server you can plug into Claude Desktop.
 
 Created by [@jcastillo725](https://github.com/jcastillo725) (Joseph Alvin Castillo).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

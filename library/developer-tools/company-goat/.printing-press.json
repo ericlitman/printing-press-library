@@ -55,5 +55,11 @@
       "description": "Show every Form D filing that names a given person (officer, large holder). Reveals serial founders, repeat advisors, prolific investors."
     }
   ],
-  "description": "One call across seven authoritative sources to research a startup's funding history (SEC Form D), engineering velocity (GitHub), HN mentions, legal entity (US/UK), and domain age. Compares competitors side-by-side and flags inconsistencies between public claims and filings."
+  "description": "One call across seven authoritative sources to research a startup's funding history (SEC Form D), engineering velocity (GitHub), HN mentions, legal entity (US/UK), and domain age. Compares competitors side-by-side and flags inconsistencies between public claims and filings.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

@@ -51,5 +51,11 @@
       "command": "sync",
       "description": "Syncs Airflow metadata into a local SQLite store for fast offline search and lightweight analysis."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -6,6 +6,8 @@ yeswehack-pp-cli is the researcher-side cockpit for the YesWeHack bug bounty pla
 
 Learn more at [YesWeHack](https://api.yeswehack.com).
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `yeswehack-pp-cli` binary and the `pp-yeswehack` agent skill in one shot:
