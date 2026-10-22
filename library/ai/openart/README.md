@@ -5,6 +5,7 @@ Spend your OpenArt credits programmatically. Generate videos with Seedance, Klin
 Learn more at [Openart](https://openart.ai).
 
 Printed by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -76,5 +76,11 @@
       "command": "cost scan --account <id>",
       "description": "Read billable usage and AI Gateway usage signals, with deployment rollback workflows for Pages production releases."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

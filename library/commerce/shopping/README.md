@@ -7,6 +7,7 @@ Shopping wraps the LemmeBuyIt aggregated-retail API (115M+ products across 70+ r
 Learn more at [Shopping](https://www.lemmebuyit.com/developer).
 
 Created by [@NicholasSpisak](https://github.com/NicholasSpisak) (NicholasSpisak).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

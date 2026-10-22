@@ -70,5 +70,11 @@
   "schema_version": 1,
   "spec_checksum": "sha256:91215334041f2adf80b7b193ef012f2d228707d92225c125f46e5cc4a667f7cb",
   "spec_format": "internal",
-  "spec_path": "blacklane-spec.yaml"
+  "spec_path": "blacklane-spec.yaml",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

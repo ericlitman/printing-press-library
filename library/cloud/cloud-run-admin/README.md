@@ -7,6 +7,7 @@ This CLI wraps the Cloud Run Admin API directly for services, jobs, executions, 
 Learn more at [Google Cloud Run](https://google.com).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

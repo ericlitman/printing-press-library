@@ -36,5 +36,11 @@
       "command": "ops failure-brief",
       "description": "Join deployment metadata, events, check runs, and runtime logs into one incident-triage payload."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

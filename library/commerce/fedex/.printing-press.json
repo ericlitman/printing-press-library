@@ -95,5 +95,11 @@
       "command": "ship etd",
       "description": "Single-command Electronic Trade Documents shipping: uploads commercial invoice, captures docId, and stitches it into the shipment create call."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -54,5 +54,11 @@
       "command": "auctions",
       "description": "Filter to eBay auction listings with live current bid and bid count, sortable by bid."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

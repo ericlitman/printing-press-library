@@ -2,6 +2,8 @@
 
 Search, compare, price-watch, and project-track renovation selections across 33 active sources plus 5 tracked stubs from one CLI. Reno Goat focuses on the squishy middle between commodity builder supply and home decor: homeowner-visible products that often need a GC, plumber, electrician, HVAC tech, cabinet installer, or tile/flooring trade to install. It routes plumbing fixtures and bath showroom rows to Ferguson, Floor & Decor, PlumbersStock, FaucetDepot, FaucetList, PlumbTile, Modern Bathroom, KBAuthority, Vintage Tub, Signature Hardware, and QualityBath, HVAC equipment selections to Pioneer Mini Split, Sylvane, IWAe, and The Hardware Hut, appliances to Ferguson, IKEA, GE Appliances, Bray & Scarff, PC Richard, Appliance Factory, Best Buy, Abt, and Homewise Appliance, electrical/lighting selections to Super Bright LEDs, PROLIGHTING, 1000Bulbs, Bees Lighting, Lighting New York, and Lightology, cabinet/door/bath hardware to Rejuvenation, IKEA, and The Hardware Hut, and flooring/tile/surface selections to Floor & Decor, The Hardware Hut, and IKEA. Standalone utilities provide Lowe's autocomplete and store locator. No API keys required.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## What It Does
 
 - **Fan-out search** — `product-search "pendant light"` hits every active source in parallel and returns normalized results. `--room kitchen` expands to plumbing + electrical + flooring + hardware + materials + appliances + decor; `--category electrical` targets Super Bright LEDs, PROLIGHTING, 1000Bulbs, Bees Lighting, Lighting New York, and Lightology.

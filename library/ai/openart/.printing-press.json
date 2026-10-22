@@ -73,5 +73,11 @@
       "command": "stats",
       "description": "One-shot stats over the local media library: counts per type/model/period and rolling spend."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

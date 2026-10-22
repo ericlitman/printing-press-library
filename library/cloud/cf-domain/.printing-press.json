@@ -46,5 +46,11 @@
       "command": "registrar domain-check",
       "description": "Uses Cloudflare Registrar live check endpoint with the correct domains[] wire shape for final availability and pricing."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

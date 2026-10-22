@@ -7,7 +7,7 @@ Facebook Marketplace is an authenticated browser surface, so this CLI treats the
 Learn more at [Facebook Marketplace](https://www.facebook.com).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
-Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow), [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

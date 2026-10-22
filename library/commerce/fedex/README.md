@@ -7,6 +7,7 @@ FedEx retires its SOAP APIs on June 1, 2026 and every existing wrapper goes dark
 Learn more at [FedEx](https://developer.fedex.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

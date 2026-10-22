@@ -135,5 +135,11 @@
       "command": "audit misplaced",
       "description": "Find API keys, cards, documents, or SSH material saved in the wrong 1Password category."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

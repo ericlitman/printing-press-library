@@ -5,6 +5,7 @@ Read FBA inventory, orders, sales reports, listings, and catalog data for an Ama
 Learn more at [Amazon Seller](https://developer-docs.amazon.com/sp-api/).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

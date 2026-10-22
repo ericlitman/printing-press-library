@@ -5,6 +5,7 @@
 SurgeGraph is an AI-search content operations cockpit. The web app shows point-in-time snapshots; this CLI keeps a local cache so you can run `visibility delta`, `prompts losers`, and `citation-domains rank-shift` over time. It compounds three split workflows — topic research, bulk writing, WordPress publishing — into a single `research gaps publish` pipeline, and ships every command as both CLI and MCP so the same agent that drafts an article can monitor the citations it generates.
 
 Created by [@ng-plentisoft](https://github.com/ng-plentisoft) (SurgeGraph Team).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

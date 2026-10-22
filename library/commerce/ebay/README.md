@@ -22,7 +22,7 @@ See [Known Limitations](#known-limitations) for what doesn't work today.
 ![ebay-pp-cli discovery flow](docs/discovery-demo.gif)
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
-Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@tmchow](https://github.com/tmchow) (Trevin Chow), [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

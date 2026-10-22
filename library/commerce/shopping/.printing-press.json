@@ -54,7 +54,7 @@
       "description": "Rank the products that fell the most over the last week (or N weeks) across everything synced, by both dollar and percent drop."
     },
     {
-      "name": "Retailer \u0026 category discount leaderboard",
+      "name": "Retailer & category discount leaderboard",
       "command": "leaderboard",
       "description": "Show which retailers and categories are consistently the deepest-discount buckets in your synced data, by average discount, on-sale count, or average price."
     },
@@ -62,6 +62,12 @@
       "name": "Price watch tracker",
       "command": "watch status",
       "description": "Pin items you care about and, after each index refresh, see which ones moved, by how much, and which hit your target price."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

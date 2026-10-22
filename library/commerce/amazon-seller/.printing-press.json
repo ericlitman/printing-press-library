@@ -50,5 +50,11 @@
     }
   ],
   "auth_key_url": "https://sellercentral.amazon.com/sellingpartner/developerconsole",
-  "catalog_description": "Run Amazon seller workflows from the terminal: FBA inventory, orders, sales reports, listings, catalog lookup, and account operations."
+  "catalog_description": "Run Amazon seller workflows from the terminal: FBA inventory, orders, sales reports, listings, catalog lookup, and account operations.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

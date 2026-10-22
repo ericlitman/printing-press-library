@@ -9,6 +9,7 @@ Most operational commands require an Airbyte API credential. Configure either `A
 Learn more at [Airbyte](https://airbyte.io).
 
 Printed by [@sdhilip200](https://github.com/sdhilip200) (Dhilip Subramanian).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

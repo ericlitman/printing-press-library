@@ -49,5 +49,11 @@
       "command": "export",
       "description": "Exports a view to JSONL or CSV and requires date filters for known date-window views."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

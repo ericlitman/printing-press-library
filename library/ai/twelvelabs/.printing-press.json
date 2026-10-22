@@ -50,5 +50,11 @@
     }
   ],
   "category": "ai",
-  "catalog_description": "Upload, index, search, summarize, embed, and analyze video with TwelveLabs, including editor-ready briefs and waitable workflows."
+  "catalog_description": "Upload, index, search, summarize, embed, and analyze video with TwelveLabs, including editor-ready briefs and waitable workflows.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

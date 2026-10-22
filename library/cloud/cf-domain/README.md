@@ -3,6 +3,7 @@
 Agent-native CLI for Cloudflare Registrar domain search, check, and registration.
 
 Created by [@danny-shmueli](https://github.com/danny-shmueli) (Danny Shmueli).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

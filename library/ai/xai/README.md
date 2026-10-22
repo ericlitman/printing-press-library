@@ -4,6 +4,8 @@
 
 Use xAI's REST API from scripts and agents with JSON-first output, local cache support, and MCP tooling. The CLI keeps the official bearer-token contract and exposes read-only inspection commands for model and credential health checks.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `xai-pp-cli` binary and the `pp-xai` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

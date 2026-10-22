@@ -7,6 +7,7 @@ OfferUp's web scrapers all dump a one-shot listing array and forget it. This CLI
 Learn more at [OfferUp](https://offerup.com).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
