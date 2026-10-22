@@ -3,6 +3,7 @@
 QuickBooks Online CLI — sync full ledger, query SQLite locally, run duplicate expenses audit, and manage accounting from the terminal.
 
 Created by [@kesslerio](https://github.com/kesslerio) (Martin Kessler).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

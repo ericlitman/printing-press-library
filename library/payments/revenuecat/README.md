@@ -5,6 +5,7 @@
 Drive the full RevenueCat Developer API v2 from the shell or an agent: customers, subscriptions, entitlements, products, offerings, purchases, invoices, and charts. On top of the typed endpoint surface it adds a local SQLite mirror and novel commands — revenue-snapshot with run-over-run diffs, mrr-trend with movement decomposition, churn-watch with dollar exposure, dunning-alert, entitlement-rollup, refund-cascade, and trial-funnel — that join synced data in ways no single API call returns.
 
 Created by [@jcastillo725](https://github.com/jcastillo725) (Joseph Alvin Castillo).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

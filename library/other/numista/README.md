@@ -5,6 +5,7 @@
 This CLI wraps the Numista REST API in a Go single binary, persists every type, issuer, mint, catalogue, and collected item into a local SQLite store, and tracks the 2000-call monthly free-plan quota client-side so batches never run blind. Commands like `types series`, `collection value`, and `crawl issuer` only exist because the local cache lets the CLI compose dozens of calls into one quota-aware operation.
 
 Created by [@vinnyp](https://github.com/vinnyp) (Vinny Pasceri).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

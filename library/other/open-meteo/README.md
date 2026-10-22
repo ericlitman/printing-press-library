@@ -5,6 +5,7 @@
 Comprehensive coverage of Open-Meteo's free, no-API-key tier across all 11 endpoint families. City-name input via integrated geocoding, WMO code humanization, and a local SQLite cache that powers commands no upstream tool can: forecast diff, climate-vs-now compare, activity verdicts, climate normals.
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

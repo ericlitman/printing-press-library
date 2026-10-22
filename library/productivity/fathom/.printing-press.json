@@ -71,5 +71,11 @@
       "command": "coverage",
       "description": "Track how reliably a recurring meeting (weekly planning, standup, 1:1) is being recorded over time."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

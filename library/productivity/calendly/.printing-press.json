@@ -48,5 +48,11 @@
       "command": "which",
       "description": "Map natural-language capabilities to the exact CLI command path before spending tokens on trial and error."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

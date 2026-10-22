@@ -5,6 +5,7 @@ CoinGecko public API for cryptocurrency data. Free tier, no API key required for
 Learn more at [Coingecko](https://www.coingecko.com).
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

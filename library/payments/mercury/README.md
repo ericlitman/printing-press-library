@@ -5,6 +5,7 @@ Streamline financial tasks with secure account management and transaction proces
 Learn more at [Mercury](https://docs.mercury.com/reference).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

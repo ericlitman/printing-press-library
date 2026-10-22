@@ -4,6 +4,8 @@
 
 MotoHunt has no public API; this CLI scrapes its server-rendered HTML with one HTTP GET per page and returns clean JSON. It surfaces the price-research data (base MSRP, average listing price, deal rating) that makes 'is this a good deal?' answerable, ranks synced inventory by under-market gap with `deal`, watches saved searches for new listings and price drops, and covers the ATV sister site via `--site atv`.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `motohunt-pp-cli` binary and the `pp-motohunt` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

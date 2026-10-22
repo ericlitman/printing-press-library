@@ -37,5 +37,11 @@
       "command": "global",
       "description": "Summarize global crypto market state through a dedicated promoted command."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

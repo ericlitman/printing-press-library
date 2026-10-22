@@ -32,27 +32,27 @@
     {
       "name": "Person Timeline",
       "command": "person timeline",
-      "description": "Chronological meeting history with a specific person \u2014 topics, action items, and talk ratio per meeting."
+      "description": "Chronological meeting history with a specific person — topics, action items, and talk ratio per meeting."
     },
     {
       "name": "Cross-Meeting Action Items",
       "command": "action-items list",
-      "description": "Aggregate action items from all meetings in a date range \u2014 weekly commitment audit in one command."
+      "description": "Aggregate action items from all meetings in a date range — weekly commitment audit in one command."
     },
     {
       "name": "Smart Meeting Discovery",
       "command": "transcripts find",
-      "description": "Find meetings by participant email, channel name, keyword, or date range \u2014 all client-side, no broken API date filters."
+      "description": "Find meetings by participant email, channel name, keyword, or date range — all client-side, no broken API date filters."
     },
     {
       "name": "Processing Status Check",
       "command": "transcripts status",
-      "description": "Show PROCESSED / PROCESSING / FAILED status for recent meetings upfront \u2014 know before you fetch."
+      "description": "Show PROCESSED / PROCESSING / FAILED status for recent meetings upfront — know before you fetch."
     },
     {
       "name": "Topic Frequency Analysis",
       "command": "topics list",
-      "description": "Most frequent topics across all meetings in a date range \u2014 what is actually consuming meeting time."
+      "description": "Most frequent topics across all meetings in a date range — what is actually consuming meeting time."
     },
     {
       "name": "Morning Digest",
@@ -63,6 +63,12 @@
       "name": "Vault Export",
       "command": "transcripts export",
       "description": "Export a transcript as markdown to a vault directory with auto-generated YYYY-MM-DD_title.md filename."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

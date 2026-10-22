@@ -51,5 +51,11 @@
       "description": "Roll up outflow by Mercury category over a period with a week-over-week delta from one windowed transaction read."
     }
   ],
-  "catalog_description": "Inspect Mercury business banking data and build safer payment plans across accounts, transactions, recipients, cards, invoices, and treasury."
+  "catalog_description": "Inspect Mercury business banking data and build safer payment plans across accounts, transactions, recipients, cards, invoices, and treasury.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

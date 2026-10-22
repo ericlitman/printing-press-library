@@ -50,5 +50,11 @@
     }
   ],
   "category": "other",
-  "description": "Free scholarly graph API for works, authors, sources, institutions, topics, funders, and citation-aware research intelligence."
+  "description": "Free scholarly graph API for works, authors, sources, institutions, topics, funders, and citation-aware research intelligence.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

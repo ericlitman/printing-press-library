@@ -67,5 +67,11 @@
       "description": "Search every synced resource's metadata bag for a key/value across resource types; returns (resource_type, id, matched_kv) rows."
     }
   ],
-  "printer": "crodorg"
+  "printer": "crodorg",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

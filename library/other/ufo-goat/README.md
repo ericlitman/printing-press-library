@@ -4,6 +4,8 @@
 
 The first CLI for the War.gov/UFO declassified files portal. Search across every contributing agency (DoD, FBI, NASA, State, CIA, DOE, ODNI, and more), download files with resume support, track new release tranches, and discover video-PDF pairings — all from a single binary with offline SQLite storage.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `ufo-goat-pp-cli` binary and the `pp-ufo` agent skill in one shot:

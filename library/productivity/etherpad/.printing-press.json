@@ -40,5 +40,11 @@
       "command": "agent-context",
       "description": "Emit JSON brief for LLM agents."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

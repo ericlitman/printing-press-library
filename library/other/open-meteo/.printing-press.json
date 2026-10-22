@@ -57,5 +57,11 @@
       "command": "weather-mix",
       "description": "Distribution of WMO weather conditions (% clear, % rain, % storms, etc.) over an arbitrary historical window for a place."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

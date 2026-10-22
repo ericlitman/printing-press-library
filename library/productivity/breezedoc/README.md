@@ -24,6 +24,7 @@ The API currently has a rate limit of 60 requests per minute. If you exceed this
 Learn more at [Breezedoc](https://breezedoc.com/developer/docs/).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -73,5 +73,11 @@
     }
   ],
   "category": "payments",
-  "printer": "salmonumbrella"
+  "printer": "salmonumbrella",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

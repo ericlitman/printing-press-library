@@ -3,6 +3,7 @@
 New York Public Library Digital Collections API. Source docs: https://api.repo.nypl.org/. Note: NYPL states the Repo API is being deprecated and will no longer be available starting August 1st, 2026.
 
 Printed by [@kierandotai](https://github.com/kierandotai) (kierandotai).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -33,7 +33,7 @@
       "description": "Sync your full activity, wellness, event, workout and gear history into a local SQLite database for offline search and SQL."
     },
     {
-      "name": "Fitness \u0026 form trend",
+      "name": "Fitness & form trend",
       "command": "form",
       "description": "Compute CTL (fitness), ATL (fatigue) and TSB/form from your synced activity load and show the trend."
     },
@@ -56,6 +56,12 @@
       "name": "Gear mileage rollup",
       "command": "gear status",
       "description": "Roll up distance/time per gear component against reminders to flag what needs service or replacement."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

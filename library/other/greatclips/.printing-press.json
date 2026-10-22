@@ -72,5 +72,11 @@
       "why_it_matters": "Confirms auth is working and gives the profileId checkin needs.",
       "group": "Auth foundation"
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

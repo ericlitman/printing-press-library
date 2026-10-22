@@ -73,5 +73,11 @@
       "command": "recurring",
       "description": "Surface repeating charges (rent, utilities, subscriptions) from your synced history and flag a month missing an expected entry."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

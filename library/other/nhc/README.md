@@ -4,6 +4,8 @@
 
 This CLI gives agents the most credible real-time hurricane information straight from the National Hurricane Center and the National Weather Service: active storms (CurrentStorms.json), parsed Public Advisories and Forecast Discussions, the Tropical Weather Outlook with formation odds, and live tropical watches and warnings. It is built text-first and links out to the official GIS for anyone who wants polygons. Deep thanks to the forecasters, hurricane hunters, and support staff at NHC who sacrifice so much for the safety of so many. This is an unofficial tool; in an emergency, follow the official watches, warnings, and evacuation orders from NHC, the NWS, and your local authorities.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install from source
 
 This repository builds with the Go toolchain (1.26.4 or newer):

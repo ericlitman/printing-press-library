@@ -43,5 +43,11 @@
       "command": "archive",
       "description": "Opt-in sticky archive that preserves browsing history past Chrome's pruning/clears; sync --accumulate appends, archive enable/disable/status/clobber/reset/vacuum manage it, with scoped read routing so rich Chrome-only commands keep reading the live snapshot."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

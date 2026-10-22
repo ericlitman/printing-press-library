@@ -5,6 +5,7 @@ The OpenAlex API provides access to a comprehensive catalog of scholarly works, 
 Learn more at [Openalex](https://openalex.org).
 
 Created by [@hiten-shah](https://github.com/hiten-shah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
