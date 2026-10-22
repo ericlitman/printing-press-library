@@ -4,6 +4,8 @@ Vercel combines the best developer experience with an obsessive focus on end-use
 
 Learn more at [Vercel Admin](https://vercel.com/support).
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `vercel-admin-pp-cli` binary and the `pp-vercel-admin` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

@@ -49,5 +49,11 @@
       "command": "sync",
       "description": "Caches Airbyte read endpoints locally for offline search, export, and repeatable agent analysis."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

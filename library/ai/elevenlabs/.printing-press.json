@@ -54,5 +54,11 @@
       "description": "Compose the subscription and voices reads into remaining character credits, tier limits, reset timing, and voice-slot headroom before a large TTS batch."
     }
   ],
-  "catalog_description": "Create and manage ElevenLabs audio workflows: text-to-speech, voice conversion, transcription, dubbing, music, voices, and agents."
+  "catalog_description": "Create and manage ElevenLabs audio workflows: text-to-speech, voice conversion, transcription, dubbing, music, voices, and agents.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

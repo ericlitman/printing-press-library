@@ -62,5 +62,11 @@
       "command": "fulfillment-risk",
       "description": "Flag open orders tied to risky product, variant, publish, or shipment states."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

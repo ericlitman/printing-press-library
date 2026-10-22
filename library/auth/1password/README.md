@@ -4,6 +4,8 @@ Agent-safe command layer over the official 1Password CLI and SDK service-account
 
 Use 1Password from agents without turning every task into a secret reveal. The CLI resolves fuzzy requests to exact op:// references, audits metadata, checks policy, and only calls op read, op inject, or op run after an explicit plan.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `1password-pp-cli` binary and the `pp-1password` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

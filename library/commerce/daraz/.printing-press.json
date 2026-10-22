@@ -59,5 +59,11 @@
       "command": "seller stats",
       "description": "Aggregate a seller's catalog from the local store: average rating, price range, listing count, discount pattern."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

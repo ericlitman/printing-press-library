@@ -5,6 +5,7 @@
 Azure Functions runs your code on demand without you managing servers. This CLI is a read-only inspector for the Function Apps in your Azure subscription: it lists your apps and functions, reads their settings and keys, and pulls invocation history from Application Insights into a local database. That local history unlocks answers a stateless `az` command can't give — like how often your functions cold-start, whether you should move off the Consumption plan, and where plaintext secrets are hiding in your app settings. It does not deploy code (use `func` or `az functionapp` for that); it tells you what your functions are doing and how to improve them.
 
 Created by [@sdhilip200](https://github.com/sdhilip200) (Dhilip Subramanian).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

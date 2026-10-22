@@ -7,6 +7,7 @@ craigslist-pp-cli wraps Craigslist's own undocumented JSON endpoints (sapi, rapi
 Learn more at [Craigslist](https://www.craigslist.org).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

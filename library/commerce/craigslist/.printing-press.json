@@ -72,5 +72,11 @@
       "command": "cities heat",
       "description": "Across cities, count fresh listings per category over a window. Surfaces which markets are hot for what."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

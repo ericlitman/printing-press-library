@@ -7,6 +7,7 @@ Shopper's recurring basket, fixed charge-7-days-before clock, and drifting price
 Learn more at [Shopper](https://shopper.com.br).
 
 Created by [@educrvz](https://github.com/educrvz) (educrvz).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

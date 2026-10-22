@@ -4,6 +4,8 @@
 
 daraz-pp-cli searches Daraz.pk listings, reads reviews, and extracts product detail like any scraper — then keeps it in a local SQLite store so it can do what one-shot scrapers cannot: track price history (price-history), rank genuine deals over fake discounts (deals, value), diff a saved search over time (since), and vet sellers (seller stats). Read-only, no login required.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `daraz-pp-cli` binary and the `pp-daraz` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

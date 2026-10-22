@@ -5,6 +5,7 @@ This is the documentation for the ElevenLabs API. You can use this API to use ou
 Learn more at [Elevenlabs](https://elevenlabs.io/docs).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

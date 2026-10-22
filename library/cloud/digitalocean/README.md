@@ -3,6 +3,7 @@
 Learn more at [Digitalocean](https://docs.digitalocean.com/reference/api).
 
 Created by [@hnshah](https://github.com/hnshah) (Hiten Shah).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

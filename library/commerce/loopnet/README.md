@@ -7,6 +7,7 @@ A SQLite-backed, agent-native CLI for LoopNet, the largest US commercial real es
 Learn more at [LoopNet](https://www.loopnet.com).
 
 Created by [@melanson633](https://github.com/melanson633) (melanson633).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

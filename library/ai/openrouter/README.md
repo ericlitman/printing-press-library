@@ -7,6 +7,7 @@ Other OpenRouter CLIs are chat REPLs. This one is built for the cron job and the
 Learn more at [OpenRouter](https://openrouter.ai/docs).
 
 Created by [@rvdlaar](https://github.com/rvdlaar) (Rick van de Laar).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

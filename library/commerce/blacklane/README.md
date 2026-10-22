@@ -5,6 +5,7 @@
 Quote Blacklane's fixed all-inclusive chauffeur fares (airport transfers and by-the-hour) by address, compare vehicle classes, and keep a searchable local log of every quote. Addresses resolve via OpenStreetMap — no API key, no login, no booking.
 
 Created by [@omarshahine](https://github.com/omarshahine) (Omar Shahine).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

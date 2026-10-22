@@ -62,5 +62,11 @@
       "command": "feed",
       "description": "Exports the latest synced submarket as a run-stamped JSON or CSV file, with records mapped to the six CRE market-intelligence data categories."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

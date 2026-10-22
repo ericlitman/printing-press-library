@@ -40,7 +40,7 @@
     {
       "name": "category browsing with keyword expansion",
       "command": "category",
-      "description": "Curated forum-id -\u003e keyword map (tech, gaming, home, grocery, apparel, sports) for client-side filtering of the live frontpage."
+      "description": "Curated forum-id -> keyword map (tech, gaming, home, grocery, apparel, sports) for client-side filtering of the live frontpage."
     },
     {
       "name": "live featured-coupons via Nuxt",
@@ -71,6 +71,12 @@
       "name": "thumbs velocity time-series",
       "command": "analytics thumbs-velocity",
       "description": "Chronological thumb-count observations for a deal with per-step delta — momentum signal for arbitrage and auto-snipe."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

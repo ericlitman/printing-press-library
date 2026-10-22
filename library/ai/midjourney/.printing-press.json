@@ -42,5 +42,11 @@
       "command": "download",
       "description": "Export rendered Midjourney job images through Chrome CDP when direct CDN fetches are blocked by Cloudflare or CORS."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

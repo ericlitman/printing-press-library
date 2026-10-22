@@ -7,6 +7,7 @@ Restaurant365 is a restaurant back-office platform for accounting, operations, p
 This CLI focuses on the engineering work around that feed: discovering available views, checking schemas, taking redacted samples, planning daily refreshes, building bounded backfills, tracking rowVersion-based incremental loads, and checking deleted-record tombstones.
 
 Created by [@sdhilip200](https://github.com/sdhilip200) (Dhilip Subramanian).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

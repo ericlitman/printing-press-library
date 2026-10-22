@@ -3,6 +3,7 @@
 Amazon Ads CLI for OAuth profile setup, report normalization, profitability analytics, keyword optimization, and guarded campaign automation.
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -81,5 +81,11 @@
   ],
   "category": "cloud",
   "printer": "giacaglia",
-  "owner_name": "Giuliano Giacaglia"
+  "owner_name": "Giuliano Giacaglia",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

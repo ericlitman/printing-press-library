@@ -7,6 +7,7 @@ AutoTempest already unifies the major used-car marketplaces into one search, but
 Learn more at [AutoTempest](https://www.autotempest.com).
 
 Created by [@richardadonnell](https://github.com/richardadonnell) (richardadonnell).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

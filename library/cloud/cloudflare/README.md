@@ -6,6 +6,8 @@ Use it when an agent or operator needs to inspect or change Cloudflare resources
 
 Authentication is token-first. Create a scoped API token from the [Cloudflare dashboard](https://dash.cloudflare.com/profile/api-tokens) and expose it as `CLOUDFLARE_API_TOKEN`, or store it with `cloudflare-pp-cli auth set-token`. Prefer narrow tokens for day-to-day workflows; use the built-in token recipe and doctor commands to work out which permissions a workflow actually needs.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `cloudflare-pp-cli` binary and the `pp-cloudflare` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

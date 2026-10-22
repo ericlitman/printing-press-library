@@ -7,6 +7,7 @@ here.now lets agents publish static Sites to live URLs and keep private files in
 Learn more at [here.now](https://here.now).
 
 Created by [@tmchow](https://github.com/tmchow) (Trevin Chow).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

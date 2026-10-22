@@ -7,6 +7,7 @@ render-pp-cli is the only Render CLI that lets you reason about your full Render
 Learn more at [Render](https://community.render.com).
 
 Created by [@giacaglia](https://github.com/giacaglia) (Giuliano Giacaglia).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

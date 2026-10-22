@@ -64,5 +64,11 @@
       "command": "sites stale",
       "description": "Lists sites not updated in N days from the local mirror, so you can reclaim free-plan slots by deleting dead ones."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

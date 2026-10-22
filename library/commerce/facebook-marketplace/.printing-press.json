@@ -61,5 +61,11 @@
       "description": "Prepare and send a seller inbox reply only when `--write` and doctor gating both pass."
     }
   ],
-  "catalog_description": "Search, draft, publish, mirror, and monitor Facebook Marketplace listings with seller helpers and explicit write checkpoints."
+  "catalog_description": "Search, draft, publish, mirror, and monitor Facebook Marketplace listings with seller helpers and explicit write checkpoints.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

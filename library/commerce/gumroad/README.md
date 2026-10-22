@@ -5,6 +5,7 @@
 This tool wraps Gumroad's documented OAuth API for products, files, covers, variants, offer codes, custom fields, resource subscriptions, sales, subscribers, licenses, payouts, tax forms, and earnings. It also adds the Printing Press local sync/search/analytics layer so agents can answer seller questions from a consistent local snapshot instead of repeatedly walking paginated endpoints.
 
 Created by [@bheemreddy181](https://github.com/bheemreddy181) (Bheem Reddy).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

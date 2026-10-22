@@ -47,5 +47,11 @@
       "command": "tail",
       "description": "Poll selected Gumroad resources and emit NDJSON changes for scripts or agent monitors."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

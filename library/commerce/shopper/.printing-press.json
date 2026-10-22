@@ -56,5 +56,11 @@
       "command": "cashback optimize",
       "description": "Computes the cheapest set of items to add (or whether to wait) to cross the next cashback tier, favoring things you'll need anyway."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

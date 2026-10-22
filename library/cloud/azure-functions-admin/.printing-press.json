@@ -32,7 +32,7 @@
       "description": "See how often your functions cold-start and how slow those starts are, with the projected cost of moving to a Premium always-ready plan."
     },
     {
-      "name": "Scaling \u0026 exec-drift trend",
+      "name": "Scaling & exec-drift trend",
       "command": "scaling",
       "description": "Track instance scale-out and execution-time drift for an app over a time window, flagging when p95 duration creeps above baseline."
     },
@@ -60,6 +60,12 @@
       "name": "Stale-function finder",
       "command": "stale",
       "description": "Find functions with zero invocations in the last N days as cleanup candidates."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

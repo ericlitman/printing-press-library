@@ -5,6 +5,7 @@
 This CLI covers Printify's official product, upload, catalog, order, shop, and webhook API surface, then adds workflow commands for product creation confidence. Agents can compile personalized manifests, upload images, validate placement, compare drift, and inspect fulfillment risk without parsing raw nested API payloads.
 
 Created by [@horknfbr](https://github.com/horknfbr) (horknfbr).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

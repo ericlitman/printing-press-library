@@ -57,5 +57,11 @@
   ],
   "auth_env_vars": [
     "OFFERUP_COOKIE"
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

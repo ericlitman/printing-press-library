@@ -19,7 +19,7 @@
     {
       "name": "Models query DSL",
       "command": "models query",
-      "description": "Query the model catalog with structured filters (tools=true, cost.completion<1, ctx>=64k) \u2014 compiled to SQL over a local SQLite cache. Works offline."
+      "description": "Query the model catalog with structured filters (tools=true, cost.completion<1, ctx>=64k) — compiled to SQL over a local SQLite cache. Works offline."
     },
     {
       "name": "Providers degraded watch",
@@ -34,7 +34,7 @@
     {
       "name": "Cost regression alarm",
       "command": "usage anomaly",
-      "description": "Flags days where per-model cost exceeds 2\u03c3 of the trailing 7-day mean. Deterministic z-score, no LLM in the loop. Designed for cron."
+      "description": "Flags days where per-model cost exceeds 2σ of the trailing 7-day mean. Deterministic z-score, no LLM in the loop. Designed for cron."
     },
     {
       "name": "Weekly-cap ETA",
@@ -57,5 +57,11 @@
   "category": "ai",
   "spec_url": "https://openrouter.ai/openapi.json",
   "printer_name": "Rick van de Laar",
-  "_patch_note": "PATCH manifest-schema-and-printer-name: schema_version 0\u21921 + printer_name added (post-generation tooling reset the manifest to skeleton state)."
+  "_patch_note": "PATCH manifest-schema-and-printer-name: schema_version 0→1 + printer_name added (post-generation tooling reset the manifest to skeleton state).",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

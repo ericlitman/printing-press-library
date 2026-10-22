@@ -67,5 +67,11 @@
       "command": "reviews --aggregate",
       "description": "Cross-source review merging plus external review site integration."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

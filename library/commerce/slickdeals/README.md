@@ -20,6 +20,7 @@ Learn more at [Slickdeals](https://slickdeals.net).
 - **`analytics thumbs-velocity <deal-id>`** — time-series of thumb counts with deltas
 
 Created by [@beetz12](https://github.com/beetz12) (David He).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

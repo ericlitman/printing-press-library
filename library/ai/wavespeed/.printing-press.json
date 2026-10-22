@@ -121,5 +121,11 @@
       "description": "Create, inspect, apply, and edit brand profiles that auto-merge into pack, compose, variants, restyle, and run."
     }
   ],
-  "catalog_description": "Run WaveSpeed AI models with schema-aware inputs, prompt shortcuts, price estimates, wait/download helpers, aliases, and media uploads."
+  "catalog_description": "Run WaveSpeed AI models with schema-aware inputs, prompt shortcuts, price estimates, wait/download helpers, aliases, and media uploads.",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

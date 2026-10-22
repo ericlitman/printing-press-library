@@ -38,72 +38,78 @@
     {
       "name": "Visibility weekly delta",
       "command": "visibility delta",
-      "description": "See exactly what moved in AI Visibility week over week \u2014 overview, trend, sentiment, or traffic \u2014 without screenshotting two dashboard tabs and diffing them by hand."
+      "description": "See exactly what moved in AI Visibility week over week — overview, trend, sentiment, or traffic — without screenshotting two dashboard tabs and diffing them by hand."
     },
     {
       "name": "Prompts that lost AI mentions",
       "command": "visibility prompts losers",
-      "description": "Surface tracked prompts whose citation count or first-position rank dropped vs the prior window \u2014 the report a CMO asks for every Monday and the dashboard can't produce."
+      "description": "Surface tracked prompts whose citation count or first-position rank dropped vs the prior window — the report a CMO asks for every Monday and the dashboard can't produce."
     },
     {
       "name": "Citation-domain rank shift",
       "command": "visibility citation-domains rank-shift",
-      "description": "Watch which domains gained or lost citation share for your project's AI-tracked prompts over a 30-day window \u2014 useful when a competitor starts crowding the answer set."
+      "description": "Watch which domains gained or lost citation share for your project's AI-tracked prompts over a 30-day window — useful when a competitor starts crowding the answer set."
     },
     {
       "name": "Knowledge-library impact",
       "command": "knowledge impact",
-      "description": "Rank a project's knowledge libraries by how often their grounded URLs actually appear in tracked AI citations \u2014 answers \"is this library worth maintaining?\"."
+      "description": "Rank a project's knowledge libraries by how often their grounded URLs actually appear in tracked AI citations — answers \"is this library worth maintaining?\"."
     },
     {
       "name": "Topic-coverage drift",
       "command": "research drift",
-      "description": "Diff a topic_research's hierarchical map against the writer_documents you've already shipped \u2014 covered vs gap, ranked for action."
+      "description": "Diff a topic_research's hierarchical map against the writer_documents you've already shipped — covered vs gap, ranked for action."
     },
     {
       "name": "Gap to publish pipeline",
       "command": "research gaps publish",
-      "description": "Take topic-gap output, bulk-create documents in 50-doc batches, and queue them into a WordPress integration \u2014 one idempotent command for the content-ops ritual."
+      "description": "Take topic-gap output, bulk-create documents in 50-doc batches, and queue them into a WordPress integration — one idempotent command for the content-ops ritual."
     },
     {
       "name": "Stale-doc projection",
       "command": "docs stale",
-      "description": "List writer and optimized docs not updated in the last N days, ranked by recent AI-source traffic \u2014 the refresh queue in one query."
+      "description": "List writer and optimized docs not updated in the last N days, ranked by recent AI-source traffic — the refresh queue in one query."
     },
     {
       "name": "Competitor topic diff",
       "command": "research domain diff",
-      "description": "Set-diff a competitor's domain_research topic tree against your own topic_research \u2014 instant view of what they cover and you don't."
+      "description": "Set-diff a competitor's domain_research topic tree against your own topic_research — instant view of what they cover and you don't."
     },
     {
       "name": "Cross-project visibility roll-up",
       "command": "visibility portfolio",
-      "description": "Roll up AI Visibility deltas across every project in the organization \u2014 the agency-portfolio view the single-project UI doesn't produce."
+      "description": "Roll up AI Visibility deltas across every project in the organization — the agency-portfolio view the single-project UI doesn't produce."
     },
     {
       "name": "Quota burn-down forecast",
       "command": "account burn",
-      "description": "Project credit exhaustion from your last 30 days of usage snapshots \u2014 a pre-flight check before queueing a large bulk-publish run."
+      "description": "Project credit exhaustion from your last 30 days of usage snapshots — a pre-flight check before queueing a large bulk-publish run."
     },
     {
       "name": "Traffic-page to citation join",
       "command": "visibility traffic-citations",
-      "description": "For each top-traffic page, list the tracked prompts whose AI citations resolved to it \u2014 answers \"why is this page getting AI traffic?\"."
+      "description": "For each top-traffic page, list the tracked prompts whose AI citations resolved to it — answers \"why is this page getting AI traffic?\"."
     },
     {
       "name": "Agent context bundle",
       "command": "context bundle",
-      "description": "Emit a JSON blob shaped for an agent's context window covering prompts, citations, docs, and topic-maps for one project \u2014 the handoff payload an agent's loop needs."
+      "description": "Emit a JSON blob shaped for an agent's context window covering prompts, citations, docs, and topic-maps for one project — the handoff payload an agent's loop needs."
     },
     {
       "name": "Local search",
       "command": "search",
-      "description": "Full-text search across local cache: AI Visibility prompts, citations, writer documents, optimized documents, and topic-map nodes \u2014 one query, multi-entity hits."
+      "description": "Full-text search across local cache: AI Visibility prompts, citations, writer documents, optimized documents, and topic-map nodes — one query, multi-entity hits."
     },
     {
       "name": "Sync diff",
       "command": "sync diff",
-      "description": "Emit per-resource sync cursors and total row counts from the local store \u2014 the inspection primitive for agent loops that need to know whether a re-sync is due."
+      "description": "Emit per-resource sync cursors and total row counts from the local store — the inspection primitive for agent loops that need to know whether a re-sync is due."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }
