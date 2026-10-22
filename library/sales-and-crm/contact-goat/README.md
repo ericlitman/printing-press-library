@@ -4,6 +4,7 @@ Super LinkedIn for the terminal. Search, enrich, and map warm-intro paths
 across LinkedIn, Happenstance, and Deepline from one SQLite-backed CLI.
 
 Created by [@mvanhorn](https://github.com/mvanhorn) (Matt Van Horn).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

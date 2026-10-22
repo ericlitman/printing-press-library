@@ -63,5 +63,11 @@
       "command": "capture",
       "description": "Add many tasks from a file or stdin (one title per line), resolving folder/context names to ids, in budget-aware batches of 50."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

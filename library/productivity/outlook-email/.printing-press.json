@@ -87,5 +87,11 @@
       "command": "bulk-archive",
       "description": "Read a sender list or query, print a move plan, optionally execute it. Safe by default, no surprises."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

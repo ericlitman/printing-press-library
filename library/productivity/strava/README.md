@@ -5,6 +5,7 @@
 strava-pp-cli syncs your entire Strava history to a local SQLite database, then unlocks the analytics your training actually requires: CTL/ATL training load, power curve, zone time distribution, aerobic decoupling, and segment effort progression. Everything works offline, composes with jq, and speaks JSON natively for AI coaching agents.
 
 Created by [@azaaron](https://github.com/azaaron) (azaaron).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -87,5 +87,11 @@
       "command": "--agent (global flag)",
       "description": "Single flag that forces --json --compact --no-input --no-color --yes defaults so any read command is LLM-safe in one switch."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

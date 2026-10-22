@@ -67,5 +67,11 @@
       "command": "ltv",
       "description": "Rank clients by total purchase spend with tenure since signup."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

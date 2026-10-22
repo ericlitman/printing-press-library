@@ -42,5 +42,11 @@
       "command": "icloud-tabs",
       "description": "Deterministic read of synced iCloud tabs open on the user's other Apple devices from CloudTabs.db, with per-device counts (--summary), device-name/pinned filters, no-silent-cap, and an opt-in Safari-activate --refresh for freshness."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

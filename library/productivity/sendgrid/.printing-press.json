@@ -66,5 +66,11 @@
       "description": "Fans out per-subuser stats pulls in parallel, caches them locally, and produces a single aggregated table for ESP operators managing tenant hierarchies."
     }
   ],
-  "spec_source": "https://github.com/twilio/sendgrid-oai (bundled from 46 resource files under spec/yaml/; OpenAPI 3.1; 240 paths, 391 ops)"
+  "spec_source": "https://github.com/twilio/sendgrid-oai (bundled from 46 resource files under spec/yaml/; OpenAPI 3.1; 240 paths, 391 ops)",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

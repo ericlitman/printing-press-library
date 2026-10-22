@@ -5,6 +5,7 @@
 notion-pp-cli syncs your Notion workspace into a local SQLite store and exposes commands that answer compound questions the Notion UI cannot: cross-database joins, status drift, dead links, workspace health, and who owns what across every client. Works offline and ships a full MCP server so agents can load rich project context in a single call instead of 30.
 
 Created by [@neektza](https://github.com/neektza) (Nikica Jokic).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

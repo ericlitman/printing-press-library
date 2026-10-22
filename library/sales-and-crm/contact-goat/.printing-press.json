@@ -23,5 +23,11 @@
     "HAPPENSTANCE_API_KEY"
   ],
   "spec_format": "openapi3",
-  "spec_url": "https://developer.happenstance.ai/openapi.json"
+  "spec_url": "https://developer.happenstance.ai/openapi.json",
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
+  ]
 }

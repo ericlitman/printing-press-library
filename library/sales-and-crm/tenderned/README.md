@@ -7,6 +7,7 @@ TenderNed is the Dutch national public procurement platform run by PIANOo / Mini
 This CLI covers the unauthenticated TNS publication webservice (search/list/filter publications, document download, contracting-authority directory, RSS feed) and the Basic-auth eForms XML endpoint. Data is CC-0 public domain.
 
 Created by [@markvandeven](https://github.com/markvandeven) (markvandeven).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

@@ -4,6 +4,8 @@
 
 The Sutra/Arketa Partner API is pure CRUD with zero reporting endpoints, so studio operators are stuck with canned vendor reports they cannot customize and a client list the vendor is cagey about exporting. This CLI syncs your studio's full dataset (locations, classes, clients, purchases, referrals, reservations) into a local SQLite database you own, then answers the questions the dashboard hides: instructor scorecards, no-show rates, capacity utilization, expiring memberships, churn risk, referral conversion, client LTV, and revenue with prior-period comparison. The daily front-desk loop (book, cancel, check-in) is in here too, all offline-queryable and agent-native.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `sutra-fitness-pp-cli` binary and the `pp-sutra-fitness` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

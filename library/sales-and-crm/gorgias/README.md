@@ -12,6 +12,7 @@ The MCP server runs in code-orchestration mode: ~15 tools (a `gorgias_search` + 
 Learn more at [Gorgias](https://www.gorgias.com).
 
 Created by [@chrisyoungcooks](https://github.com/chrisyoungcooks) (Chris Young).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

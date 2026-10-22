@@ -78,5 +78,11 @@
       "command": "mention-inbox",
       "description": "Local FTS over messages.text for @user tokens with --since filter; tail format."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

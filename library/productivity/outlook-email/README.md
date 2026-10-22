@@ -5,6 +5,7 @@
 Personal MSA support via OAuth 2.0 device-code against /common. A local SQLite store synced through messages/delta unlocks `followup`, `senders`, `since`, `waiting`, `digest`, `stale-unread`, and `bulk-archive` — workflows no other Outlook CLI exposes because they require persisted state. Companion to outlook-calendar with the same auth playbook.
 
 Created by [@brennaman](https://github.com/brennaman) (Paul Brennaman).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

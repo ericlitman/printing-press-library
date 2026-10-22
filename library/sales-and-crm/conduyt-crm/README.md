@@ -74,6 +74,7 @@ follow exponential backoff: 1m, 5m, 15m, 1h, 6h, 24h, 72h (7 attempts).
 Learn more at [Conduyt Crm](https://conduyt.app).
 
 Created by [@ptaramona](https://github.com/ptaramona) (Conduyt).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

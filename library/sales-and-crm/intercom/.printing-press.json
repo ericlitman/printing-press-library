@@ -45,5 +45,11 @@
       "command": "conversations sla",
       "description": "First-response and resolution-time metrics grouped by team or admin, computed over the local store."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

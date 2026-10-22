@@ -9,6 +9,7 @@
 Run `obsidian-pp-cli sync` with Obsidian open to refresh the mirror; all Tier-3 commands then run offline.
 
 Created by [@DrDriftwood](https://github.com/DrDriftwood) (Angelo Pullen).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

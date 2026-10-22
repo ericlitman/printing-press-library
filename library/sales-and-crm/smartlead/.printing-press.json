@@ -54,5 +54,11 @@
       "command": "drift",
       "description": "Computes week-over-week reply, open, and bounce deltas for a campaign by querying analytics one seven-day window at a time."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

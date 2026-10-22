@@ -35,5 +35,11 @@
       "command": "which",
       "description": "Resolve a natural-language capability query to the best matching command from this CLI's curated feature index."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

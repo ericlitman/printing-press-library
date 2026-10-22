@@ -46,12 +46,12 @@
     {
       "name": "Bookmark from URL paste",
       "command": "saved add-from-url",
-      "description": "Paste any Zoom URL shape (https://zoom.us/j/\u003cid\u003e?pwd=, zoommtg://, calendar-invite formats) and the CLI extracts ID + unencrypted password into a named saved bookmark in one step."
+      "description": "Paste any Zoom URL shape (https://zoom.us/j/<id>?pwd=, zoommtg://, calendar-invite formats) and the CLI extracts ID + unencrypted password into a named saved bookmark in one step."
     },
     {
       "name": "Schedule + bookmark in one shot",
       "command": "schedule",
-      "description": "Create a cloud meeting (POST /users/me/meetings) and immediately persist the resulting ID + password into local saved_meetings, so future `zoom saved join \u003cname\u003e` works offline."
+      "description": "Create a cloud meeting (POST /users/me/meetings) and immediately persist the resulting ID + password into local saved_meetings, so future `zoom saved join <name>` works offline."
     },
     {
       "name": "Speaker-time analytics on a recording",
@@ -92,6 +92,12 @@
       "name": "My Notes — extract to-do / action items",
       "command": "notes todos",
       "description": "Scans ingested notes for action-item patterns (`TODO:`, `Action:`, `[ ]`, `- [ ]`, `Action Item:`, `Next:`, `Follow up:`, `Owner:`) and emits a structured to-do list with source meeting topic + date + checkbox state."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

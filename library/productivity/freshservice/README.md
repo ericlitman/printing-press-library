@@ -5,6 +5,7 @@
 freshservice-pp-cli is the first general-purpose terminal CLI for Freshservice — the jira-cli equivalent for ITSM. It covers tickets, changes, assets, users, and knowledge base with full CRUD, local SQLite sync, FTS across all entity types, and novel analytics commands that would require three dashboards and a spreadsheet to replicate manually.
 
 Created by [@mark-van-de-ven](https://github.com/mark-van-de-ven) (Mark van de Ven).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

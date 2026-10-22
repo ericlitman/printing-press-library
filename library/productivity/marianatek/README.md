@@ -5,6 +5,7 @@
 marianatek is the first CLI and MCP server for the Mariana Tek booking platform that powers hundreds of boutique-fitness, yoga, sauna, and wellness studios. Beyond mirroring every Customer API endpoint, it adds a local SQLite catalog, FTS5 search across class sessions, cancellation watching (the API exposes no waitlist signal), and joins across tenants that the per-studio iframe widget can't perform.
 
 Created by [@salmonumbrella](https://github.com/salmonumbrella) (salmonumbrella).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

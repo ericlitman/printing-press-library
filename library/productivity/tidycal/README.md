@@ -21,6 +21,7 @@ Using the `authorization_code` grant type to authenticate users using OAuth 2.0 
 Learn more at [Tidycal](https://tidycal.com/developer/docs/).
 
 Created by [@cathrynlavery](https://github.com/cathrynlavery) (Cathryn Lavery).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
