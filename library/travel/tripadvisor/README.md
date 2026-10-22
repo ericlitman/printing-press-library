@@ -4,6 +4,8 @@
 
 Search hotels, restaurants, and attractions and get rating, review count, and ranking up front so an agent can rank and choose. Beyond the raw five endpoints, `best` and `nearby-best` search-then-rank in one call, `compare` puts places side by side, and `drift` flags a rating that slipped since you last looked — all backed by a local SQLite cache so repeat lookups are free and offline.
 
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
+
 ## Install
 
 The recommended path installs both the `tripadvisor-pp-cli` binary and the `pp-tripadvisor` agent skill (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, and other agents supported by the upstream [`skills`](https://github.com/vercel-labs/skills) CLI) in one shot:

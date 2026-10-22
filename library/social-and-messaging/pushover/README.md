@@ -5,6 +5,7 @@
 pushover-pp-cli covers the full official API instead of stopping at send-message. It adds agent-safe env defaults, receipt lifecycle tools, quota preflight, and local history so alerts are auditable.
 
 Created by [@twidtwid](https://github.com/twidtwid) (Todd Dailey).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

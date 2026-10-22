@@ -52,5 +52,11 @@
       "command": "hashtag-perf",
       "description": "Rank the hashtags you track by the reach and engagement of their top media."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

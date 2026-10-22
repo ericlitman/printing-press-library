@@ -81,5 +81,11 @@
       "command": "webhooks health",
       "description": "Per-webhook success rate, failure count, last delivery timestamp, and consecutive failure streak."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

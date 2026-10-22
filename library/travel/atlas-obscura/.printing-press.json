@@ -59,5 +59,11 @@
       "command": "export",
       "description": "Serialize a saved trip to GPX, GeoJSON, or a markdown itinerary, fully offline."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

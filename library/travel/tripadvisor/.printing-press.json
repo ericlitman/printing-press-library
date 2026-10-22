@@ -59,5 +59,11 @@
       "command": "fit",
       "description": "Rank search results by how well their trip-type mix matches a declared traveler profile (families, couples, solo, business)."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

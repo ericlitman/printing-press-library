@@ -7,6 +7,7 @@ bird-pp-cli wraps every Conversations endpoint plus the SMS-relevant pieces of B
 Learn more at [Bird](https://bird.com).
 
 Created by [@CleverAI-ZH](https://github.com/CleverAI-ZH) (Stephan Stoeber).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

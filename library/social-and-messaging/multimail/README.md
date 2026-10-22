@@ -5,6 +5,7 @@
 The only CLI that makes MultiMail's trust ladder a first-class operator surface. Sync mailboxes, emails, and audit events to local SQLite, then query oversight velocity, allowlist coverage, and inbox health across your entire fleet — insights no single API call provides.
 
 Created by [@H179922](https://github.com/H179922) (H179922).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

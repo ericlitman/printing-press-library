@@ -28,5 +28,11 @@
       "command": "hotels",
       "description": "Dotted-path selection through nested results.prices[], results.booking_urls, results.images[]. Returns only the fields the agent needs."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

@@ -35,7 +35,7 @@
     {
       "name": "Offline station search",
       "command": "stations",
-      "description": "FTS5 search over the local UK CRS code table; resolves Paddington -\u003e PAD with no network call."
+      "description": "FTS5 search over the local UK CRS code table; resolves Paddington -> PAD with no network call."
     },
     {
       "name": "Saved-routes morning status",
@@ -50,12 +50,12 @@
     {
       "name": "Disruption-aware journey ranking",
       "command": "journey",
-      "description": "Ranks A-\u003eB options by combined scheduled-time, current delay, and platform-known signal so on-time-but-later beats earlier-but-late."
+      "description": "Ranks A->B options by combined scheduled-time, current delay, and platform-known signal so on-time-but-later beats earlier-but-late."
     },
     {
       "name": "Recent-journey replay",
       "command": "recent",
-      "description": "Re-runs your recent A-\u003eB searches with fresh live data, side-by-side, so iterative trip planning is one keystroke per refresh."
+      "description": "Re-runs your recent A->B searches with fresh live data, side-by-side, so iterative trip planning is one keystroke per refresh."
     },
     {
       "name": "Multi-origin board fan-out",
@@ -66,6 +66,12 @@
       "name": "Eval-grader 9th quality gate",
       "command": "eval",
       "description": "Programmatic eval grader that scores an LLM agent against a fixture suite of natural-language UK-rail prompts; 80% pass-rate threshold blocks ship."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

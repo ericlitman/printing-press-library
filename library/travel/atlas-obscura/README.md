@@ -7,6 +7,7 @@ Search the world's hidden wonders by keyword or coordinates, pull full place det
 Learn more at [Atlas Obscura](https://www.atlasobscura.com).
 
 Created by [@dbryson](https://github.com/dbryson) (David Bryson).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 

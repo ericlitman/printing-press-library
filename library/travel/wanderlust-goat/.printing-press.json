@@ -79,5 +79,11 @@
       "command": "quiet-hour",
       "description": "Places that locals describe as quiet at the requested time, intersected with OSM opening hours and walking radius."
     }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
+    }
   ]
 }

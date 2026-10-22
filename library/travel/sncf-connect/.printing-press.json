@@ -31,7 +31,7 @@
     {
       "name": "Commute tracker",
       "command": "commute check",
-      "description": "Save your commute route and check it each morning \u2014 next trains plus disruption status in one call, exits non-zero on disruption for cron scripting."
+      "description": "Save your commute route and check it each morning — next trains plus disruption status in one call, exits non-zero on disruption for cron scripting."
     },
     {
       "name": "Disruption digest",
@@ -51,22 +51,28 @@
     {
       "name": "Timetable frequency heatmap",
       "command": "timetable heatmap",
-      "description": "See how many trains run each hour on a line at a stop \u2014 ASCII bar chart showing peak and off-peak density."
+      "description": "See how many trains run each hour on a line at a stop — ASCII bar chart showing peak and off-peak density."
     },
     {
       "name": "Board export",
       "command": "board export",
-      "description": "Export a full departure board as flat CSV or JSONL for pipeline ingestion \u2014 all fields, no formatting."
+      "description": "Export a full departure board as flat CSV or JSONL for pipeline ingestion — all fields, no formatting."
     },
     {
       "name": "Vehicle journey trace",
       "command": "vehicle trace",
-      "description": "Get the full ordered stop sequence for a specific train service \u2014 train's perspective, not traveler's."
+      "description": "Get the full ordered stop sequence for a specific train service — train's perspective, not traveler's."
     },
     {
       "name": "Stop cluster",
       "command": "stops cluster",
-      "description": "Group nearby stops within a radius using Haversine distance \u2014 useful for deduplicating station indexes and resolving ambiguous names."
+      "description": "Group nearby stops within a radius using Haversine distance — useful for deduplicating station indexes and resolving ambiguous names."
+    }
+  ],
+  "contributors": [
+    {
+      "handle": "ericlitman",
+      "name": "Eric Litman"
     }
   ]
 }

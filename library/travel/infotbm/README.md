@@ -5,6 +5,7 @@
 Syncs the full TBM GTFS dataset locally so schedule lookups, stop searches, and frequency analysis work without an internet connection. Overlays live real-time data from the SIRI-Lite API for arrival predictions, vehicle tracking, and disruption alerts. Computes journeys, detects ghost services, and diffs timetable changes — capabilities no existing Bordeaux transit tool provides.
 
 Created by [@pawlclawbot](https://github.com/pawlclawbot) (pawlclawbot).
+Contributors: [@ericlitman](https://github.com/ericlitman) (Eric Litman).
 
 ## Install
 
